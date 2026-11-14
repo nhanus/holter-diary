@@ -115,3 +115,12 @@ add a line and move Save.
 Existing failure/retry, suspended draft, time calibration, offline/PDF and update
 protection tests remain applicable. Native keyboards and nonzero viewport panning
 require device validation; the synthetic overlay uses a zero vertical offset.
+
+## Clock-difference presentation
+
+Formatter coverage includes both languages, positive/negative offsets, exact zero,
+subsecond differences, minute/hour rounding carries and durations over 24 hours.
+Production browser tests verify the saved and pending displays, reload, reset,
+unchanged precise calibration values and original entry records. Report access
+is checked at 320/393 CSS pixels with normal and 150% text. Existing report and
+update tests continue to verify the underlying calculations and stored diaries.
