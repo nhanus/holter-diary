@@ -640,9 +640,12 @@ page controlled by a different-version worker must not claim verified offline
 readiness until it reloads. Installation can help persistence permission, but is
 not a universal prerequisite or guarantee.
 
-Main-push validation uses a per-commit concurrency key. Release publication stays
-serialized with GitHub's `queue: max` (up to 100 pending publications), so a newer
-pending job cannot replace an earlier one. PR checks still replace obsolete runs;
+A small main-push workflow queues the whole reusable CI pipeline before builds
+with GitHub's `queue: max` (up to 100 pending runs). A faster later build cannot
+overtake a pipeline already in that queue, and newer pending runs do not replace
+earlier ones. Publication retains its separate queue as a safety barrier. GitHub
+orders by arrival at the queue, not an absolute commit-time guarantee. PR checks
+still replace obsolete runs;
 feature-branch pushes do not start duplicate builds. Only incomplete `starter`
 assets in a verified matching draft may be removed and reuploaded; completed
 assets, published releases and conflicting identities remain protected.

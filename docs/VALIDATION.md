@@ -140,7 +140,9 @@ Regression coverage for [#39](https://github.com/nhanus/holter-diary/issues/39):
   suites remain required. Browser emulation does not establish physical Android
   validation.
 
-GitHub workflow validation checks the documented release queue setting. Older
+GitHub workflow validation checks the main-push queue before the reusable build
+pipeline and the separate publication queue. The main-only wrapper retains one
+main-push pipeline; CI itself handles PRs, manual/scheduled and reusable calls. Older
 Actionlint versions report `queue` as unknown (upstream issue
 [rhysd/actionlint#657](https://github.com/rhysd/actionlint/issues/657)); when using
 such a version, exclude only that known diagnostic and retain all other checks.
