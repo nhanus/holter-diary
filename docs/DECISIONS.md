@@ -419,3 +419,48 @@ tests cover missing workers, activation errors and timeouts. Independent Astra
 source and visual review found no blocking issues; its live-announcement and
 focused-control visibility recommendations were implemented and tested. Only
 synthetic diary data was used. No dependencies or hosting settings changed.
+
+
+## 2026-11-14 — Unified settings and separate entry editing
+
+A complete task-flow review found that separate diary settings and app maintenance
+forced users to guess between two locations. A reviewed local prototype therefore
+supersedes the previous split: one labelled Settings button opens a full-height
+native dialog with report details, recorder time, language, offline/storage and
+updates. Each section shows its current state when collapsed. A waiting-update
+indicator belongs to that same Settings button. Export remains a diary task.
+
+Keep the daily form compact, show Now before first input, then the frozen date/time
+and actual time basis. Time correction continues using the established fixed-clock
+model. A successful symptom marker offers Add details without opening the keyboard.
+When the form scrolls out of view, a small action bar returns to it or marks a
+symptom immediately. Entries retain explicit dates for multi-day recordings.
+
+Editing now uses its own dialog while retaining the complete new-entry draft,
+including capture/event timestamps, revision, dirty state and invalid manual input.
+Identity and clock forms patch only their own section of the last committed
+same-tab session. Successful writes update dependent revision tokens; cross-tab
+stale writes still fail. A calibration updates derived display times without
+rewriting raw entries or reinterpreting valid drafts. Invalid input remains visible.
+
+Updates require all unfinished state to be resolved. Reset uses a separate explicit
+confirmation showing the entry count and an export action, and clears state only
+after the transaction commits. Native dialogs provide focus containment; explicit
+back/cancel and native cancel events share discard protection. No router or
+browser-Back guarantee is added. Sticky-header scroll padding follows actual
+header height so enlarged text does not conceal focused controls.
+
+Independent Astra review identified settings feedback jumping to the top, focus
+restoration to a deleted entry, and stale transient flags after another tab reset
+the diary. These were corrected with section-local feedback, a surviving focus
+target and clearing draft flags before the no-session return. Regression tests
+exercise these transitions alongside actual IndexedDB aborts, stale writes,
+service-worker updates, offline restart and PDF extraction. No data migration,
+new dependencies or publication settings are needed. Real Android keyboard,
+TalkBack and platform Back behavior remain device validation rather than claims
+based on desktop emulation.
+
+Design rationale follows the prior review's W3C/GOV.UK references: clear action
+labels, visible status summaries, large touch targets and secondary details on
+demand. The single settings hierarchy is a project-specific design decision,
+not a prescribed standards layout.
