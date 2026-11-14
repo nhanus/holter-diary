@@ -17,8 +17,9 @@
 - An independent reviewer checks the code, workflow and plan; findings and fixes
   are recorded in the PR before merge.
 
-The complete app is implemented. Automated tests exercise the production build;
-real Android restart and installation checks below remain pending.
+The complete app is implemented. Automated tests exercise the production build.
+Device observations have been reported, but the reproducible real-device
+acceptance record below is not complete.
 
 - `npm run test:unit`: 23 tests covering fixed time, permission outcomes, actual
   PDF text extraction, A4 bounds, multipage continuation, Unicode fallback and update activation failures/timeouts.
@@ -55,10 +56,24 @@ build. Use synthetic data only in tests, screenshots, logs and artifacts. Add
 failure traces/screenshots with short retention. Avoid a broad browser matrix or
 an arbitrary coverage percentage. Tests must exercise behavior, not mirror code.
 
-## Real-device acceptance (pending)
+## Real-device acceptance (record incomplete)
+
+### Reported observations
+
+Recorded on 2026-11-14: the maintainer reports installing and using the app on an
+Android phone, seeing persistent-storage approval after installation, and applying
+an app update with the installed version displayed. These observations support
+the README's description of hands-on testing; they are not a completed acceptance
+run. Android/browser versions and the exact build for each observation have not
+been recorded. They do not establish every checklist item, every browser, the
+latest release's full behavior, or WebAPK migration between launch paths.
+
+### Outstanding acceptance record
 
 Record date, build SHA, Android version, browser version and observed results.
-Desktop emulation cannot complete this checklist.
+Unchecked items below mean the reproducible acceptance record is outstanding,
+not that no informal testing has occurred. Desktop emulation cannot complete
+this checklist.
 
 - [ ] Install on the Android home screen over HTTPS.
 - [ ] Check the revised interface with the on-screen keyboard, large text and TalkBack.
