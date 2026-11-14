@@ -103,7 +103,7 @@ dialog::backdrop { background: #18312977; }
 .setting-section>summary strong { font-size: 16px; display: block; }
 .section-summary { display: block; font-size: 13px; color: #50665b; font-weight: 400; margin-top: 2px; overflow-wrap: anywhere; }
 .section-summary>span { display: block; }
-#update-settings[data-state="available"], #update-settings[data-state="applying"] { background: #edf4ef; box-shadow: inset 4px 0 #194d42; border-radius: 0 0 13px 13px; }
+#update-settings[data-state="reload-required"], #update-settings[data-state="available"], #update-settings[data-state="applying"] { background: #edf4ef; box-shadow: inset 4px 0 #194d42; border-radius: 0 0 13px 13px; }
 #update-settings>summary>span:not(.update-section-icon) { flex: 1; min-width: 0; }
 .update-section-icon { display: flex; width: 40px; height: 40px; border-radius: 50%; align-items: center; justify-content: center; background: #194d42; color: white; flex: none; }
 #installed-version { margin-top: 5px; font-size: 12px; color: #50665b; font-weight: 400; }

@@ -124,3 +124,24 @@ Production browser tests verify the saved and pending displays, reload, reset,
 unchanged precise calibration values and original entry records. Report access
 is checked at 320/393 CSS pixels with normal and 150% text. Existing report and
 update tests continue to verify the underlying calculations and stored diaries.
+# Validated review follow-up (0.1.0-beta.5)
+
+Regression coverage for [#39](https://github.com/nhanus/holter-diary/issues/39):
+
+- Reset counts and exports entries saved in another tab before opening. Inserts,
+  edits, deletions and replacements after opening prevent deletion, preserve the
+  local draft and require fresh confirmation.
+- Distinct synthetic app versions exercise late activation, settings edited during
+  activation and activation in another tab. Verify guarded reload, installed
+  version, retained records, offline restart and the unsaved-input unload guard.
+- Draft release retries recover incomplete starter assets, retain completed
+  assets, and fail safely on cleanup errors or invalid asset identifiers.
+- Existing settings-draft update guards and the full app/storage/report/website
+  suites remain required. Browser emulation does not establish physical Android
+  validation.
+
+GitHub workflow validation checks the documented release queue setting. Older
+Actionlint versions report `queue` as unknown (upstream issue
+[rhysd/actionlint#657](https://github.com/rhysd/actionlint/issues/657)); when using
+such a version, exclude only that known diagnostic and retain all other checks.
+PR CI and completed automated review of the final head remain merge requirements.

@@ -163,13 +163,16 @@ export class DiaryStore {
     });
   }
 
-  async resetSession(id: string, expectedRevision: number): Promise<void> {
+  async resetSession(id: string, expectedRevision: number, expectedEntries: Pick<Entry, 'id' | 'revision'>[]): Promise<void> {
+    const expected = new Map(expectedEntries.map(entry => [entry.id, entry.revision]));
     await this.run(['sessions', 'entries'], 'readwrite', async tx => {
       await checkSession(tx, id, expectedRevision);
       const entries = tx.objectStore('entries');
       const values: Entry[] = await read(entries.getAll());
+      values.forEach(assertEntry);
+      const current = values.filter(entry => entry.sessionId === id);
+      requireValue(current.length === expected.size && current.every(entry => expected.get(entry.id) === entry.revision), 'EDIT_CONFLICT');
       for (const entry of values) {
-        assertEntry(entry);
         if (entry.sessionId === id) await read(entries.delete(entry.id));
       }
       await read(tx.objectStore('sessions').delete(id));
