@@ -22,9 +22,10 @@ real Android restart and installation checks below remain pending.
 - `npm run test:unit`: 21 tests covering fixed time, permission outcomes, actual
   PDF text extraction, A4 bounds, multipage continuation and Unicode fallback.
 - `npm run test:browser`: 6 Chromium storage tests against a separate fixture.
-- `npm run test:app`: 19 production mobile-browser tests for notes, markers,
+- `npm run test:app`: 22 production mobile-browser tests for notes, markers,
   edits, failure recovery, conflicts, language, calibration, reset, offline reload
   and export, cache readiness/repair, explicit update adoption across tabs, export above a long history, timed confirmations and downloaded PDFs after setup, later clock corrections and resetting the correction.
+- Document language and localized description follow DE/EN selection and persisted preferences, including a delayed database open with a neutral loading shell. Repeated storage checks visibly report denial, API failure and grant without changing offline readiness or saved entries. Native browser translation prompts and real persistence grants still require device checks.
 - Patient details: all four name/birth-date combinations on every DE/EN PDF page and in TXT; leap dates, long names, legacy records, reload/edit/clear/reset, and unchanged existing entries. Missing fields and labels are omitted entirely.
 - Missing comparisons and recorded zero differences each use one timestamp column with distinct explanations. Positive, negative and fractional nonzero differences use two. PDF/TXT, DE/EN, backdated events and empty reports are covered.
 - Synthetic 24/48-hour diaries verify both dated phone and monitor timestamps and retain 49/97 short entries in 2/4 A4 pages.

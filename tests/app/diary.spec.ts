@@ -194,6 +194,98 @@ test('denied persistence is visible and does not prevent real database saves', a
   await expect(page.locator('main [data-storage-status]')).toContainText('nicht bestätigt');
 });
 
+test('document language and description follow the interface and saved preference', async ({ page, browser }) => {
+  await page.goto('');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Langzeit-EKG/);
+  await page.locator('#language').selectOption('en');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Holter recording/);
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Start my diary' })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Holter recording/);
+  await page.locator('#language').selectOption('de');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Tagebuch beginnen' })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+  const english = await browser.newContext({ locale: 'en-US' });
+  try {
+    const fresh = await english.newPage();
+    await fresh.goto(page.url());
+    await expect(fresh.getByRole('button', { name: 'Start my diary' })).toBeVisible();
+    await expect(fresh.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(fresh.locator('meta[name="description"]')).toHaveAttribute('content', /Holter recording/);
+  } finally { await english.close(); }
+});
+
+test('the loading shell stays neutral until the saved language is available', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ locale: 'en-US' });
+  try {
+    const page = await context.newPage();
+    await page.goto(baseURL!);
+    await page.locator('#language').selectOption('de');
+    await expect(page.getByRole('button', { name: 'Tagebuch beginnen' })).toBeVisible();
+    await page.addInitScript(() => {
+      const open = indexedDB.open.bind(indexedDB);
+      indexedDB.open = (...args: Parameters<IDBFactory['open']>) => {
+        const request = open(...args);
+        request.addEventListener('success', event => {
+          event.stopImmediatePropagation();
+          (window as Window & { releaseDiaryOpen?: () => void }).releaseDiaryOpen = () => request.dispatchEvent(new Event('success'));
+        }, { once: true });
+        return request;
+      };
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => typeof (window as Window & { releaseDiaryOpen?: () => void }).releaseDiaryOpen === 'function');
+    await expect(page.locator('html')).toHaveAttribute('lang', '');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', '');
+    await page.evaluate(() => (window as Window & { releaseDiaryOpen?: () => void }).releaseDiaryOpen!());
+    await expect(page.getByRole('button', { name: 'Tagebuch beginnen' })).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Langzeit-EKG/);
+  } finally { await context.close(); }
+});
+
+test('storage check reports repeated denial, API failure and actual grant separately from offline readiness', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator.storage, 'persist', { configurable: true, value: async () => {
+      await new Promise(resolve => setTimeout(resolve, 300)); return false;
+    } });
+    Object.defineProperty(navigator.storage, 'persisted', { configurable: true, value: async () => false });
+  });
+  await start(page);
+  await note(page, 'Synthetische gespeicherte Notiz');
+  await expect(page.locator('#offline-badge')).toHaveText('Für Offline-Nutzung bereit');
+  await page.getByRole('button', { name: 'Einstellungen', exact: true }).click();
+  const check = page.getByRole('button', { name: 'Dauerhaften Speicher prüfen' });
+  const result = page.locator('#dialog [data-storage-check]');
+  for (let i = 0; i < 2; i++) {
+    await check.click();
+    await expect(result).toHaveText('Speicherschutz wird geprüft …');
+    await expect(check).toBeDisabled();
+    await expect(result).toHaveText('Prüfung abgeschlossen: Der Browser hat dauerhaften Speicher nicht freigegeben.');
+    await expect(page.locator('#dialog [data-offline-status]')).toHaveText('Für Offline-Nutzung bereit');
+  }
+  await page.evaluate(() => Object.defineProperty(navigator.storage, 'persisted', { configurable: true, value: async () => { throw new Error('Synthetic failure'); } }));
+  await check.click();
+  await expect(result).toHaveText('Prüfung abgeschlossen: Speicherfreigabe konnte nicht geprüft werden.');
+  await page.evaluate(() => Object.defineProperty(navigator.storage, 'persisted', { configurable: true, value: async () => true }));
+  await check.click();
+  await expect(result).toHaveText('Prüfung abgeschlossen: Dauerhafter Speicher bestätigt.');
+  await page.getByRole('button', { name: 'Schließen', exact: true }).click();
+  await page.locator('#language').selectOption('en');
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.evaluate(() => Object.defineProperty(navigator.storage, 'persisted', { configurable: true, value: async () => false }));
+  await page.getByRole('button', { name: 'Check persistent storage' }).click();
+  await expect(result).toHaveText('Checking storage protection…');
+  await expect(result).toHaveText('Check complete: The browser has not granted persistent storage.');
+  await page.reload();
+  await expect(page.locator('.entry-note')).toHaveText('Synthetische gespeicherte Notiz');
+});
+
 test('failed marker retries its original time and can be discarded after a diary reset elsewhere', async ({ page, context }) => {
   await start(page);
   await page.evaluate(() => {

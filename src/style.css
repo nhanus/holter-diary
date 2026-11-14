@@ -698,3 +698,5 @@ dialog {
 
 
 }
+
+[data-storage-check]:empty { margin: 0; }

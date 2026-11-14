@@ -28,12 +28,18 @@ let setupName = '', settingsName = '', sampleAt: number | null = null, reading =
 let modal: 'settings' | 'export' | null = null;
 let reportLanguage: Language = lang, reportFile: File | undefined;
 let persistence: PersistenceStatus = 'not-granted';
+let storageCheck: 'idle' | 'checking' | 'done' = 'idle';
 let message: { key: TextKey; params?: Record<string, string | number>; error?: boolean } | undefined;
 let messageTimer: number | undefined;
 let loadError = false, applyingUpdate = false;
 const offline = new OfflineApp(refreshStatus);
 const t = (key: TextKey, params?: Record<string, string | number>) => translate(lang, key, params);
 const text = (key: TextKey, params?: Record<string, string | number>) => esc(t(key, params));
+
+function updateDocumentLanguage(): void {
+  document.documentElement.lang = lang;
+  document.querySelector<HTMLMetaElement>('meta[name="description"]')!.content = t('welcomeText');
+}
 
 function freshDraft(): void {
   if (!session) { draft = undefined; return; }
@@ -64,11 +70,25 @@ const persistenceKey = (): TextKey => ({ granted: 'grant', 'not-granted': 'notGr
 const offlineKey = (): TextKey => ({ ready: 'offlineReady', checking: 'offlineChecking', failed: 'offlineFailed', unavailable: 'offlineUnavailable' })[offline.status] as TextKey;
 function refreshStatus(): void {
   for (const node of document.querySelectorAll('[data-storage-status]')) node.textContent = t(persistenceKey());
+  for (const node of document.querySelectorAll<HTMLElement>('[data-storage-check]')) {
+    const message = storageCheck === 'checking' ? t('storageChecking') :
+      storageCheck === 'done' ? t('storageChecked', { result: t(persistenceKey()) }) : '';
+    if (node.textContent !== message) node.textContent = message;
+  }
+  const storageButton = document.querySelector<HTMLButtonElement>('#check-storage');
+  if (storageButton) storageButton.disabled = busy || storageCheck === 'checking';
   for (const node of document.querySelectorAll('[data-offline-status]')) node.textContent = t(offlineKey());
   const badge = document.querySelector('#offline-badge');
   if (badge) badge.textContent = !navigator.onLine ? t('connection') : offline.status === 'ready' ? t('offlineReady') : t('device');
   const update = document.querySelector<HTMLButtonElement>('#apply-update');
   if (update) update.hidden = !offline.registration?.waiting;
+}
+async function checkStorage(): Promise<void> {
+  if (storageCheck === 'checking') return;
+  storageCheck = 'checking'; refreshStatus();
+  try { persistence = await persistenceStatus(true); }
+  catch { persistence = 'failed'; }
+  finally { storageCheck = 'done'; refreshStatus(); }
 }
 function problem(error: unknown, fallback: TextKey = 'writeFailed'): void {
   const code = error instanceof Error ? error.message : '';
@@ -118,6 +138,7 @@ function calibrationFields(): string {
 function statusPanel(): string {
   return `<section class="status-panel"><h3>${text('storage')}</h3><p class="status-line" data-storage-status></p><p class="help">${text('storageHelp')}</p>
     <button type="button" class="secondary" id="check-storage">${text('retryStorage')}</button>
+    <p class="help" role="status" data-storage-check></p>
     <h3>${text('offline')}</h3><p class="status-line" data-offline-status></p><p class="help">${text('installHelp')}</p>
     <button type="button" class="secondary" id="retry-offline">${text('retryOffline')}</button>
     <button type="button" class="secondary" id="apply-update" hidden>${text('updateAction')}</button></section>`;
@@ -141,7 +162,7 @@ function renderDialog(): string {
 }
 function render(focusTarget?: string): void {
   const focused = focusTarget ?? document.activeElement?.id;
-  document.documentElement.lang = lang; document.title = 'Holter Diary';
+  updateDocumentLanguage(); document.title = 'Holter Diary';
   root.innerHTML = `<header class="topbar"><a class="brand" href="${import.meta.env.BASE_URL}" aria-label="Holter Diary">${pulse}<span>holter<span class="brand-light"> diary</span></span></a>
     <div class="header-controls"><label class="sr-only" for="language">${text('language')}</label><select id="language" class="language-select"><option value="de" ${lang === 'de' ? 'selected' : ''}>DE</option><option value="en" ${lang === 'en' ? 'selected' : ''}>EN</option></select>
     ${session ? `<button type="button" id="settings" class="icon-button" aria-label="${text('settings')}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 17h14M9 4v6m6 4v6"/></svg></button>` : ''}</div></header>
@@ -238,7 +259,7 @@ function bind(): void {
   on('export', () => { modal = 'export'; reportLanguage = lang; reportFile = undefined; message = undefined; render(); });
   on('close-dialog', closeDialog);
   document.querySelector('#dialog')?.addEventListener('cancel', event => { event.preventDefault(); closeDialog(); });
-  on('check-storage', () => void task(async () => { persistence = await persistenceStatus(true); }));
+  on('check-storage', () => void checkStorage());
   on('retry-offline', () => void offline.start());
   on('apply-update', () => { if ((dirty || pendingMarker) && !confirm(t('updateConfirm'))) return; applyingUpdate = true; offline.applyUpdate(); });
   on('reset-clock', () => { sampleAt = null; reading = 'reset'; notify('checkTimes'); render(); });
@@ -286,6 +307,7 @@ window.addEventListener('online', refreshStatus); window.addEventListener('offli
 document.addEventListener('visibilitychange', () => { if (!document.hidden && session && !dirty && !editing && !busy && !modal) { freshDraft(); render(); } });
 async function init(): Promise<void> {
   try { store = await openDiaryStore(); const preferences = await store.preferences(); if (preferences) lang = preferences.language;
+    updateDocumentLanguage();
     await refreshData(); freshDraft(); persistence = await persistenceStatus(); } catch { loadError = true; }
   render(); void offline.start();
 }
