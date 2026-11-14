@@ -17,14 +17,15 @@
 The complete app is implemented. Automated tests exercise the production build;
 real Android restart, installation and printer checks below remain pending.
 
-- `npm run test:unit`: 16 tests covering fixed time, permission outcomes, actual
+- `npm run test:unit`: 18 tests covering fixed time, permission outcomes, actual
   PDF text extraction, A4 bounds, multipage continuation and Unicode fallback.
 - `npm run test:browser`: 5 Chromium storage tests against a separate fixture.
-- `npm run test:app`: 17 production mobile-browser tests for notes, markers,
+- `npm run test:app`: 18 production mobile-browser tests for notes, markers,
   edits, failure recovery, conflicts, language, calibration, reset, offline reload
-  and export, cache readiness/repair, explicit update adoption across tabs, export above a long history, timed confirmations and calibrated downloaded PDFs after setup and later clock corrections.
+  and export, cache readiness/repair, explicit update adoption across tabs, export above a long history, timed confirmations and downloaded PDFs after setup, later clock corrections and resetting the correction.
+- Missing comparisons and recorded zero differences each use one timestamp column with distinct explanations. Positive, negative and fractional nonzero differences use two. PDF/TXT, DE/EN, backdated events and empty reports are covered.
 - Synthetic 24/48-hour diaries verify both dated phone and monitor timestamps and retain 49/97 short entries in 2/4 A4 pages.
-- Synthetic German and English multipage reports with adjacent phone/monitor clocks were rendered for visual inspection. Tests also cover derived phone dates outside the monitor input year boundaries.
+- Synthetic German and English multipage reports with one reference clock or adjacent reference/recorder clocks were rendered for visual inspection. Tests also cover derived phone dates outside the monitor input year boundaries.
 - Mobile layouts checked at 320, 393 and 768 CSS pixels, including enlarged text.
 - Independent source review checked time, write acknowledgement, pending-marker
   recovery, same-tab settings changes, PDF output and service-worker lifecycle.

@@ -48,10 +48,10 @@ test('German PDF preserves umlauts and orders corrected monitor times across mid
   assert.ok(strings.includes('Name: Jörg Weiß'));
   assert.equal(strings[strings.indexOf('Erfasste Einträge') - 1], '2');
   assert.equal(strings[strings.indexOf('Beschwerdemarkierungen') - 1], '1');
-  assert.ok(strings.includes('Messbeginn (EKG-Zeit): 31. Dez. 2030, 23:58:00'));
-  assert.ok(strings.includes('Letzter Eintrag (EKG-Zeit): 01. Jan. 2031, 00:00:00'));
-  assert.ok(strings.includes('Bericht erstellt (EKG-Zeit): 01. Jan. 2031, 00:02:00'));
-  assert.ok(strings.some(text => text.endsWith('UTC+01:00; +120 s')));
+  assert.ok(strings.includes('Messbeginn (Referenz): 31.12.2030 23:56:00'));
+  assert.ok(strings.includes('Letzter Eintrag (Referenz): 31.12.2030 23:58:00'));
+  assert.ok(strings.includes('Bericht erstellt (Referenz): 01.01.2031 00:00:00'));
+  assert.ok(strings.some(text => text.includes('EKG-Gerätezeit = Referenzzeit +120 s.')));
   const rows = strings.slice(strings.indexOf('31.12.2030 23:57:00'), strings.findIndex(text => text.startsWith('Holter Diary |')));
   assert.deepEqual(rows.slice(0, 7), [
     '31.12.2030 23:57:00', '31.12.2030 23:59:00', 'Notiz', note.note,
@@ -73,8 +73,8 @@ test('long notes fit on A4 pages with repeated headings and all text in order', 
     assert.deepEqual(bounds.map(Math.round), [0, 0, 595, 842]);
     const strings = text.map(item => item.str);
     assert.equal(strings[0], 'Holter monitoring diary');
-    assert.ok(strings.includes('Phone time'));
-    assert.ok(strings.includes('Monitor time'));
+    assert.ok(strings.includes('Reference time'));
+    assert.ok(strings.includes('Recorder time'));
     assert.ok(strings.includes('Event'));
     assert.ok(strings.includes('SYMPTOMS'));
     assert.equal(strings.includes('(continued)'), index > 0);
@@ -120,7 +120,7 @@ test('unsupported PDF characters are reported and the TXT fallback preserves Uni
   });
   const fallback = reportText(session, [entry], 'de', generatedAt);
   assert.ok(fallback.includes('Name: Test 李'));
-  assert.ok(fallback.endsWith(`Handyzeit: 2030-12-31 23:57:00 | EKG-Zeit: 2030-12-31 23:59:00 | BESCHWERDEN\n${note}\n`));
+  assert.ok(fallback.endsWith(`Uhrzeit (Referenz): 2030-12-31 23:57:00 | EKG-Gerätezeit: 2030-12-31 23:59:00 | BESCHWERDEN\n${note}\n`));
 });
 
 test('24 and 48 hour diaries stay compact and retain every calibrated row across day and page boundaries', async () => {
@@ -136,8 +136,8 @@ test('24 and 48 hour diaries stay compact and retain every calibrated row across
       const observed: string[] = [];
       for (const { text, links } of pages) {
         assert.deepEqual(links, [APP_URL, REPOSITORY_URL]);
-        const phoneHeading = text.find(item => item.str === (language === 'de' ? 'Handyzeit' : 'Phone time'))!;
-        const timeHeading = text.find(item => item.str === (language === 'de' ? 'EKG-Zeit' : 'Monitor time'))!;
+        const phoneHeading = text.find(item => item.str === (language === 'de' ? 'Uhrzeit (Referenz)' : 'Reference time'))!;
+        const timeHeading = text.find(item => item.str === (language === 'de' ? 'EKG-Gerätezeit' : 'Recorder time'))!;
         assert.ok(phoneHeading && timeHeading);
         for (const note of text.filter(item => /^Synthetic observation \d{3}$/.test(item.str))) {
           const index = Number(note.str.slice(-3));
@@ -173,6 +173,63 @@ test('derived phone dates remain printable beyond the monitor input year boundar
     const strings = pages.flatMap(page => page.text.map(item => item.str));
     assert.ok(strings.includes(expectedPhone));
     assert.ok(strings.includes(reading.replace('T', ' ')));
-    assert.ok(reportText(session, [entry], 'en', generatedAt).includes(`Phone time: ${expectedPhone}`));
+    assert.ok(reportText(session, [entry], 'en', generatedAt).includes(`Reference time: ${expectedPhone}`));
+  }
+});
+
+
+test('missing and zero comparisons use one dated column with distinct explanations in both exports', async () => {
+  for (const language of ['de', 'en'] as const) {
+    for (const compared of [false, true]) {
+      const session = newSession(start, { timeZone: 'Europe/Berlin', utcOffsetMinutes: 60 });
+      if (compared) session.calibration = calibrate(start, '2030-12-31T23:56:00', session.clock);
+      const note = Array.from({ length: 120 }, (_, i) => `Observation ${String(i).padStart(3, '0')}`).join('\n');
+      const entry = newEntry(session.id, start + 5 * 60_000, 'symptom', note);
+      entry.eventAtMs = start + 60_000;
+      const original = JSON.stringify({ session, entry });
+      const heading = language === 'de' ? 'Uhrzeit (Referenz)' : 'Reference time';
+      const device = language === 'de' ? 'EKG-Gerätezeit' : 'Recorder time';
+      const status = compared ? (language === 'de' ? 'Abweichung 0 s' : 'difference 0 s') :
+        (language === 'de' ? 'Kein Zeitvergleich mit dem EKG-Gerät eingetragen.' : 'No clock comparison with the recorder entered.');
+      const pages = await extractPages(await buildPdf(session, [entry], language, generatedAt));
+      assert.ok(pages.length >= 3);
+      assert.ok(pages[0].text.some(item => item.str.includes(status)));
+      for (const page of pages) {
+        assert.ok(page.text.some(item => item.str === heading));
+        assert.ok(!page.text.some(item => item.str === device));
+        assert.deepEqual(page.links, [APP_URL, REPOSITORY_URL]);
+        const timestamp = page.text.find(item => item.str === (language === 'de' ? '31.12.2030 23:57:00' : '2030-12-31 23:57:00'))!;
+        const kind = page.text.find(item => item.str === (language === 'de' ? 'BESCHWERDEN' : 'SYMPTOMS'))!;
+        assert.ok(timestamp.transform[4] + timestamp.width < kind.transform[4]);
+        const noteHeading = page.text.find(item => item.str === (language === 'de' ? 'Tätigkeit / Beschwerden / Notizen' : 'Activity / symptoms / notes'))!;
+        assert.ok(noteHeading.transform[4] < 300, 'single-clock layout gives notes more space');
+      }
+      assert.deepEqual(pages.flatMap(page => page.text.filter(item => /^Observation \d{3}$/.test(item.str)).map(item => item.str)), note.split('\n'));
+      const txt = reportText(session, [entry], language, generatedAt);
+      assert.ok(txt.includes(status));
+      assert.ok(txt.includes(`${heading}: 2030-12-31 23:57:00 |`));
+      assert.ok(!txt.includes(`${device}:`));
+      const empty = await extractPages(await buildPdf(session, [], language, generatedAt));
+      assert.ok(empty[0].text.some(item => item.str === (language === 'de' ? 'Keine Einträge vorhanden.' : 'No entries recorded.')));
+      assert.equal(JSON.stringify({ session, entry }), original);
+    }
+  }
+});
+
+test('fractional nonzero comparisons retain the second column and an exact localized difference', async () => {
+  for (const language of ['de', 'en'] as const) {
+    for (const [captureOffset, reading, delta] of [[347, '2030-12-31T23:56:00', '-0.347'], [-347, '2030-12-31T23:56:00', '+0.347']] as const) {
+      const session = newSession(start, { timeZone: 'Europe/Berlin', utcOffsetMinutes: 60 });
+      session.calibration = calibrate(start + captureOffset, reading, session.clock);
+      const entry = newEntry(session.id, start, 'note', 'Fractional example');
+      const pages = await extractPages(await buildPdf(session, [entry], language, generatedAt));
+      const strings = pages.flatMap(page => page.text.map(item => item.str));
+      const expectedDelta = (language === 'de' ? delta.replace('.', ',') : delta) + ' s';
+      assert.ok(strings.includes(language === 'de' ? 'EKG-Gerätezeit' : 'Recorder time'));
+      assert.ok(strings.some(value => value.includes(expectedDelta)));
+      const txt = reportText(session, [entry], language, generatedAt);
+      assert.ok(txt.includes(expectedDelta));
+      assert.ok(txt.includes(language === 'de' ? ' | EKG-Gerätezeit:' : ' | Recorder time:'));
+    }
   }
 });
