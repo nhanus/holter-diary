@@ -202,3 +202,24 @@ the summary height. Short entries take one line; long notes wrap and continue
 without truncation. Dates remain present on every row, and table headings and
 provenance footers repeat on every page. Synthetic 24/48-hour fixtures with
 49/97 short entries fit in 2/4 pages in DE/EN; longer notes naturally use more.
+
+## 2026-11-14 — Compare phone and monitor clocks directly
+
+**Choice:** Replace the separate date/time columns with adjacent phone-time and
+monitor-time columns, each containing its own date and time. Both represent the
+same event instant, including backdated entries; capture/save time is not used
+as the phone-time column. Derive both from the session's fixed UTC basis and
+apply calibration only to the monitor column. Stored entries remain unchanged.
+
+**Why:** Readers can match an observation against either clock without applying
+the correction themselves, including when the clocks show different dates.
+Metadata explicitly labels its monitor-time basis. The text fallback also labels
+both clocks. Keep 10pt timestamps and notes, wrapping, repeated headers and
+provenance footers. Longer notes naturally require more pages.
+
+**Validation:** Production-download tests cover zero, positive and negative
+corrections, midnight and manual monitor-time input. PDF extraction verifies
+both dated columns across 24/48-hour reports; rendered DE/EN samples check
+readability. Independent review identified a derived phone-date boundary case,
+now covered by preserving expanded ISO years without relaxing monitor input
+validation. The fix passed re-review.

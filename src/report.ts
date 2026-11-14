@@ -2,19 +2,19 @@ import { PDFDocument, PDFName, PDFString, StandardFonts, rgb } from 'pdf-lib';
 import type { PDFFont, PDFPage } from 'pdf-lib';
 import type { Entry, Language, Session } from './domain.ts';
 import { assertEntry, requireValue } from './domain.ts';
-import { assertConsistentCalibration, monitorTime } from './time.ts';
+import { assertConsistentCalibration, monitorTime, phoneTime } from './time.ts';
 import { basis, displayDate } from './format.ts';
 
 export const APP_URL = 'https://nhanus.github.io/holter-diary/';
 export const REPOSITORY_URL = 'https://github.com/nhanus/holter-diary';
 
 const labels = {
-  en: { entries: 'Recorded entries', symptoms: 'Symptom markers', clock: 'All times: monitor time (correction already applied)', title: 'Holter monitoring diary', name: 'Name', start: 'Measurement start', last: 'Last entry', created: 'Report created (monitor time)',
-    basis: 'Time basis: fixed UTC offset; monitor correction', date: 'Date', time: 'Monitor time', kind: 'Event', note: 'Activity / symptoms / notes',
+  en: { entries: 'Recorded entries', symptoms: 'Symptom markers', clock: 'Same event: phone time without monitor correction, alongside monitor time.', title: 'Holter monitoring diary', name: 'Name', start: 'Measurement start (monitor time)', last: 'Last entry (monitor time)', created: 'Report created (monitor time)',
+    basis: 'Time basis: fixed UTC offset; monitor correction', phone: 'Phone time', time: 'Monitor time', kind: 'Event', note: 'Activity / symptoms / notes',
     symptom: 'SYMPTOMS', activity: 'Note', marker: 'Symptom time marked; no details recorded.', continued: '(continued)', page: 'Page',
     observation: 'Patient observations. Notes are reproduced without translation or medical interpretation.', empty: 'No entries recorded.' },
-  de: { entries: 'Erfasste Einträge', symptoms: 'Beschwerdemarkierungen', clock: 'Alle Zeiten: EKG-Zeit (bereits umgerechnet)', title: 'Langzeit-EKG-Tagebuch', name: 'Name', start: 'Messbeginn', last: 'Letzter Eintrag', created: 'Bericht erstellt (EKG-Zeit)',
-    basis: 'Zeitbasis: fester UTC-Abstand; EKG-Korrektur', date: 'Datum', time: 'EKG-Zeit', kind: 'Ereignis', note: 'Tätigkeit / Beschwerden / Notizen',
+  de: { entries: 'Erfasste Einträge', symptoms: 'Beschwerdemarkierungen', clock: 'Dasselbe Ereignis: Handyzeit ohne EKG-Korrektur und EKG-Zeit nebeneinander.', title: 'Langzeit-EKG-Tagebuch', name: 'Name', start: 'Messbeginn (EKG-Zeit)', last: 'Letzter Eintrag (EKG-Zeit)', created: 'Bericht erstellt (EKG-Zeit)',
+    basis: 'Zeitbasis: fester UTC-Abstand; EKG-Korrektur', phone: 'Handyzeit', time: 'EKG-Zeit', kind: 'Ereignis', note: 'Tätigkeit / Beschwerden / Notizen',
     symptom: 'BESCHWERDEN', activity: 'Notiz', marker: 'Beschwerdezeit markiert; keine Details eingetragen.', continued: '(Fortsetzung)', page: 'Seite',
     observation: 'Persönliche Beobachtungen. Notizen werden ohne Übersetzung oder medizinische Bewertung wiedergegeben.', empty: 'Keine Einträge vorhanden.' },
 };
@@ -39,8 +39,8 @@ export function reportText(session: Session, entries: readonly Entry[], language
   const stamp = (at: number) => monitorTime(at, session).replace('T', ' ');
   const lines = [l.title, session.name ? `${l.name}: ${session.name}` : '', `${l.start}: ${stamp(session.startedAtMs)}`,
     sorted.length ? `${l.last}: ${stamp(sorted.at(-1)!.eventAtMs)}` : '', `${l.created}: ${stamp(generatedAt)}`,
-    `${l.basis}: ${basis(session)}`, l.observation, ''];
-  for (const entry of sorted) lines.push(`${stamp(entry.eventAtMs)} | ${entry.kind === 'symptom' ? l.symptom : l.activity}`, entry.note || l.marker, '');
+    `${l.basis}: ${basis(session)}`, l.clock, l.observation, ''];
+  for (const entry of sorted) lines.push(`${l.phone}: ${phoneTime(entry.eventAtMs, session).replace('T', ' ')} | ${l.time}: ${stamp(entry.eventAtMs)} | ${entry.kind === 'symptom' ? l.symptom : l.activity}`, entry.note || l.marker, '');
   if (!sorted.length) lines.push(l.empty);
   return lines.join('\n');
 }
@@ -82,7 +82,7 @@ export async function buildPdf(session: Session, entries: readonly Entry[], lang
 
   const pageWidth = 595.28, pageHeight = 841.89, left = 40, right = pageWidth - left;
   const bottom = 82, lineHeight = 13;
-  const columns = [left, 111, 179, 273];
+  const columns = [left, 155, 270, 360];
   const textWidth = right - columns[3] - 8;
   const ink = rgb(0.12, 0.19, 0.18), muted = rgb(0.30, 0.37, 0.35);
   const teal = rgb(0.10, 0.30, 0.26), rule = rgb(0.79, 0.83, 0.81);
@@ -101,7 +101,7 @@ export async function buildPdf(session: Session, entries: readonly Entry[], lang
   }
   function tableHead() {
     page.drawRectangle({ x: left - 8, y: y - 8, width: right - left + 16, height: 25, color: teal });
-    draw(l.date, columns[0], y, true, 8.5, rgb(1, 1, 1));
+    draw(l.phone, columns[0], y, true, 8.5, rgb(1, 1, 1));
     draw(l.time, columns[1], y, true, 8.5, rgb(1, 1, 1));
     draw(l.kind, columns[2], y, true, 8.5, rgb(1, 1, 1));
     draw(l.note, columns[3], y, true, 8.5, rgb(1, 1, 1));
@@ -136,6 +136,7 @@ export async function buildPdf(session: Session, entries: readonly Entry[], lang
   if (!sorted.length) draw(l.empty, left, y);
   for (const entry of sorted) {
     const wall = monitorTime(entry.eventAtMs, session);
+    const phoneWall = phoneTime(entry.eventAtMs, session);
     const lines = wrap(entry.note || l.marker, font, textWidth, 10);
     let offset = 0;
     while (offset < lines.length) {
@@ -147,9 +148,14 @@ export async function buildPdf(session: Session, entries: readonly Entry[], lang
         page.drawRectangle({ x: left - 8, y: y - rowHeight + 11, width: right - left + 16, height: rowHeight - 2, color: rgb(0.97, 0.94, 0.90) });
         page.drawRectangle({ x: left - 8, y: y - rowHeight + 11, width: 3, height: rowHeight - 2, color: rgb(0.46, 0.29, 0.19) });
       }
-      const date = language === 'de' ? `${wall.slice(8, 10)}.${wall.slice(5, 7)}.${wall.slice(0, 4)}` : wall.slice(0, 10);
-      draw(date, columns[0], y, false, 10, muted);
-      draw(wall.slice(11), columns[1], y, true, 10);
+      const dateTime = (value: string) => {
+        const [isoDate, time] = value.split('T');
+        const parts = /^([+-]?\d+)-(\d{2})-(\d{2})$/.exec(isoDate)!;
+        const date = language === 'de' ? `${parts[3]}.${parts[2]}.${parts[1]}` : isoDate;
+        return `${date} ${time}`;
+      };
+      draw(dateTime(phoneWall), columns[0], y, false, 10, muted);
+      draw(dateTime(wall), columns[1], y, true, 10);
       draw(entry.kind === 'symptom' ? l.symptom : l.activity, columns[2], y, entry.kind === 'symptom', 8.5);
       if (offset) draw(l.continued, columns[2], y - lineHeight, false, 8, muted);
       for (const [i, line] of chunk.entries()) draw(line, columns[3], y - i * lineHeight);
