@@ -184,3 +184,21 @@ also work in monochrome. Keep calibrated metadata, original notes and repeated
 headers. Every page includes page numbering and visible, clickable canonical
 project website/repository URLs. These links identify the generating application;
 adding them does not activate hosting or change the publication decision.
+
+## 2026-11-14 — Verify calibration and compact multi-day reports
+
+**Evidence:** Reproduced clock adjustments through the production interface and
+extracted the downloaded PDFs before changing report layout. Automatic entries
+at phone time 23:58 became 00:01 the next day with +3 minutes, or 23:54 with
+-4 minutes. Later calibration shifted already-saved rows without rewriting raw
+entries. Setup at -2 minutes produced 13:28 for an automatic phone-time 13:30
+entry; a manually specified monitor time 13:30 remained 13:30. No header-only
+conversion defect was reproduced. Keep the existing arithmetic; make explicit
+that displayed times and manual time input are already in the monitor basis.
+
+**Layout:** Put date and time in separate columns on the same baseline. Keep
+notes and timestamps at 10pt with 13pt leading and modest row padding, and reduce
+the summary height. Short entries take one line; long notes wrap and continue
+without truncation. Dates remain present on every row, and table headings and
+provenance footers repeat on every page. Synthetic 24/48-hour fixtures with
+49/97 short entries fit in 2/4 pages in DE/EN; longer notes naturally use more.

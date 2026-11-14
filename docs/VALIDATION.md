@@ -17,12 +17,13 @@
 The complete app is implemented. Automated tests exercise the production build;
 real Android restart, installation and printer checks below remain pending.
 
-- `npm run test:unit`: 14 tests covering fixed time, permission outcomes, actual
+- `npm run test:unit`: 15 tests covering fixed time, permission outcomes, actual
   PDF text extraction, A4 bounds, multipage continuation and Unicode fallback.
 - `npm run test:browser`: 5 Chromium storage tests against a separate fixture.
-- `npm run test:app`: 15 production mobile-browser tests for notes, markers,
+- `npm run test:app`: 17 production mobile-browser tests for notes, markers,
   edits, failure recovery, conflicts, language, calibration, reset, offline reload
-  and export, cache readiness/repair, explicit update adoption across tabs, export above a long history and timed confirmations.
+  and export, cache readiness/repair, explicit update adoption across tabs, export above a long history timed confirmations and calibrated downloaded PDFs after setup and later clock corrections.
+- Synthetic 24/48-hour diaries verify every converted date/time and retain 49/97 short entries in 2/4 A4 pages.
 - Synthetic German single-page and English multipage reports were rendered for visual inspection.
 - Mobile layouts checked at 320, 393 and 768 CSS pixels, including enlarged text.
 - Independent source review checked time, write acknowledgement, pending-marker
