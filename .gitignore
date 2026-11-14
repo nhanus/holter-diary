@@ -8,3 +8,5 @@ test-results/
 *.local
 *.pdf
 .test-build/
+
+/release/

@@ -78,11 +78,11 @@ The app's responsibility ends with a readable PDF/TXT file. The operating system
 and PDF viewer handle sharing and printing; no printer configuration or physical
 printer acceptance is required for this project.
 
-After device acceptance, record the verified main commit and tag the first release.
-Keep untested behavior explicit; publication of repository history remains a
-separate review from testing the application.
+Preview releases may be created while device acceptance is pending. After device
+acceptance, record the verified release and commit before selecting a stable version.
+Keep untested behavior explicit; publication of repository history remains separate.
 
-When an update is ready, the single **Settings** button shows **Update available**.
+When an update is ready, the single **Settings** button shows an update icon.
 Open Settings → App updates and choose **Update now**. Save or explicitly discard
 unfinished input first: new notes, editor changes, setup fields, settings sections
 and pending symptom markers remain protected. Settings also contains offline
@@ -91,3 +91,42 @@ status, installation help and the optional persistent-storage check.
 Use the visible back/cancel controls to return from full-height dialogs. Their
 native cancel event uses the same unsaved-change protection. Browser/device Back
 behavior varies and is not claimed as a validated app navigation mechanism.
+
+
+## Versioned releases
+
+The installed version is always visible in **Settings → App updates**, including
+when offline or when no update is waiting. It is embedded in the running app, not
+read from the newest server version. `package.json` is the version source;
+`package-lock.json` must match. Vite embeds it and emits `version.json`, which the
+offline build includes in its integrity-checked assets.
+
+To release a change:
+
+1. In a reviewed PR, update the package version and both lockfile root versions.
+   Use `X.Y.Z` for a stable release or `X.Y.Z-beta.N` (also `alpha`/`rc`) for a
+   prerelease. Build metadata and other suffix formats are intentionally unsupported.
+2. Add reviewed English notes in `releases/VERSION.md`. Keep them suitable for
+   public release and describe any pending device acceptance.
+3. Merge after review and CI. The successful **main push** CI packages its tested
+   `dist/` once, then automatically creates tag `vVERSION` at that exact commit.
+   It uploads the app archive, `SHA256SUMS` and `release.json` to a draft, verifies
+   upload digests, and publishes it. Prereleases are not marked as latest stable.
+   PR, scheduled, manual and Pages workflow runs cannot publish releases.
+4. Deploy the attached `holter-diary-VERSION.tar.gz`, after checking its SHA-256
+   against `SHA256SUMS`. `release.json` records the version, source commit and
+   archive checksum. Extract its contents into the existing app base path using
+   the hosting precautions above. GitHub's automatically added **source** archives
+   are not the app build. GitHub release creation does not deploy the website.
+
+An unchanged version does not create another release. Released tags/assets are
+never overwritten. Rerun a failed main CI at the **same commit** to recover a
+matching tag-only or partial draft release; conflicting commits or asset digests
+stop publication. Do not move a tag to repair a release. Once published, deploy
+only its package under that version; unreleased commits with an unchanged package
+version are development builds, not replacements for the release.
+
+The repository can remain private: release creation does not change visibility
+or enable Pages. The release job alone gets `contents: write`; tests and builds
+retain read-only permissions. Release packages are also retained as CI artifacts
+for seven days; the release assets provide the durable download.

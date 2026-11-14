@@ -506,3 +506,37 @@ narrow-screen layout, disclosure state across language changes and settings save
 unsaved-note protection, activation timeout and successful retry retaining saved
 records. Existing offline, storage and report checks remain part of CI. Desktop
 browser checks do not replace Android screen-reader or device acceptance.
+
+
+## 2026-11-14 — Installed version and automated preview releases
+
+Start with `0.1.0-beta.1` while Android acceptance remains in progress. Show a
+quiet installed-version line under App updates even when the section is collapsed.
+Embed it at build time from the validated package/lock version, so offline clients
+and clients awaiting activation identify their own app rather than a server's
+newer deployment. Include the version manifest in offline integrity checks.
+
+Extend existing CI instead of adding an independent build pipeline. After all
+checks pass, package the tested static app with normalized archive metadata and
+record its checksum and exact source commit. Only a main-push release job gets
+write access and publishes those downloaded bytes without rebuilding. Use reviewed
+per-version notes rather than copying commit history or private operational notes.
+
+Create a fixed tag and draft first; verify every asset before publication. Recover
+matching interrupted drafts without clobbering uploaded assets, reject conflicting
+commits/content, and leave published versions unchanged. Main-push runs cannot
+cancel publication midway. Hosting remains separate and repository visibility is
+unchanged. Deploy release packages, not builds of later unversioned commits.
+
+Regression coverage includes version/lock/build consistency, deterministic
+packaging, checksum failures, publication event guards, exact tag commits,
+prerelease flags, partial-upload recovery, conflicts and API failures. Production
+browser coverage checks the installed version in both languages, offline and
+while a worker update waits. Actual GitHub release execution and subsequent
+hosting verification are required in addition to these isolated tests.
+
+Independent Astra review caught two integration details: draft releases require
+paginated discovery when the published-tag endpoint returns 404, and the Pages
+caller needs the reusable workflow's permission ceiling even though publication
+is skipped for manual runs. Both were corrected. Release tests model draft lookup,
+pagination and duplicate matches; API status errors remain distinct from absence.
