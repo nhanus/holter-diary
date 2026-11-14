@@ -37,6 +37,7 @@ h1, h2, h3, p, figure {
 }
 
 h1, h2, h3 {
+  overflow-wrap: anywhere;
   line-height: 1.12;
   font-weight: 650;
   letter-spacing: -.04em;
@@ -159,6 +160,10 @@ h3 {
 .language a[aria-current=true] {
   background: #e5ece4;
   font-weight: 700;
+}
+
+.hero > * {
+  min-width: 0;
 }
 
 .hero {
@@ -1168,7 +1173,7 @@ footer {
     width: calc(100% - 32px);
   }
   .hero h1 {
-    font-size: 46px;
+    font-size: 40px;
   }
   .hero-actions {
     gap: 14px;
