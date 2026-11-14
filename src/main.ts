@@ -6,7 +6,7 @@ import type { DiaryStore } from './storage.ts';
 import { calibrate, captureClock, eventTimeFromMonitor, monitorTime, newSession } from './time.ts';
 import { detectLanguage, translate } from './i18n.ts';
 import type { TextKey } from './i18n.ts';
-import { basis, displayDate, displayTime } from './format.ts';
+import { basis, displayClockDifference, displayDate, displayTime } from './format.ts';
 import { persistenceStatus } from './persistence.ts';
 import type { PersistenceStatus } from './persistence.ts';
 import { OfflineApp } from './offline.ts';
@@ -16,6 +16,7 @@ const root = document.querySelector<HTMLElement>('#app')!;
 const esc = (text: string) => text.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
 const pulse = '<svg viewBox="0 0 40 32" fill="none" aria-hidden="true"><path d="M2 17h9l4-11 8 22 5-14 3 3h7" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const updateIcon = '<svg class="update-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16V8m-3 3 3-3 3 3"/></svg>';
+const reportIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h6"/></svg>';
 const arrow = '<span aria-hidden="true">↓</span>';
 let lang: Language = detectLanguage(navigator.languages);
 let store: DiaryStore, session: Session | undefined, draft: Entry | undefined;
@@ -201,8 +202,8 @@ function draftStamp(): string {
 function calibrationImpact(): string {
   if (!session || !clockDirty()) return '';
   try {
-    const seconds = reading === 'reset' ? 0 : calibrate(sampleAt!, reading, session.clock).offsetMs / 1000;
-    return t('clockImpact', { seconds: `${seconds >= 0 ? '+' : ''}${seconds}`, count: entries.length });
+    const offset = reading === 'reset' ? 0 : calibrate(sampleAt!, reading, session.clock).offsetMs;
+    return t('clockImpact', { difference: displayClockDifference(offset, lang), count: entries.length });
   } catch { return t('invalidTime'); }
 }
 function languageSelect(): string {
@@ -231,7 +232,7 @@ function settingsPanel(): string {
   return `<p id="dialog-update-announcement" class="sr-only" role="status"></p><div class="settings-list">${session ? section('identity-settings', 'identitySection', esc(session.name || t('identitySummary')), `<form id="settings-form"><p class="help">${text('identityHelp')}</p><label for="settings-name">${text('name')}</label>
     <input id="settings-name" autocomplete="name" maxlength="120" value="${esc(settingsName)}">${birthDateField('settings-birth-date', settingsDateOfBirth)}
     <button class="primary full" id="save-identity" type="submit">${text('saveIdentity')}</button></form>`) +
-    section('clock-settings', 'clockSection', offset ? text('clockOffset', { seconds: `${offset > 0 ? '+' : ''}${offset / 1000}` }) : text('noCorrection'), `<form id="clock-form"><p class="help">${text('clockBasis', { basis: basis(session) })}</p><p class="help">${text('clockHelp')}</p>
+    section('clock-settings', 'clockSection', offset ? text('clockOffset', { difference: displayClockDifference(offset, lang) }) : text('noCorrection'), `<form id="clock-form"><p class="help">${text('clockBasis', { basis: basis(session) })}</p><p class="help">${text('clockHelp')}</p>
     ${calibrationFields(true)}<button type="button" id="reset-clock" class="text-button">${text('resetClock')}</button><p class="help" id="clock-impact"></p><button class="primary full" id="save-clock" type="submit">${text('saveClock')}</button></form>`, 'clock-settings') : ''}
     ${section('language-settings', 'language', lang === 'de' ? 'Deutsch' : 'English', languageSelect())}
     ${section('storage-settings', 'storageSection', '<span data-offline-status></span><span data-storage-status></span>', `<h3>${text('offline')}</h3><p class="status-line" data-offline-status></p><button type="button" class="secondary full" id="retry-offline" hidden>${text('retryOffline')}</button>
@@ -330,7 +331,7 @@ function render(focusTarget?: string): void {
     !session ? `<main class="welcome"><h1>${text('newDiaryTitle')}</h1><p class="intro">${text('welcomeText')}</p><form id="setup" class="card setup-card"><p class="help">${text('optionalSetup')}</p>
       <details id="setup-identity" data-disclosure ${openSections.has('setup-identity') ? 'open' : ''}><summary>${text('identitySection')}</summary><label for="setup-name">${text('name')}</label><input id="setup-name" autocomplete="name" maxlength="120" value="${esc(setupName)}">${birthDateField('setup-birth-date', setupDateOfBirth)}</details>
       ${calibrationFields()}<button class="primary full" id="start-diary" type="submit">${text('start')}</button></form>${!modal ? feedbackMarkup() : ''}<p class="footer-note">${text('localOnly')}</p><p class="status-line" data-offline-status></p></main>` :
-    `<main><section class="page-heading"><div class="heading-row"><h1 id="diary-title" tabindex="-1">${text('today')}</h1><button type="button" id="export" class="export-utility" aria-label="${text('export')}" ${!entries.length ? 'disabled' : ''}>${text('reportShort')} ${arrow}</button></div><span class="eyebrow">${text('since', { date: displayDate(monitorTime(session.startedAtMs, session), lang) })}</span></section><p id="offline-badge" class="badge"></p><button id="offline-action" class="text-button" hidden>${text('offlineAction')}</button>
+    `<main><section class="page-heading"><div class="heading-row"><h1 id="diary-title" tabindex="-1">${text('today')}</h1><button type="button" id="export" class="export-utility" aria-label="${text('export')}" ${!entries.length ? 'disabled' : ''}>${reportIcon}<span>${text('reportShort')}</span></button></div><span class="eyebrow">${text('since', { date: displayDate(monitorTime(session.startedAtMs, session), lang) })}</span></section><p id="offline-badge" class="badge"></p><button id="offline-action" class="text-button" hidden>${text('offlineAction')}</button>
     ${editing ? '' : composer()}${!modal ? feedbackMarkup() : ''}
     <section class="symptom-section"><button class="symptom-button" id="mark-symptom"><span>${text('symptoms')}</span><span aria-hidden="true">+</span></button><p>${text('symptomHint')}</p></section>
     ${lastMarkerId && entries.some(e => e.id === lastMarkerId) ? `<div class="marker-receipt" role="status"><p>${text('markedAt', { time: displayTime(entries.find(e => e.id === lastMarkerId)!.eventAtMs, session!) })}</p><button class="text-button" id="marker-details">${text('markerDetails')}</button></div>` : ''}

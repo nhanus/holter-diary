@@ -1,11 +1,14 @@
 import type { Language } from './domain.ts';
 
 export const en = {
+  differenceZero: 'no difference', differenceSubsecond: 'less than 1 s',
+  differenceHours: '{count} h', differenceMinutes: '{count} min', differenceSeconds: '{count} s',
+  differenceAhead: '{duration} ahead', differenceBehind: '{duration} behind',
   saveShort: 'Save', discardDraft: 'Discard', reportShort: 'Report',
   identitySection: 'Report details', identitySummary: 'Name and date of birth · optional', identityHelp: 'Shown on every report page. Blank details are omitted.',
   saveIdentity: 'Save details', saveClock: 'Save time comparison', saveChanges: 'Save changes',
-  phoneClock: 'Phone time', now: 'Now', noCorrection: 'Phone time · no correction', clockOffset: 'Correction: {seconds} s',
-  clockImpact: 'Correction: {seconds} s. Displayed times for all {count} entries will change. Original timestamps stay unchanged.',
+  phoneClock: 'Phone time', now: 'Now', noCorrection: 'Phone time · no correction', clockOffset: 'Recorder clock: {difference}',
+  clockImpact: 'New clock comparison: {difference} relative to phone time. Displayed times for all {count} entries will be adjusted. Original timestamps stay unchanged.',
   phoneTimeHelp: 'For a late or corrected entry, enter the date and phone time in the diary’s fixed time zone.',
   storageSection: 'Offline & storage', returnNote: 'Back to your note', newEntry: 'New note',
   markerDetails: 'Add details', markedAt: 'Symptom time {time} saved.',
@@ -28,7 +31,7 @@ export const en = {
   time: 'Monitor time', changeTime: 'Change time', timeHelp: 'The displayed time is already corrected to monitor time. For a late or corrected entry, enter the monitor time, not the phone time.',
   saved: 'Entry saved on this device.', deleted: 'Entry deleted.',
   entries: 'Your entries', count: '{count} entries', empty: 'Nothing recorded yet.', emptyHelp: 'Your notes and symptom times will appear here.', noDetails: 'Time marked · details can be added later',
-  export: 'Export diary', exportHelp: 'Create a printable A4 report. Your notes stay in their original language.', reportLanguage: 'Report language',
+  export: 'Export report', exportHelp: 'Create a printable A4 report. Your notes stay in their original language.', reportLanguage: 'Report language',
   pdf: 'Download PDF', text: 'Download text', share: 'Share PDF', exportReady: 'PDF ready. Save or print it from your device.',
   pdfUnsupported: 'The PDF font cannot display these characters: {characters}. Edit them or download the text file, which preserves all characters.',
   emptyExport: 'You can export as soon as you have saved an entry.',
@@ -40,7 +43,7 @@ export const en = {
   offlineUnavailable: 'Offline installation needs HTTPS or localhost', retryOffline: 'Retry offline setup',
   install: 'Install app', installHelp: 'In your browser menu, choose “Install app” or “Add to Home screen”. Launch the installed app from your home screen once online. Under Settings → Offline & storage, check offline readiness and persistent storage.',
   preview: 'Preview connection: offline installation is unavailable here. You can still try notes and export.',
-  clockBasis: 'Fixed time basis: {basis}', clockHelp: 'The measurement keeps its starting time zone. If a clock changes during recording, check and correct affected entries. A new calibration shifts all entries.',
+  clockBasis: 'Fixed time basis: {basis}', clockHelp: 'Ahead or behind refers to phone time. The measurement keeps its starting time zone. If a clock changes during recording, check and correct affected entries. A new calibration shifts all entries.',
   settingsSaved: 'Settings saved.', resetClock: 'Use phone time (no correction)',
   reset: 'Start a new diary',
 
@@ -65,11 +68,14 @@ export const en = {
 
 export type TextKey = keyof typeof en;
 export const de: Record<TextKey, string> = {
+  differenceZero: 'keine Abweichung', differenceSubsecond: 'weniger als 1 Sek.',
+  differenceHours: '{count} Std.', differenceMinutes: '{count} Min.', differenceSeconds: '{count} Sek.',
+  differenceAhead: '{duration} voraus', differenceBehind: '{duration} zurück',
   saveShort: 'Speichern', discardDraft: 'Verwerfen', reportShort: 'Protokoll',
   identitySection: 'Angaben fürs Protokoll', identitySummary: 'Name und Geburtsdatum · optional', identityHelp: 'Erscheinen auf jeder Seite des Protokolls. Leere Angaben werden weggelassen.',
   saveIdentity: 'Angaben speichern', saveClock: 'Zeitabgleich speichern', saveChanges: 'Änderungen speichern',
-  phoneClock: 'Handyzeit', now: 'Jetzt', noCorrection: 'Handyzeit · keine Korrektur', clockOffset: 'Korrektur: {seconds} s',
-  clockImpact: 'Korrektur: {seconds} s. Die angezeigten Zeiten aller {count} Einträge werden angepasst. Ursprüngliche Zeitpunkte bleiben erhalten.',
+  phoneClock: 'Handyzeit', now: 'Jetzt', noCorrection: 'Handyzeit · keine Korrektur', clockOffset: 'EKG-Uhr: {difference}',
+  clockImpact: 'Neuer Zeitabgleich: {difference} gegenüber der Handyzeit. Die angezeigten Zeiten aller {count} Einträge werden angepasst. Ursprüngliche Zeitpunkte bleiben erhalten.',
   phoneTimeHelp: 'Für nachträgliche Einträge oder Korrekturen Datum und Handyzeit in der festen Zeitzone des Tagebuchs eingeben.',
   storageSection: 'Offline & Speicherung', returnNote: 'Zur Notiz zurück', newEntry: 'Neue Notiz',
   markerDetails: 'Details ergänzen', markedAt: 'Beschwerdezeit {time} gespeichert.',
@@ -104,7 +110,7 @@ export const de: Record<TextKey, string> = {
   offlineUnavailable: 'Offline-Installation benötigt HTTPS oder localhost', retryOffline: 'Offline-Einrichtung wiederholen',
   install: 'App installieren', installHelp: 'Wähle im Browsermenü „App installieren“ oder „Zum Startbildschirm hinzufügen“. Starte die installierte App einmal mit Internet vom Startbildschirm. Prüfe unter Einstellungen → Offline & Speicherung die Offline-Bereitschaft und den dauerhaften Speicher.',
   preview: 'Vorschau-Verbindung: Hier ist keine Offline-Installation möglich. Notizen und Export kannst du trotzdem ausprobieren.',
-  clockBasis: 'Feste Zeitbasis: {basis}', clockHelp: 'Die Zeitzone vom Messbeginn bleibt gültig. Wird eine Uhr während der Messung umgestellt, prüfe und korrigiere betroffene Einträge. Ein neuer Zeitabgleich verschiebt alle Einträge.',
+  clockBasis: 'Feste Zeitbasis: {basis}', clockHelp: 'Voraus oder zurück bezieht sich auf die Handyzeit. Die Zeitzone vom Messbeginn bleibt gültig. Wird eine Uhr während der Messung umgestellt, prüfe und korrigiere betroffene Einträge. Ein neuer Zeitabgleich verschiebt alle Einträge.',
   settingsSaved: 'Einstellungen gespeichert.', resetClock: 'Handyzeit verwenden (ohne Korrektur)',
   reset: 'Neues Tagebuch beginnen',
 

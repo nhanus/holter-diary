@@ -606,3 +606,20 @@ artifact. Manual, scheduled and reusable execution remain available. Separate
 concurrency groups by event so a manual or scheduled check cannot cancel an
 in-progress main-push release. Newer pull request updates still cancel obsolete
 checks for the same pull request. Pages publication remains explicitly gated.
+
+## 2026-11-14 — Readable clock differences and report access
+
+Related issue: [#37](https://github.com/nhanus/holter-diary/issues/37).
+
+Clock settings display durations in hours, minutes and seconds, with ahead/behind
+wording relative to phone time. Round the absolute magnitude once before splitting
+units, omit zero units, and preserve direction. A nonzero difference below one
+second is labelled explicitly rather than described as no correction. A pending
+comparison is the new total offset, not the change from the previously saved one.
+Only display formatting changes: stored calibration precision, event timestamps,
+report calculations and data schema remain unchanged.
+
+Keep Report beside the diary heading as an outlined secondary button with a
+hidden decorative document icon, a 48px minimum target and an accessible name
+containing its visible label. Let the entire button wrap at narrow widths or
+large text sizes; Save remains the primary capture action.

@@ -56,7 +56,7 @@ test('independent settings saves retain the other section and failed writes rema
   await page.clock.install({ time: new Date('2028-01-10T12:00:00Z') }); await page.clock.setFixedTime(new Date('2028-01-10T12:00:00Z')); await start(page);
   await section(page, 'identity-settings'); await page.locator('#settings-name').fill('Synthetic person');
   await section(page, 'clock-settings'); await page.locator('#capture-time').click(); await page.locator('#monitor-reading').fill('2028-01-10T13:03');
-  await expect(page.locator('#clock-impact')).toContainText('+180 s');
+  await expect(page.locator('#clock-impact')).toContainText('3 Min. voraus');
   await abortWrite(page, 'sessions'); await page.locator('#save-identity').click();
   await expect(page.locator('#dialog-error')).toContainText('Speichern fehlgeschlagen');
   await expect(page.locator('#save-identity')).toBeFocused();
