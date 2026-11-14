@@ -159,12 +159,24 @@ const en = {
   footerNote: 'No app analytics. When you visit the website, the hosting provider may log standard connection information.',
 };
 
-const lang = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'de';
+const requestedLanguage = new URLSearchParams(location.search).get('lang');
+const isLanguage = value => value === 'de' || value === 'en';
+const preferenceKey = 'holter-diary:website-language';
+let savedLanguage;
+try { savedLanguage = localStorage.getItem(preferenceKey); } catch { /* Browsing works without storage. */ }
+const explicitLanguage = isLanguage(requestedLanguage) ? requestedLanguage :
+  isLanguage(savedLanguage) ? savedLanguage : undefined;
+const lang = explicitLanguage ?? (navigator.languages?.[0]?.toLowerCase().startsWith('de') ? 'de' : 'en');
+if (isLanguage(requestedLanguage)) {
+  try { localStorage.setItem(preferenceKey, requestedLanguage); } catch { /* Links retain the choice for this visit. */ }
+}
 const t = lang === 'en' ? en : de;
 const page = document.body.dataset.page;
 const pages = ['home', 'guide', 'faq'];
 const root = page === 'home' ? './' : '../';
-const url = (target = '', hash = '') => root + target + '?lang=' + lang + hash;
+// Automatic navigation must not turn a detected language into a saved choice.
+const url = (target = '', hash = '') => root + target +
+  (explicitLanguage || target === 'app/' ? '?lang=' + lang : '') + hash;
 const languageUrl = (language) => '?lang=' + language + location.hash;
 
 const logo = `<svg viewBox="0 0 40 32" fill="none" aria-hidden="true">

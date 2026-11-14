@@ -138,3 +138,44 @@ test('an offline old root launch preserves diary records, and documentation alwa
     await newTab.close();
   }
 });
+
+test('first visits follow the browser while only explicit language choices persist', async ({ browser, baseURL }) => {
+  for (const [locale, expected] of [['en-GB', 'en'], ['de-AT', 'de'], ['fr-FR', 'en']]) {
+    const context = await browser.newContext({ locale });
+    try {
+      const page = await context.newPage(); await page.goto(baseURL!);
+      await expect(page.locator('html')).toHaveAttribute('lang', expected);
+      expect(await page.evaluate(() => localStorage.getItem('holter-diary:website-language'))).toBeNull();
+      await page.locator('.main-nav a').nth(1).click();
+      expect(new URL(page.url()).search).toBe('');
+      expect(await page.evaluate(() => localStorage.getItem('holter-diary:website-language'))).toBeNull();
+      await page.evaluate(() => localStorage.setItem('holter-diary:website-language', 'invalid'));
+      await page.goto(baseURL! + '?lang=invalid');
+      await expect(page.locator('html')).toHaveAttribute('lang', expected);
+      await page.getByRole('link', { name: 'DE', exact: true }).click();
+      await page.goto(baseURL!);
+      await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+      const returning = await context.newPage(); await returning.goto(baseURL! + 'faq/');
+      await expect(returning.locator('html')).toHaveAttribute('lang', 'de');
+      await returning.goto(baseURL! + '?lang=en');
+      await returning.goto(baseURL! + '?lang=invalid');
+      await expect(returning.locator('html')).toHaveAttribute('lang', 'en');
+      await returning.reload(); await expect(returning.locator('html')).toHaveAttribute('lang', 'en');
+    } finally { await context.close(); }
+  }
+});
+
+test('blocked website preference storage does not prevent language switching or app handoff', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ locale: 'en-US' });
+  try {
+    await context.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('Blocked', 'SecurityError'); } }));
+    const page = await context.newPage(); const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+    await page.goto(baseURL!); await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await page.getByRole('link', { name: 'DE', exact: true }).click();
+    await page.locator('.main-nav a').nth(1).click();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+    await page.getByRole('link', { name: 'App öffnen' }).click();
+    await expect(page.locator('#start-diary')).toHaveText('Tagebuch beginnen');
+    expect(errors).toEqual([]);
+  } finally { await context.close(); }
+});

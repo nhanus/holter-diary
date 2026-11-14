@@ -559,3 +559,14 @@ an old worker's assets as its own offline readiness.
 **Validation:** Exercise bilingual routes, mobile reflow, manifest identity,
 offline root/app routing, cache separation and unchanged app bytes after FAQ edits.
 Keep physical Android/WebAPK update acceptance distinct from Chromium emulation.
+
+## 2026-11-14 — Automatic website language with an explicit preference
+
+The website uses a valid DE/EN URL selection first, then its saved explicit
+choice, then the browser's preferred language (German for `de-*`, English
+otherwise), matching the app's initial fallback. A deliberate website choice is
+stored separately from the app's IndexedDB language preference. Automatically
+detected website navigation omits the language parameter so it cannot silently
+turn detection into a remembered choice. App links still hand off the displayed
+language. Invalid values are ignored; blocked local storage leaves navigation
+and explicit language links working. Language switches retain the current anchor.
