@@ -356,3 +356,28 @@ vulnerabilities. Type checking, production build, actionlint and whitespace chec
 passed. Independent Astra review found no blocking issue; documentation now
 explicitly supersedes the old printer requirement. Live Pages deployment and
 actual Android checks remain pending; CI and updater results are recorded in PR #23.
+
+## 2026-11-14 — Language metadata and storage-check feedback
+
+Keep the static loading shell language-neutral rather than declaring English
+before the saved preference is read. Set HTML language and a localized description
+when that preference is available, before loading the rest of the diary, and on
+each interface render. Label the bilingual no-script text individually. IndexedDB
+remains the only language-preference store; no translation opt-out or fixed server
+Content-Language header is introduced. Browser translation prompts use additional
+heuristics and still need actual device verification.
+
+Persistent-storage permission protects against automatic eviction under storage
+pressure; it is separate from normal committed storage and offline readiness.
+Keep all reported outcomes honest. The explicit check now shows a neutral, visible
+progress/result line, including repeated denials and API failures, and keeps its
+live region mounted for accessibility. It does not rebuild the settings dialog,
+clear data or force a browser grant. Explain these distinctions in both languages.
+
+Validation covers DE/EN language and description, saved-language reload, a delayed
+IndexedDB open with a saved language different from the browser, repeated denial,
+failure, actual API grant reporting, English feedback and retained entries. The
+22 production-app tests and 21 unit/report tests pass. Independent review findings
+about provisional language and live-region replacement were fixed and re-reviewed;
+no blocking findings remain. Real browser grants and the Android translation
+prompt are not established by mocked browser tests.
