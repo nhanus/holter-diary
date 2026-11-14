@@ -52,9 +52,9 @@ test('German PDF preserves umlauts and orders corrected monitor times across mid
   assert.ok(strings.includes('Letzter Eintrag: 01. Jan. 2031, 00:00:00'));
   assert.ok(strings.includes('Bericht erstellt (EKG-Zeit): 01. Jan. 2031, 00:02:00'));
   assert.ok(strings.some(text => text.endsWith('UTC+01:00; +120 s')));
-  assert.deepEqual(strings.slice(strings.indexOf('31. Dez. 2030'), strings.findIndex(text => text.startsWith('Holter Diary |'))), [
-    '31. Dez. 2030', '23:59:00', 'Notiz', note.note,
-    '01. Jan. 2031', '00:00:00', 'BESCHWERDEN', 'Beschwerdezeit markiert; keine Details eingetragen.',
+  assert.deepEqual(strings.slice(strings.indexOf('31.12.2030'), strings.findIndex(text => text.startsWith('Holter Diary |'))), [
+    '31.12.2030', '23:59:00', 'Notiz', note.note,
+    '01.01.2031', '00:00:00', 'BESCHWERDEN', 'Beschwerdezeit markiert; keine Details eingetragen.',
   ]);
 });
 
@@ -71,7 +71,8 @@ test('long notes fit on A4 pages with repeated headings and all text in order', 
     assert.deepEqual(bounds.map(Math.round), [0, 0, 595, 842]);
     const strings = text.map(item => item.str);
     assert.equal(strings[0], 'Holter monitoring diary');
-    assert.ok(strings.includes('Date / monitor time'));
+    assert.ok(strings.includes('Date'));
+    assert.ok(strings.includes('Monitor time'));
     assert.ok(strings.includes('Event'));
     assert.ok(strings.includes('SYMPTOMS'));
     assert.equal(strings.includes('(continued)'), index > 0);
@@ -118,4 +119,38 @@ test('unsupported PDF characters are reported and the TXT fallback preserves Uni
   const fallback = reportText(session, [entry], 'de', generatedAt);
   assert.ok(fallback.includes('Name: Test 李'));
   assert.ok(fallback.endsWith(`2030-12-31 23:59:00 | BESCHWERDEN\n${note}\n`));
+});
+
+test('24 and 48 hour diaries stay compact and retain every calibrated row across day and page boundaries', async () => {
+  const at = Date.parse('2030-12-31T22:58:00Z');
+  const session = newSession(at, { timeZone: 'Europe/Berlin', utcOffsetMinutes: 60 }, 'Synthetic example');
+  session.calibration = calibrate(at, '2031-01-01T00:01:00', session.clock);
+  for (const count of [49, 97]) {
+    const entries = Array.from({ length: count }, (_, index) => newEntry(session.id, at + index * 30 * 60_000,
+      index % 7 === 0 ? 'symptom' : 'note', `Synthetic observation ${String(index).padStart(3, '0')}`));
+    for (const language of ['de', 'en'] as const) {
+      const pages = await extractPages(await buildPdf(session, [...entries].reverse(), language, at + 48 * 3600_000));
+      assert.equal(pages.length, count === 49 ? 2 : 4);
+      const observed: string[] = [];
+      for (const { text, links } of pages) {
+        assert.deepEqual(links, [APP_URL, REPOSITORY_URL]);
+        const dateHeading = text.find(item => item.str === (language === 'de' ? 'Datum' : 'Date'))!;
+        const timeHeading = text.find(item => item.str === (language === 'de' ? 'EKG-Zeit' : 'Monitor time'))!;
+        assert.ok(dateHeading && timeHeading);
+        for (const note of text.filter(item => /^Synthetic observation \d{3}$/.test(item.str))) {
+          const index = Number(note.str.slice(-3));
+          // Independent reference arithmetic, without monitorTime() or renderer helpers.
+          const expected = new Date(at + index * 30 * 60_000 + 63 * 60_000).toISOString();
+          const date = text.find(item => item.transform[4] === dateHeading.transform[4] && item.transform[5] === note.transform[5])!;
+          const time = text.find(item => item.transform[4] === timeHeading.transform[4] && item.transform[5] === note.transform[5])!;
+          assert.equal(date.str, language === 'de' ? `${expected.slice(8, 10)}.${expected.slice(5, 7)}.${expected.slice(0, 4)}` : expected.slice(0, 10));
+          assert.equal(time.str, expected.slice(11, 19));
+          assert.ok(note.height >= 9.9 && time.height >= 9.9, 'body text remains at least 10pt');
+          assert.ok(note.transform[5] > 82 && note.transform[5] + note.height < dateHeading.transform[5]);
+          observed.push(note.str);
+        }
+      }
+      assert.deepEqual(observed, entries.map(entry => entry.note));
+    }
+  }
 });
