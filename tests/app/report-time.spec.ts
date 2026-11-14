@@ -61,7 +61,7 @@ test('later positive and negative calibration shifts actual PDF rows, including 
     await page.locator('#settings').click();
     await page.getByText('EKG-Uhrzeit abgleichen', { exact: true }).click();
     await page.locator('#capture-time').click();
-    await page.locator('#monitor-reading').fill(reading);
+    await page.locator('#monitor-reading').fill(reading.replace(/:00$/, '')); // Chromium normalizes zero seconds in datetime-local values.
     await page.getByRole('button', { name: 'Einstellungen speichern' }).click();
     await expect(page.locator('.entry-time strong')).toHaveText([expected, expected]);
     const report = await exportRows(page);
@@ -90,12 +90,12 @@ test('setup calibration converts automatic timestamps once; manual input already
   await page.goto('');
   await page.getByText('EKG-Uhrzeit abgleichen', { exact: true }).click();
   await page.locator('#capture-time').click();
-  await page.locator('#monitor-reading').fill('2030-12-31T13:28:00');
+  await page.locator('#monitor-reading').fill('2030-12-31T13:28');
   await page.locator('#start-diary').click();
   await page.locator('#note').fill('Automatic entry'); await page.locator('#save-entry').click();
   await page.locator('#note').fill('Manual monitor time');
   await page.getByText('Zeit ändern', { exact: true }).click();
-  await page.locator('#entry-time').fill('2030-12-31T13:30:00');
+  await page.locator('#entry-time').fill('2030-12-31T13:30');
   await page.locator('#save-entry').click();
   const report = await exportRows(page);
   expect(rowTime(report, 'Automatic entry')).toEqual(['13:28:00']);
@@ -112,7 +112,7 @@ test('an explicitly equal recorder clock keeps one timestamp column', async ({ p
   await page.goto('');
   await page.getByText('EKG-Uhrzeit abgleichen', { exact: true }).click();
   await page.locator('#capture-time').click();
-  await page.locator('#monitor-reading').fill('2030-12-31T13:30:00');
+  await page.locator('#monitor-reading').fill('2030-12-31T13:30');
   await page.locator('#start-diary').click();
   await page.locator('#note').fill('Equal clock example');
   await page.locator('#save-entry').click();

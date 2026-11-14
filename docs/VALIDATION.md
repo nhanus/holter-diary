@@ -2,14 +2,15 @@
 
 ## Current automated checks
 
-- `npm ci` installs the committed dependency graph.
+- `npm run deps:install` verifies the publication age and identity of every locked package, audits known vulnerabilities, and installs without lifecycle scripts.
+- `npm run test:policy`: 11 dependency-free tests of the 14-day boundary, exact exceptions, registry/identity failures, optional dependencies and alternate lockfile rejection. CI runs these and the policy/audit checks before installing.
 - `npm run check` type-checks the source.
 - `npm run test:unit` tests the time model and storage-permission outcomes.
 - `npm run build` produces static assets for `/holter-diary/`.
 - `npm run test:browser` bundles a separate test fixture and runs actual Chromium
   IndexedDB checks: committed-data reload, aborted writes, immutable capture time,
   edit conflicts, schema refusal without deletion and durability fallback.
-- GitHub Actions runs these checks on pushes and PRs, uploads `dist/` for seven
+- GitHub Actions runs these checks on pushes, PRs and a weekly schedule, uploads `dist/` for seven
   days, and has read-only repository permissions. It does not deploy.
 - An independent reviewer checks the code, workflow and plan; findings and fixes
   are recorded in the PR before merge.

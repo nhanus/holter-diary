@@ -285,3 +285,37 @@ editing, omission and reset. DE/EN PDF extraction checks every page for each
 presence combination and a 120-character name. Synthetic rendered first and
 continuation pages were inspected. Independent review checked compatibility,
 layout, data integrity and privacy; no unresolved findings.
+
+## 2026-11-14 — Delay npm releases and verify the entire lockfile
+
+**Choice:** Apply a 14-day minimum release age, exact direct pins and disabled
+install lifecycle scripts. Use a small dependency-free Node preflight before
+installation, comparing all locked package/version pairs to public registry
+publication times and tarball/integrity metadata. Fail closed on unavailable or
+invalid evidence. CI runs the same preflight, all-severity lockfile audit and
+policy tests before installing, with an additional weekly run. Dependabot uses
+a 14-day cooldown for ordinary weekly npm update proposals.
+
+**Why a separate check:** Installed npm 11.19.1 source review and a dry run showed
+that valid locked versions bypass release-age resolution in `npm ci`. Root
+`preinstall` runs too late to act as the security boundary. Also reject alternate
+shrinkwrap files, which npm would prioritize over the checked lockfile. Native
+npm settings remain useful for resolution, while the explicit preflight covers
+locked transitive, development and optional packages.
+
+**Exceptions:** Only exact security-fix package/version pairs with an advisory,
+rationale and explicit maintainer approval; none are granted initially. No
+permanent package-wide exclusions, automatic merge or audit suppression. The
+approval is a review requirement, not something a JSON field can authenticate.
+See [dependency policy](DEPENDENCIES.md) for the installation and exception flow.
+
+**Existing graph:** Resolve age-compliant development releases before installation:
+Playwright 1.64.1, PDF.js 6.4.299 and Vite 8.3.5, together with compatible aged
+transitives. Runtime pdf-lib remains 1.17.1. All 84 locked versions passed the age
+and identity check and the initial audit reported no known vulnerabilities.
+The old graph was verified to fail the age gate. After installation with scripts disabled, all 11 policy, 21 unit/report,
+6 storage and 19 production-app tests passed. Zero-second browser-test inputs
+use the normalized datetime-local representation accepted by the aged Playwright
+release; the actual timestamp assertions remain unchanged. The delay
+reduces exposure to new malicious releases; it is not a safety guarantee for old
+packages or a replacement for vulnerability monitoring.

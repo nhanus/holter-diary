@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '23 7 * * 1'
 
 permissions:
   contents: read
@@ -27,8 +29,14 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci
+      - name: Test dependency policy without installing packages
+        run: node --test tests/policy/*.test.mjs
+      - name: Check all locked release ages before installation
+        run: node scripts/check-dependency-policy.mjs
+      - name: Check known vulnerabilities including development dependencies
+        run: npm audit --package-lock-only --audit-level=low
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
       - name: Type check
         run: npm run check
       - name: Test time, storage permissions and PDF output
@@ -36,7 +44,7 @@ jobs:
       - name: Build static app
         run: npm run build
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
       - name: Test browser storage
         run: npm run test:browser
       - name: Test complete offline app
