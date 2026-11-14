@@ -28,6 +28,7 @@ let modal: 'settings' | 'export' | null = null;
 let reportLanguage: Language = lang, reportFile: File | undefined;
 let persistence: PersistenceStatus = 'not-granted';
 let message: { key: TextKey; params?: Record<string, string | number>; error?: boolean } | undefined;
+let messageTimer: number | undefined;
 let loadError = false, applyingUpdate = false;
 const offline = new OfflineApp(refreshStatus);
 const t = (key: TextKey, params?: Record<string, string | number>) => translate(lang, key, params);
@@ -43,7 +44,15 @@ async function refreshData(): Promise<void> {
   if (session) { const snapshot = await store.reportSnapshot(session.id); session = snapshot.session; entries = snapshot.entries; }
   else entries = [];
 }
-function notify(key: TextKey, error = false, params?: Record<string, string | number>): void { message = { key, error, params }; refreshFeedback(); }
+function notify(key: TextKey, error = false, params?: Record<string, string | number>): void {
+  clearTimeout(messageTimer);
+  const shown = { key, error, params };
+  message = shown;
+  refreshFeedback();
+  if (!error) messageTimer = window.setTimeout(() => {
+    if (message === shown) { message = undefined; refreshFeedback(); }
+  }, 4000);
+}
 function refreshFeedback(): void {
   for (const [id, isError] of [['feedback', false], ['error', true], ['dialog-feedback', false], ['dialog-error', true]] as const) {
     const node = document.getElementById(id);
@@ -139,6 +148,7 @@ function render(focusTarget?: string): void {
       ${!isSecureContext ? `<p class="preview-note">${text('preview')}</p>` : ''}</main>` :
     `<main><section class="page-heading"><div><span class="eyebrow">${text('since', { date: displayDate(monitorTime(session.startedAtMs, session), lang) })}</span><h1>${text('today')}</h1></div>
       <span id="offline-badge" class="badge"></span></section>
+    <button type="button" id="export" class="export-button" ${!entries.length ? 'disabled' : ''}>${text('export')} ${arrow}</button>
     <section class="symptom-section"><button class="symptom-button" id="mark-symptom">${pulse}<span>${text('symptoms')}</span><span aria-hidden="true">+</span></button><p>${text('symptomHint')}</p></section>
 
 
@@ -154,7 +164,6 @@ function render(focusTarget?: string): void {
         <span class="entry-time"><strong>${displayTime(entry.eventAtMs, session!)}</strong><span>${esc(displayDate(monitorTime(entry.eventAtMs, session!), lang))}</span></span>
         <span class="entry-content">${entry.kind === 'symptom' ? `<span class="symptom-label">${text('symptomsLabel')}</span>` : ''}<span class="entry-note">${esc(entry.note || t('noDetails'))}</span></span><span class="edit-arrow" aria-hidden="true">↗</span></button></li>`).join('')}</ol>` :
         `<div class="empty-state"><span class="empty-line" aria-hidden="true">${pulse}</span><strong>${text('empty')}</strong><p>${text('emptyHelp')}</p></div>`}</section>
-    <button type="button" id="export" class="export-button" ${!entries.length ? 'disabled' : ''}>${text('export')} ${arrow}</button>
     <p class="footer-note" data-storage-status></p><p class="footer-note">${text('localOnly')}</p>${!isSecureContext ? `<p class="preview-note">${text('preview')}</p>` : ''}</main>`}
     <footer>${text('appInfo')}</footer>${renderDialog()}`;
   bind(); refreshStatus(); refreshFeedback();

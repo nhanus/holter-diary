@@ -170,3 +170,17 @@ a UTF-8 text download preserves all content. Do not replace unknown characters
 silently. Download is always offered; the native share sheet is an additional action
 when file sharing is supported. PDF extraction and layout bounds are automatically
 checked, while physical phone printing remains a separate acceptance step.
+
+## 2026-11-14 — Readable reports and accessible export
+
+**Choice:** Place export directly below the diary heading, independent of history
+length. Non-error confirmations disappear after four seconds without rerendering
+or moving focus; errors stay visible. Each new notification cancels the previous
+timeout so it cannot dismiss a later error.
+
+**Report:** Use a restrained teal header, an entry/marked-symptom count summary,
+large time labels and shaded symptom rows with a bold label and left marker that
+also work in monochrome. Keep calibrated metadata, original notes and repeated
+headers. Every page includes page numbering and visible, clickable canonical
+project website/repository URLs. These links identify the generating application;
+adding them does not activate hosting or change the publication decision.

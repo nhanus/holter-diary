@@ -311,3 +311,35 @@ test('resume refreshes only untouched drafts and rapid double tap saves one mark
   await expect(page.locator('.entry-time strong')).toHaveText('13:40:00');
   expect(await savedEntries(page)).toHaveLength(1);
 });
+
+test('export stays above a long history and is reachable from the top', async ({ page }) => {
+  await start(page);
+  for (let index = 0; index < 12; index++) await note(page, `Synthetic observation ${index + 1}`);
+  await page.evaluate(() => scrollTo(0, 0));
+  const exportButton = page.getByRole('button', { name: 'Protokoll exportieren' });
+  await expect(exportButton).toBeInViewport();
+  const exportBox = await exportButton.boundingBox();
+  const historyBox = await page.locator('.history').boundingBox();
+  expect(exportBox!.y + exportBox!.height).toBeLessThan(historyBox!.y);
+  await exportButton.click();
+  await expect(page.getByRole('button', { name: 'PDF herunterladen' })).toBeVisible();
+});
+
+test('success confirmations expire after four seconds without hiding a newer error', async ({ page }) => {
+  await page.clock.install();
+  await start(page);
+  await expect(page.locator('#feedback')).toBeVisible();
+  await page.clock.fastForward(4100);
+  await expect(page.locator('#feedback')).toBeHidden();
+  await note(page, 'Notice test');
+  await page.clock.fastForward(2000);
+  await page.locator('#save-entry').click();
+  await expect(page.locator('#error')).toContainText('Bitte schreibe eine Notiz');
+  await page.clock.fastForward(5000);
+  await expect(page.locator('#error')).toBeVisible();
+  await note(page, 'Second notice');
+  await expect(page.locator('#feedback')).toBeVisible();
+  await page.clock.fastForward(4100);
+  await expect(page.locator('#feedback')).toBeHidden();
+  await expect(page.locator('#save-entry')).toBeFocused();
+});
