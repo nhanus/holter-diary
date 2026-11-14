@@ -15,6 +15,7 @@ import { buildPdf, reportText, UnsupportedCharactersError } from './report.ts';
 const root = document.querySelector<HTMLElement>('#app')!;
 const esc = (text: string) => text.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
 const pulse = '<svg viewBox="0 0 40 32" fill="none" aria-hidden="true"><path d="M2 17h9l4-11 8 22 5-14 3 3h7" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const updateIcon = '<svg class="update-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16V8m-3 3 3-3 3 3"/></svg>';
 const arrow = '<span aria-hidden="true">↓</span>';
 let lang: Language = detectLanguage(navigator.languages);
 let store: DiaryStore, session: Session | undefined, draft: Entry | undefined;
@@ -103,9 +104,21 @@ function refreshStatus(): void {
   const waiting = offline.registration?.waiting?.state === 'installed';
   const applying = offline.updateStatus === 'applying';
   const blocked = hasUnsavedChanges();
-  const announcement = document.querySelector<HTMLElement>('#update-announcement');
-  const announcementText = waiting ? t('update') : '';
-  if (announcement && announcement.textContent !== announcementText) announcement.textContent = announcementText;
+  const failed = offline.updateStatus === 'failed';
+  const updateState = applying ? 'applying' : failed ? 'failed' : waiting ? 'available' : 'none';
+  const updateMessage = t(applying ? 'updateApplying' : failed ? 'updateFailedTitle' : waiting ? 'update' : 'updateNone');
+  for (const id of ['update-announcement', 'dialog-update-announcement']) {
+    const announcement = document.getElementById(id);
+    const active = id === 'dialog-update-announcement' ? modal === 'settings' : !modal;
+    const value = active && updateState !== 'none' ? updateMessage : '';
+    if (announcement && announcement.textContent !== value) announcement.textContent = value;
+  }
+  const settingsButton = document.getElementById('settings');
+  settingsButton?.setAttribute('aria-label', waiting ? `${t('settings')}, ${t('update')}` : t('settings'));
+  const updateSection = document.getElementById('update-settings');
+  if (updateSection) { updateSection.dataset.state = updateState; updateSection.setAttribute('aria-busy', String(applying)); }
+  const sectionIcon = document.getElementById('update-section-icon');
+  if (sectionIcon) sectionIcon.hidden = updateState === 'none';
   const notice = document.querySelector<HTMLElement>('#update-notice');
   if (notice) notice.hidden = !waiting;
   const backToNote = document.querySelector<HTMLElement>('#return-note');
@@ -117,15 +130,14 @@ function refreshStatus(): void {
   const impact = document.querySelector<HTMLElement>('#clock-impact');
   if (impact) impact.textContent = calibrationImpact();
   const update = document.querySelector<HTMLButtonElement>('#apply-update');
-  if (update) { update.hidden = !waiting && !applying; update.disabled = busy || blocked || applying; }
+  if (update) { update.hidden = !waiting && !applying; update.disabled = busy || blocked || applying; update.textContent = t(applying ? 'updateApplying' : failed ? 'updateRetry' : 'updateAction'); }
   const close = document.querySelector<HTMLButtonElement>('#close-dialog');
   if (close) close.disabled = busy || applying;
   const updateHelp = document.querySelector<HTMLElement>('#update-help');
-  if (updateHelp) updateHelp.hidden = !waiting && !applying;
+  if (updateHelp) { updateHelp.hidden = updateState === 'none'; updateHelp.textContent = t(failed ? 'updateFailed' : 'updateHelp'); }
   const updateBlocked = document.querySelector<HTMLElement>('#update-blocked');
   if (updateBlocked) updateBlocked.hidden = !waiting || !blocked;
   const updateStatus = document.querySelector<HTMLElement>('#update-status');
-  const updateMessage = t(applying ? 'updateApplying' : offline.updateStatus === 'failed' ? 'updateFailed' : waiting ? 'update' : 'updateNone');
   if (updateStatus && updateStatus.textContent !== updateMessage) updateStatus.textContent = updateMessage;
   const retryOffline = document.querySelector<HTMLButtonElement>('#retry-offline');
   if (retryOffline) { retryOffline.hidden = offline.status !== 'failed'; retryOffline.disabled = busy; }
@@ -195,8 +207,8 @@ function calibrationImpact(): string {
 function languageSelect(): string {
   return `<label for="language">${text('language')}</label><select id="language"><option value="de" ${lang === 'de' ? 'selected' : ''}>Deutsch</option><option value="en" ${lang === 'en' ? 'selected' : ''}>English</option></select>`;
 }
-function section(id: string, title: TextKey, summary: string, body: string, extraClass = ''): string {
-  return `<details id="${id}" data-disclosure class="setting-section ${extraClass}" ${openSections.has(id) ? 'open' : ''}><summary><span><strong>${text(title)}</strong><span class="section-summary">${summary}</span></span></summary><div class="setting-body">${body}<p id="${id}-feedback" data-section-feedback="${id}" class="feedback" role="status" hidden></p></div></details>`;
+function section(id: string, title: TextKey, summary: string, body: string, extraClass = '', icon = ''): string {
+  return `<details id="${id}" data-disclosure class="setting-section ${extraClass}" ${openSections.has(id) ? 'open' : ''}><summary>${icon}<span><strong>${text(title)}</strong><span class="section-summary">${summary}</span></span></summary><div class="setting-body">${body}<p id="${id}-feedback" data-section-feedback="${id}" class="feedback" role="status" hidden></p></div></details>`;
 }
 function feedbackMarkup(inDialog = false): string {
   return `<p id="${inDialog ? 'dialog-' : ''}feedback" class="feedback" role="status" hidden></p><p id="${inDialog ? 'dialog-' : ''}error" class="error" role="alert" hidden></p>${conflict ? `<button type="button" class="secondary full" id="reload-data">${text('reload')}</button>` : ''}`;
@@ -215,7 +227,7 @@ function calibrationFields(inSettings = false): string {
 }
 function settingsPanel(): string {
   const offset = session?.calibration.offsetMs ?? 0;
-  return `<div class="settings-list">${session ? section('identity-settings', 'identitySection', esc(session.name || t('identitySummary')), `<form id="settings-form"><p class="help">${text('identityHelp')}</p><label for="settings-name">${text('name')}</label>
+  return `<p id="dialog-update-announcement" class="sr-only" role="status"></p><div class="settings-list">${session ? section('identity-settings', 'identitySection', esc(session.name || t('identitySummary')), `<form id="settings-form"><p class="help">${text('identityHelp')}</p><label for="settings-name">${text('name')}</label>
     <input id="settings-name" autocomplete="name" maxlength="120" value="${esc(settingsName)}">${birthDateField('settings-birth-date', settingsDateOfBirth)}
     <button class="primary full" id="save-identity" type="submit">${text('saveIdentity')}</button></form>`) +
     section('clock-settings', 'clockSection', offset ? text('clockOffset', { seconds: `${offset > 0 ? '+' : ''}${offset / 1000}` }) : text('noCorrection'), `<form id="clock-form"><p class="help">${text('clockBasis', { basis: basis(session) })}</p><p class="help">${text('clockHelp')}</p>
@@ -224,7 +236,7 @@ function settingsPanel(): string {
     ${section('storage-settings', 'storageSection', '<span data-offline-status></span><span data-storage-status></span>', `<h3>${text('offline')}</h3><p class="status-line" data-offline-status></p><button type="button" class="secondary full" id="retry-offline" hidden>${text('retryOffline')}</button>
     <h3>${text('storageProtection')}</h3><p class="status-line" data-storage-status></p><p class="help">${text('storageHelp')}</p><button type="button" class="secondary full" id="check-storage">${text('retryStorage')}</button><p class="help" role="status" data-storage-check></p>
     <details id="install-help" data-disclosure class="app-details"><summary>${text('install')}</summary><p class="help">${text('installHelp')}</p></details>`)}
-    ${section('update-settings', 'updates', '<span id="update-status" role="status"></span>', `<p class="help" id="update-help" hidden>${text('updateHelp')}</p><p class="warning" id="update-blocked" hidden>${text('updateBlocked')}</p><button type="button" class="secondary full" id="return-note" hidden>${text('returnNote')}</button><button type="button" class="primary full" id="apply-update" hidden>${text('updateAction')}</button>`)}
+    ${section('update-settings', 'updates', '<span id="update-status"></span>', `<p class="help" id="update-help" hidden>${text('updateHelp')}</p><p class="warning" id="update-blocked" hidden>${text('updateBlocked')}</p><button type="button" class="secondary full" id="return-note" hidden>${text('returnNote')}</button><button type="button" class="primary full" id="apply-update" hidden>${text('updateAction')}</button>`, '', `<span id="update-section-icon" class="update-section-icon" aria-hidden="true" hidden>${updateIcon}</span>`)}
     </div>${session ? `<section class="reset-section"><button class="text-button danger" id="reset-diary" type="button">${text('reset')}</button><p class="help">${text('resetCount', { count: entries.length })}</p></section>` : ''}`;
 }
 function composer(): string {
@@ -253,7 +265,7 @@ function render(focusTarget?: string): void {
   }
   quickObserver?.disconnect(); headerObserver?.disconnect();
   updateDocumentLanguage(); document.title = 'Holter Diary';
-  root.innerHTML = `<header class="topbar"><span class="brand">${pulse}<span>holter<span class="brand-light"> diary</span></span></span><button type="button" id="settings" class="settings-button" aria-label="${text('settings')}">${text('settings')}<span id="update-notice" hidden>${text('update')}</span></button></header>
+  root.innerHTML = `<header class="topbar"><span class="brand">${pulse}<span>holter<span class="brand-light"> diary</span></span></span><button type="button" id="settings" class="settings-button" aria-label="${text('settings')}">${text('settings')}<span id="update-notice" aria-hidden="true" hidden>${updateIcon}</span></button></header>
     ${pendingMarker ? `<div id="pending-marker" class="error"><p>${text('markerFailed')} <strong>${esc(pendingMarker.display)}</strong></p><button type="button" class="secondary" id="retry-marker" ${session?.id !== pendingMarker.entry.sessionId ? 'disabled' : ''}>${text('retryMarker')}</button><button type="button" class="text-button danger" id="discard-marker">${text('discardMarker')}</button></div>` : ''}
     ${loadError ? `<main class="card"><h1>${text('loadFailed')}</h1><button class="primary" id="retry-load">${text('reload')}</button></main>` :
     !session ? `<main class="welcome"><h1>${text('newDiaryTitle')}</h1><p class="intro">${text('welcomeText')}</p><form id="setup" class="card setup-card"><p class="help">${text('optionalSetup')}</p>
@@ -404,6 +416,7 @@ function focusDialog(): void {
 }
 function openSettings(): void {
   if (busy) return;
+  if (offline.registration?.waiting?.state === 'installed' || offline.updateStatus === 'failed') openSections.add('update-settings');
   modal = 'settings'; dialogTrigger = 'settings'; settingsName = session?.name ?? ''; settingsDateOfBirth = session?.dateOfBirth ?? '';
   if (session) { sampleAt = null; reading = ''; }
   message = undefined; render(); focusDialog(); void offline.verify();
