@@ -8,10 +8,8 @@ reports. No account, server database, analytics or external runtime assets.
 version was developed entirely with **OpenAI Codex**, guided by a human maintainer.
 See [development transparency](#development-transparency).
 
-**Beta version:** Android installation, app updates and persistent-storage approval
-have been reported on a real device. The final acceptance record and public hosting
-remain pending. See
-[validation](docs/VALIDATION.md) and [release checklist](https://github.com/nhanus/holter-diary/issues/6).
+**Status: beta.** See [releases](https://github.com/nhanus/holter-diary/releases)
+for available versions and changes.
 
 ## Quick start
 
@@ -42,7 +40,7 @@ time for retry. Unsaved drafts are not durable records: use Save before leaving.
 
 Gespeicherte Einträge bleiben normalerweise auch nach einem Handyneustart erhalten.
 Ungespeicherte Entwürfe sind nicht dauerhaft gesichert. Das Löschen der Website-Daten
-entfernt das Tagebuch. Die abschließende Dokumentation der Handytests steht noch aus.
+entfernt das Tagebuch.
 
 ## Data and time
 
