@@ -103,12 +103,14 @@ physical Android/WebAPK migration still requires device acceptance.
 
 ## Direct capture regression coverage
 
-Nine additional production-app tests exercise stable action coordinates on focus
+Ten additional production-app tests exercise stable action coordinates on focus
 and first input, retained textarea identity/selection, constant spacing through
 bidirectional scrolling, manual time changes, editor actions, header layering
 and settings access. The matrix covers 320/393 CSS pixels, normal/150% root text,
 layout resizing and a simulated visual viewport overlay. Scroll-only events and
 unchanged viewport sizes must not pull the page back to the focused note.
+A wider-font regression also verifies that the first full timestamp does not
+add a line and move Save.
 
 Existing failure/retry, suspended draft, time calibration, offline/PDF and update
 protection tests remain applicable. Native keyboards and nonzero viewport panning

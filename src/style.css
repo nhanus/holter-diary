@@ -155,7 +155,7 @@ dialog::backdrop { background: #18312977; }
 .inline-composer .check,.note-editor .check { margin:4px 0; padding:8px 0; font-size:.9375rem; }
 .inline-composer .check input,.note-editor .check input { width:22px; height:22px; }
 .editor-time { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:0 12px; border-top:1px solid #d8e1d7; padding-top:5px; }
-.editor-time .time-stamp { flex:1 1 130px; min-height:calc(3em + 24px); padding:12px 0; font-size:.8125rem; }
+.editor-time .time-stamp { flex:1 1 12em; min-height:calc(3em + 24px); padding:12px 0; font-size:.8125rem; }
 .editor-time summary { min-height:48px; padding:10px 0; font-size:.875rem; text-decoration:underline; text-underline-offset:3px; }
 .editor-time details[open] { flex-basis:100%; }
 .editor-time input { font-size:1rem; }

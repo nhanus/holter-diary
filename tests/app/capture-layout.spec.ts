@@ -86,3 +86,13 @@ test('header stays above capture controls and settings retain an unfinished note
     await page.locator('#close-dialog').click(); await expect(page.locator('#note')).toHaveValue('Unfinished draft');
   }
 });
+
+test('large text with wider system-font metrics does not move Save on first input', async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 720 }); await start(page);
+  await page.addStyleTag({ content: ':root { font-size: 24px; font-family: monospace; }' });
+  await page.evaluate(() => scrollTo(0, 0)); await settle(page);
+  const initial = await page.locator('#save-entry').boundingBox();
+  await page.locator('#note').fill('Synthetic wide-font note'); await settle(page);
+  expect(await page.locator('#save-entry').boundingBox()).toEqual(initial);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

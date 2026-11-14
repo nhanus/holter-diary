@@ -592,3 +592,8 @@ Browser tests cover large text, narrow layouts, resizing and simulated visual
 viewport keyboard overlays, including repeated scrolling across the sticky edge.
 Physical keyboard animation, viewport panning and accessibility settings remain
 part of device validation; emulation is not a substitute for that check.
+
+CI exposed a font-dependent timestamp wrap at 150% text. Its flex basis now
+scales with its own font size, allowing the time controls to wrap before editing
+rather than moving Save when the first timestamp replaces “Now”. A wider-font
+regression reproduces the original failure independently of installed fonts.
