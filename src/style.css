@@ -28,8 +28,9 @@ p { overflow-wrap: anywhere; }
 .brand { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 750; letter-spacing: -.6px; white-space: nowrap; }
 .brand svg { width: 27px; height: 27px; }
 .brand-light { font-weight: 400; }
-.settings-button { background: white; border: 1px solid #c5d2c6; font-size: 14px; padding: 7px 9px; }
-#update-notice { display: block; font-size: 12px; font-weight: 500; color: #765029; }
+.settings-button { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #c5d2c6; font-size: 14px; padding: 7px 9px; }
+#update-notice { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; color: white; background: #194d42; flex: none; }
+.update-icon { width: 22px; height: 22px; flex: none; }
 .page-heading { margin: 20px 0 12px; }
 .eyebrow { display: block; font-size: 13px; color: #50665b; margin-top: 4px; }
 .badge { font-size: 13px; color: #365e4b; margin: 0 0 14px; }
@@ -102,6 +103,14 @@ dialog::backdrop { background: #18312977; }
 .setting-section>summary strong { font-size: 16px; display: block; }
 .section-summary { display: block; font-size: 13px; color: #50665b; font-weight: 400; margin-top: 2px; overflow-wrap: anywhere; }
 .section-summary>span { display: block; }
+#update-settings[data-state="available"], #update-settings[data-state="applying"] { background: #edf4ef; box-shadow: inset 4px 0 #194d42; border-radius: 0 0 13px 13px; }
+#update-settings>summary>span:not(.update-section-icon) { flex: 1; min-width: 0; }
+.update-section-icon { display: flex; width: 40px; height: 40px; border-radius: 50%; align-items: center; justify-content: center; background: #194d42; color: white; flex: none; }
+#update-status { font-size: 15px; font-weight: 700; color: #194d42; }
+#update-settings[data-state="none"] #update-status { font-size: 13px; font-weight: 400; color: #50665b; }
+#update-settings[data-state="failed"] { background: #fae5df; box-shadow: inset 4px 0 #843e2a; border-radius: 0 0 13px 13px; }
+#update-settings[data-state="failed"] #update-status { color: #843e2a; }
+#update-settings[data-state="failed"] .update-section-icon { background: #843e2a; }
 .setting-body { padding: 0 16px 18px; }
 .setting-body .primary { margin-top: 12px; }
 .setting-body h3:first-child { margin-top: 0; }
@@ -123,8 +132,9 @@ dialog::backdrop { background: #18312977; }
 [hidden] { display: none!important; }
 @media(max-width:350px) {
   #app { padding: 0 14px; }
-  .brand { font-size: 18px; gap: 5px; }
-  .settings-button { font-size: 13px; }
+  .brand { font-size: 17px; gap: 4px; }
+  .topbar { gap: 6px; }
+  .settings-button { font-size: 13px; gap: 6px; padding: 7px; }
   .brand svg { width: 23px; }
   .composer-actions { flex-wrap: wrap; }
   .composer-actions .primary { flex-basis: 100%; }

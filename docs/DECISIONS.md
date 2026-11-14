@@ -482,3 +482,27 @@ can help, but is neither a cross-browser guarantee nor a universal prerequisite.
 See [Chrome team's persistent-storage guidance](https://web.dev/articles/persistent-storage).
 The bilingual help-text update also provides a normal small release for exercising
 the existing explicit update flow; storage schema and behavior are unchanged.
+
+## 2026-11-14 — Recognizable pending updates
+
+Replace the small header subtitle with a static circle-arrow-up icon inside the
+existing Settings button. Its accessible name includes update availability.
+Keep App updates in its established position, but highlight a pending update with
+an icon, bold status text and a pale background. On entering Settings with an
+available update, expand that section once without moving focus or scrolling away
+from the heading. A manual collapse survives status refreshes and form saves;
+an update arriving during the visit does not open it unexpectedly.
+
+Distinguish availability, activation in progress, failure and no installable
+update. Show a localized retry action only while an installed waiting worker
+exists. Keep existing unsaved-input guards and explicit activation. Route polite
+announcements to the active settings dialog or the main screen, with the
+collapsed section's readable status kept separate from the live region.
+No storage migration, dependencies or worker activation behavior changes.
+
+The approved prototype and independent implementation review informed this
+change. Production-browser regression tests cover real waiting-worker detection,
+narrow-screen layout, disclosure state across language changes and settings saves,
+unsaved-note protection, activation timeout and successful retry retaining saved
+records. Existing offline, storage and report checks remain part of CI. Desktop
+browser checks do not replace Android screen-reader or device acceptance.
