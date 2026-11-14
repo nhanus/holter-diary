@@ -223,3 +223,35 @@ both dated columns across 24/48-hour reports; rendered DE/EN samples check
 readability. Independent review identified a derived phone-date boundary case,
 now covered by preserving expanded ISO years without relaxing monitor input
 validation. The fix passed re-review.
+
+## 2026-11-14 — Explicit reference time and conditional recorder time
+
+**Choice:** Keep the ordinary event timestamp in a stable first column labelled
+“Uhrzeit (Referenz)” / “Reference time”. Add “EKG-Gerätezeit” / “Recorder time”
+only when the validated calibration offset is nonzero. Both timestamps retain
+their own dates; the reference clock uses the measurement's fixed UTC offset,
+without the recorder correction. All report metadata also uses reference time,
+including report creation. Raw event and capture timestamps remain unchanged.
+
+**Clarity:** Explain the reference source and recorded correction in wrapped
+metadata. Distinguish an absent comparison from an explicitly entered zero
+without asserting verified synchronization. For nonzero differences, state the
+signed calculation and that recorder time is derived. Preserve fractional-second
+corrections rather than silently rounding them to zero. The single-clock layout
+gives the recovered space to notes. This supersedes the always-dual layout above.
+
+**Review and inspiration:** An independent Astra review informed the terminology,
+state handling and structure, then checked the implementation, geometry and
+privacy. Official examples were inspected for orientation only:
+[Gateshead Health's diary](https://www.gatesheadhealth.nhs.uk/resources/ambulatory-ecg-monitor/)
+explicitly identifies recorder time alongside activity and symptoms;
+[University Hospital Southampton's leaflet, page 3](https://www.uhs.nhs.uk/Media/UHS-website-2019/Docs/Services/Blood-heart-and-circulation/cardioscan-ambulatory-ecg-monitor-leaflet1.pdf)
+uses a simple dated observation table. No template, branding or clinical
+certification is adopted. This remains a patient observation diary.
+
+**Evidence:** PDF/TXT tests cover missing, zero, positive, negative and fractional
+corrections in both languages, including backdated events and multipage reports.
+Production-interface downloads cover default setup, a recorded zero, nonzero
+corrections and restoring uncorrected reference time. Rendered DE/EN samples
+were inspected in all three modes. Real Android/printer acceptance remains
+separate.
