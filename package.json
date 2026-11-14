@@ -1,6 +1,6 @@
 {
   "name": "holter-diary",
-  "version": "0.0.0",
+  "version": "0.1.0-beta.1",
   "private": true,
   "description": "A minimal local-first Holter monitoring diary",
   "license": "MIT",
@@ -18,12 +18,13 @@
     "test:build": "vite build --config tests/browser/vite.config.ts",
     "test:serve": "vite preview --config tests/browser/vite.config.ts",
     "test:browser": "npm run test:build && playwright test",
-    "test": "npm run test:policy && npm run test:unit && npm run test:browser && npm run test:app",
+    "test": "npm run test:policy && npm run test:release && npm run test:unit && npm run test:browser && npm run test:app",
     "test:app": "npm run build && playwright test --config playwright.app.config.ts",
     "check:dependencies": "node scripts/check-dependency-policy.mjs",
     "test:policy": "node --test tests/policy/*.test.mjs",
     "deps:install": "node scripts/check-dependency-policy.mjs && npm audit --package-lock-only --audit-level=low && npm ci --ignore-scripts",
-    "audit:dependencies": "npm audit --package-lock-only --audit-level=low"
+    "audit:dependencies": "npm audit --package-lock-only --audit-level=low",
+    "test:release": "node --test tests/release/*.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

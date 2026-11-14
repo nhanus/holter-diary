@@ -18,6 +18,9 @@ concurrency:
 
 jobs:
   validate:
+    # Permission ceiling for reusable CI; its release job is skipped on dispatch.
+    permissions:
+      contents: write
     if: github.ref == 'refs/heads/main' && inputs.publish && vars.PAGES_ENABLED == 'true'
     uses: ./.github/workflows/ci.yml
 
