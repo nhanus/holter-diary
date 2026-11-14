@@ -51,6 +51,16 @@ export function newSession(startedAtMs: number, clock: MeasurementClock, name = 
   return session;
 }
 
+// Event time in the session's fixed phone-clock basis, without monitor correction.
+export function phoneTime(eventAtMs: number, session: Session): string {
+  assertInstant(eventAtMs);
+  assertSession(session);
+  const wallMs = eventAtMs + session.clock.utcOffsetMinutes * MINUTE;
+  assertInstant(wallMs);
+  // Derived phone dates can cross the monitor input's four-digit year boundary.
+  return new Date(wallMs).toISOString().slice(0, -5);
+}
+
 export function monitorTime(eventAtMs: number, session: Session): string {
   assertInstant(eventAtMs);
   assertSession(session);

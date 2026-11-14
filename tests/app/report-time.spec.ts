@@ -19,12 +19,15 @@ async function exportRows(page: Page) {
     return text;
   } finally { await task.destroy(); await page.locator('#close-dialog').click(); }
 }
-function rowTime(text: Awaited<ReturnType<typeof exportRows>>, note: string) {
+function rowStamp(text: Awaited<ReturnType<typeof exportRows>>, note: string, clock = 'EKG-Zeit') {
   const item = text.find(item => item.str === note)!;
-  expect(item).toBeTruthy();
-  return text.filter(candidate => /^\d\d:\d\d:\d\d$/.test(candidate.str) &&
-    candidate.transform[4] < item.transform[4] &&
-    candidate.transform[5] <= item.transform[5] && candidate.transform[5] >= item.transform[5] - 16).map(item => item.str);
+  const heading = text.find(item => item.str === clock)!;
+  expect(item && heading).toBeTruthy();
+  return text.filter(candidate => candidate.str.trim() && candidate.transform[4] === heading.transform[4] &&
+    candidate.transform[5] === item.transform[5]).map(item => item.str);
+}
+function rowTime(text: Awaited<ReturnType<typeof exportRows>>, note: string, clock = 'EKG-Zeit') {
+  return rowStamp(text, note, clock).map(stamp => stamp.slice(-8));
 }
 async function rawEntries(page: Page) {
   return page.evaluate(() => new Promise<unknown[]>((resolve, reject) => {
@@ -47,7 +50,9 @@ test('later positive and negative calibration shifts actual PDF rows, including 
   await page.locator('.entry-button').filter({ hasText: 'Details später' }).click();
   await page.locator('#note').fill('Automatic symptom'); await page.locator('#save-entry').click();
   const original = await rawEntries(page);
-  expect(rowTime(await exportRows(page), 'Automatic activity')).toEqual(['23:58:00']);
+  const initialReport = await exportRows(page);
+  expect(rowTime(initialReport, 'Automatic activity')).toEqual(['23:58:00']);
+  expect(rowStamp(initialReport, 'Automatic activity', 'Handyzeit')).toEqual(rowStamp(initialReport, 'Automatic activity'));
   for (const [reading, expected, offset] of [
     ['2031-01-01T00:01:00', '00:01:00', '+180 s'],
     ['2030-12-31T23:54:00', '23:54:00', '-240 s'],
@@ -63,9 +68,8 @@ test('later positive and negative calibration shifts actual PDF rows, including 
     expect(rowTime(report, 'Automatic symptom')).toEqual([expected]);
     const expectedDate = `${reading.slice(8, 10)}.${reading.slice(5, 7)}.${reading.slice(0, 4)}`;
     for (const note of ['Automatic activity', 'Automatic symptom']) {
-      const item = report.find(item => item.str === note)!;
-      expect(report.filter(candidate => /^\d{2}\.\d{2}\.\d{4}$/.test(candidate.str) &&
-        candidate.transform[5] === item.transform[5]).map(candidate => candidate.str)).toEqual([expectedDate]);
+      expect(rowStamp(report, note)).toEqual([`${expectedDate} ${expected}`]);
+      expect(rowStamp(report, note, 'Handyzeit')).toEqual(['31.12.2030 23:58:00']);
     }
     expect(report.some(item => item.str.endsWith(offset))).toBe(true);
     expect(await rawEntries(page)).toEqual(original);
@@ -87,6 +91,8 @@ test('setup calibration converts automatic timestamps once; manual input already
   await page.locator('#save-entry').click();
   const report = await exportRows(page);
   expect(rowTime(report, 'Automatic entry')).toEqual(['13:28:00']);
+  expect(rowTime(report, 'Automatic entry', 'Handyzeit')).toEqual(['13:30:00']);
   expect(rowTime(report, 'Manual monitor time')).toEqual(['13:30:00']);
+  expect(rowTime(report, 'Manual monitor time', 'Handyzeit')).toEqual(['13:32:00']);
   expect(report.some(item => item.str.endsWith('-120 s'))).toBe(true);
 });
