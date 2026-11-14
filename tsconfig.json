@@ -25,6 +25,7 @@
     "src",
     "tests",
     "playwright.config.ts",
-    "playwright.app.config.ts"
+    "playwright.app.config.ts",
+    "playwright.site.config.ts"
   ]
 }

@@ -21,7 +21,7 @@ export class OfflineApp {
     }
     this.status = 'checking'; this.notify();
     try {
-      const base = new URL(import.meta.env.BASE_URL, location.origin);
+      const base = new URL('../', new URL(import.meta.env.BASE_URL, location.origin));
       this.registration = await navigator.serviceWorker.register(new URL('sw.js', base), { scope: base.pathname });
       this.registration.addEventListener('updatefound', () => {
         const worker = this.registration?.installing;
@@ -50,7 +50,7 @@ export class OfflineApp {
       const channel = new MessageChannel();
       const timer = setTimeout(() => { channel.port1.close(); resolve(false); }, 5000);
       channel.port1.onmessage = event => {
-        clearTimeout(timer); channel.port1.close(); resolve(event.data?.ready === true);
+        clearTimeout(timer); channel.port1.close(); resolve(event.data?.ready === true && event.data?.appVersion === __APP_VERSION__);
       };
       try { worker.postMessage({ type: 'CHECK_READY', repair }, [channel.port2]); }
       catch { clearTimeout(timer); channel.port1.close(); resolve(false); }

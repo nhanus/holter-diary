@@ -540,3 +540,22 @@ paginated discovery when the published-tag endpoint returns 404, and the Pages
 caller needs the reusable workflow's permission ceiling even though publication
 is skipped for manual runs. Both were corrected. Release tests model draft lookup,
 pagination and duplicate matches; API status errors remain distinct from absence.
+
+
+## 2026-11-14 — Separate website and immutable app release
+
+**Choice:** Keep one repository with independent website sources and app build.
+Compose website publication from a selected, verified published app release.
+Documentation-only changes cannot silently replace an installed version's bytes.
+
+**Migration:** Keep the root worker URL/scope and manifest URL, and preserve the
+manifest's effective identity `/`. Put the diary under `app/`, with offline and
+standalone compatibility redirects for old installed launch URLs. Narrow worker
+fetch handling instead of creating competing registrations. Retain old hashed
+assets for open tabs and never replace IndexedDB or force unfinished work closed.
+A ready-cache response includes the app version, preventing a new UI from treating
+an old worker's assets as its own offline readiness.
+
+**Validation:** Exercise bilingual routes, mobile reflow, manifest identity,
+offline root/app routing, cache separation and unchanged app bytes after FAQ edits.
+Keep physical Android/WebAPK update acceptance distinct from Chromium emulation.

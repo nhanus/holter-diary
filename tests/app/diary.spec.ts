@@ -377,7 +377,7 @@ test('missing cached asset withdraws offline readiness and repairs online withou
   await page.locator('#retry-offline').click();
   await expect(page.locator('[data-offline-status]').first()).toContainText('unvollständig');
   await context.setOffline(false);
-  const path = 'dist/icon-192.png'; const original = await readFile(path);
+  const path = 'dist/app/icon-192.png'; const original = await readFile(path);
   try {
     await writeFile(path, Buffer.concat([original, Buffer.from('synthetic different release')]));
     await page.locator('#retry-offline').click();

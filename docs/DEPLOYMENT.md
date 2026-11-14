@@ -17,7 +17,7 @@ are separate decisions. Publishing is not enabled by merging this workflow.
    variable `PAGES_ENABLED` to the literal value `true` only after approval.
 4. Run **Publish to Pages (manual)** on `main` and explicitly check `publish`.
    It runs the existing full CI first, then downloads that run's exact commit
-   artifact, packages only `dist/` and deploys it. It never uploads repository
+   website artifact, packages `site-dist/` and deploys it. It never uploads repository
    source or browser-test evidence as website content. A failed check prevents
    deployment. Pushes, PRs and scheduled audits never trigger publication.
 5. Verify the workflow's HTTPS URL, then run the Android checklist below.
@@ -32,11 +32,12 @@ Deployment itself remains untested until hosting is approved and activated.
 
 ## Another HTTPS host
 
-Download `holter-diary-COMMIT_SHA` from a successful main CI run and extract its
+Download `holter-website-COMMIT_SHA` from a successful main CI run and extract its
 contents, including `.nojekyll`, into the server's `/holter-diary/` directory.
-Alternatively, use the complete `dist/` from a validated local build. Serve with
+For development, `npm run build && npm run build:site` produces `site-dist/`.
+Production assembly selects the published app as described below. Serve with
 a certificate trusted by Android and correct HTML, JavaScript and manifest MIME
-types. Serve `sw.js`, `index.html` and the manifest with revalidation (for example
+types. Serve `sw.js`, both `index.html` files and the manifest with revalidation (for example
 `Cache-Control: no-cache`); content-hashed assets may be cached long-term.
 Do not substitute HTML error/fallback pages for missing assets. Deploy the whole
 build together, preserving old hashed assets while existing tabs can use them.
@@ -52,7 +53,7 @@ canonical GitHub project, even when the test build is hosted elsewhere.
 Use synthetic entries and record the tested commit, date, Android/browser versions
 and actual results in issue #6. Never attach real patient details or diaries.
 
-1. **Install / Installieren:** Open the HTTPS address in Android Chrome, install
+1. **Install / Installieren:** Open the app at the HTTPS address ending in `/app/` in Android Chrome, install
    from its menu and launch from the home screen. / HTTPS-Adresse in Chrome öffnen,
    über das Menü installieren und vom Startbildschirm öffnen.
 2. **Storage / Speicher:** In Settings → Offline & storage, note the actual persistent-storage result
@@ -98,7 +99,7 @@ behavior varies and is not claimed as a validated app navigation mechanism.
 The installed version is always visible in **Settings → App updates**, including
 when offline or when no update is waiting. It is embedded in the running app, not
 read from the newest server version. `package.json` is the version source;
-`package-lock.json` must match. Vite embeds it and emits `version.json`, which the
+`package-lock.json` must match. Vite embeds it and emits `app/version.json`, which the
 offline build includes in its integrity-checked assets.
 
 To release a change:
@@ -130,3 +131,33 @@ The repository can remain private: release creation does not change visibility
 or enable Pages. The release job alone gets `contents: write`; tests and builds
 retain read-only permissions. Release packages are also retained as CI artifacts
 for seven days; the release assets provide the durable download.
+
+## Separate website and app
+
+`website/` contains the German/English introduction, guide and FAQ. The diary
+source remains in `src/`. The public routes are `/holter-diary/`, `guide/`,
+`faq/` and `app/`. Installation starts only the diary; guide and FAQ are online
+website content and are not included in its offline package.
+
+The app archive contains `app/**`, `sw.js`, `manifest.webmanifest` and `.nojekyll`.
+The worker and manifest deliberately retain their original URLs. The manifest
+keeps the original effective identity `/`, while its start URL and display scope
+move to `app/`. The root worker registration remains for existing installations;
+its cache handles only app content, its manifest and legacy hashed assets.
+Old installed start URLs redirect to the diary in standalone mode; offline root
+navigation also redirects there. No data migration or database reset occurs.
+Do not unregister the worker or remove old hashed assets during this transition.
+An old active worker can continue showing the old diary until its update is adopted.
+
+For a website-only change, edit `website/` and keep `website/app-release.json`
+pinned to the existing published version. After validation, the CI website job
+downloads that release, verifies its asset digests and source tag, and copies its
+bytes into the combined `holter-website-COMMIT_SHA` artifact. It does not rebuild
+the app. Thus documentation edits do not change the installed version or worker.
+For an app release, also update the website pin when that version should be served.
+The main run publishes the new app before assembling the website. An unavailable
+or mismatched selected release fails assembly; there is no development-build fallback.
+
+Deploy the complete combined artifact for a website plus app. The standalone app
+archive is not a complete website. Build/assembly and hosting remain separate;
+creating artifacts or releases does not activate GitHub Pages.

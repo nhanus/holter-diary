@@ -9,12 +9,12 @@ const sha = 'a'.repeat(40), version = '0.1.0-beta.1';
 const env = { GITHUB_EVENT_NAME: 'push', GITHUB_REF: 'refs/heads/main', GITHUB_SHA: sha, GITHUB_REPOSITORY: 'example/diary' };
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'diary-release-')); t.after(() => rm(root, { recursive: true, force: true }));
-  await mkdir(join(root, 'dist')); await mkdir(join(root, 'releases'));
+  await mkdir(join(root, 'dist/app'), { recursive: true }); await mkdir(join(root, 'releases'));
   await writeFile(join(root, 'package.json'), JSON.stringify({ version }));
   await writeFile(join(root, 'package-lock.json'), JSON.stringify({ version, packages: { '': { version } } }));
   await writeFile(join(root, 'releases', `${version}.md`), 'Synthetic reviewed release notes for the test app.');
-  for (const name of ['index.html', 'sw.js', 'manifest.webmanifest', '.nojekyll']) await writeFile(join(root, 'dist', name), 'Synthetic build');
-  await writeFile(join(root, 'dist/version.json'), JSON.stringify({ version }));
+  for (const name of ['app/index.html', 'sw.js', 'manifest.webmanifest', '.nojekyll']) await writeFile(join(root, 'dist', name), 'Synthetic build');
+  await writeFile(join(root, 'dist/app/version.json'), JSON.stringify({ version }));
   await prepare(root, sha); return root;
 }
 function fakeApi(state = {}) {
@@ -43,12 +43,12 @@ test('versions and publication contexts reject ambiguity and mismatches', () => 
 });
 test('packaging is repeatable and refuses a stale build or tampered archive', async t => {
   const root = await fixture(t), before = await readFile(join(root, 'release', `holter-diary-${version}.tar.gz`));
-  await utimes(join(root, 'dist/index.html'), new Date(), new Date());
+  await utimes(join(root, 'dist/app/index.html'), new Date(), new Date());
   await prepare(root, sha); assert.deepEqual(await readFile(join(root, 'release', `holter-diary-${version}.tar.gz`)), before);
   await assert.rejects(() => releaseFiles(root, 'b'.repeat(40)), /identity mismatch/);
   await writeFile(join(root, 'release', `holter-diary-${version}.tar.gz`), 'Tampered');
   await assert.rejects(() => releaseFiles(root, sha), /checksum mismatch/);
-  await writeFile(join(root, 'dist/version.json'), '{"version":"0.0.0"}');
+  await writeFile(join(root, 'dist/app/version.json'), '{"version":"0.0.0"}');
   await assert.rejects(() => prepare(root, sha), /Built version differs/);
 });
 test('new prerelease publishes exact verified assets at the tested commit', async t => {

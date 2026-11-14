@@ -1,6 +1,6 @@
 {
   "name": "holter-diary",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "private": true,
   "description": "A minimal local-first Holter monitoring diary",
   "license": "MIT",
@@ -12,19 +12,21 @@
   "scripts": {
     "dev": "vite",
     "check": "tsc --noEmit",
-    "build": "vite build && node scripts/build-offline.mjs",
-    "preview": "vite preview",
+    "build": "node scripts/clean-app-build.mjs && vite build && node scripts/build-offline.mjs",
+    "preview": "node scripts/serve-static.mjs",
     "test:unit": "node --test tests/unit/*.test.ts",
     "test:build": "vite build --config tests/browser/vite.config.ts",
     "test:serve": "vite preview --config tests/browser/vite.config.ts",
     "test:browser": "npm run test:build && playwright test",
-    "test": "npm run test:policy && npm run test:release && npm run test:unit && npm run test:browser && npm run test:app",
+    "test": "npm run test:policy && npm run test:release && npm run test:unit && npm run test:browser && npm run test:app && npm run test:site",
     "test:app": "npm run build && playwright test --config playwright.app.config.ts",
     "check:dependencies": "node scripts/check-dependency-policy.mjs",
     "test:policy": "node --test tests/policy/*.test.mjs",
     "deps:install": "node scripts/check-dependency-policy.mjs && npm audit --package-lock-only --audit-level=low && npm ci --ignore-scripts",
     "audit:dependencies": "npm audit --package-lock-only --audit-level=low",
-    "test:release": "node --test tests/release/*.test.mjs"
+    "test:release": "node --test tests/release/*.test.mjs",
+    "build:site": "node scripts/build-website.mjs",
+    "test:site": "npm run build:site && playwright test --config playwright.site.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

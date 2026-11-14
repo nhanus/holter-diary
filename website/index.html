@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <script>
+    if (window.matchMedia('(display-mode: standalone), (display-mode: minimal-ui)').matches ||
+        navigator.standalone === true) {
+      const language = new URLSearchParams(location.search).get('lang');
+      const app = new URL('./app/', location.href);
+      if (language === 'de' || language === 'en') app.searchParams.set('lang', language);
+      location.replace(app);
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Ein Tagebuch für Aktivitäten und Beschwerden während deines Langzeit-EKGs.">
+  <title>Holter Diary</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body data-page="home">
+  <noscript lang="de">Bitte aktiviere JavaScript, um die Website zu nutzen.</noscript>
+  <noscript lang="en">Enable JavaScript to use this website.</noscript>
+  <script src="./site.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
@@ -8,6 +8,8 @@ async function files(dir, prefix = '') {
     ? files(join(dir, item.name), prefix + item.name + '/') : [prefix + item.name]));
   return nested.flat();
 }
+await rename('dist/app/manifest.webmanifest', 'dist/manifest.webmanifest');
+const appVersion = JSON.parse(await readFile('dist/app/version.json', 'utf8')).version;
 const assets = (await files('dist')).filter(x => x !== 'sw.js' && x !== '.nojekyll').sort();
 const hash = createHash('sha256');
 const integrity = {};
@@ -47,24 +49,40 @@ self.addEventListener('message', event => {
       catch { /* Offline or failed fetch: readiness remains false. */ }
     }
     const ready = (await Promise.all(urls.map(url => cache.match(url)))).every(Boolean);
-    event.ports[0]?.postMessage({ready, version: ${JSON.stringify(version)}});
+    event.ports[0]?.postMessage({ready, appVersion: ${JSON.stringify(appVersion)}, version: ${JSON.stringify(version)}});
   })());
 });
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  if (event.request.method !== 'GET' || !url.href.startsWith(self.registration.scope)) return;
+  const root = self.registration.scope;
+  if (event.request.method !== 'GET' || !url.href.startsWith(root)) return;
+  const appRoot = new URL('app/', root);
+  const rootNavigation = event.request.mode === 'navigate' &&
+    (url.pathname === new URL(root).pathname || url.pathname === new URL('index.html', root).pathname);
+  // A delayed installed start URL can still point at the old root. Never use
+  // its old cached index for the website; offline launches go to the diary.
+  if (rootNavigation) {
+    event.respondWith(fetch(event.request).then(response => response.ok ? response : Response.redirect(appRoot.href))
+      .catch(() => Response.redirect(appRoot.href)));
+    return;
+  }
+  const appRequest = url.pathname.startsWith(appRoot.pathname);
+  const legacyAsset = url.pathname.startsWith(new URL('assets/', root).pathname);
+  const manifest = url.pathname === new URL('manifest.webmanifest', root).pathname;
+  if (!appRequest && !legacyAsset && !manifest) return;
   event.respondWith((async () => {
-    const root = self.registration.scope;
     const key = event.request.mode === 'navigate' &&
-      (url.pathname === new URL(root).pathname || url.pathname === new URL('index.html', root).pathname)
-      ? new URL('index.html', root).href : event.request.url;
-    const cache = await caches.open(cacheName);
-    const cached = await cache.match(key);
+      (url.pathname === appRoot.pathname || url.pathname === new URL('index.html', appRoot).pathname)
+      ? new URL('index.html', appRoot).href : event.request.url;
+    const cached = await (await caches.open(cacheName)).match(key);
     if (cached) return cached;
-    // Old hashed assets can still be needed by a previously opened tab.
-    for (const name of (await caches.keys()).filter(name => name.startsWith(prefix)).reverse()) {
-      const previous = await (await caches.open(name)).match(key);
-      if (previous) return previous;
+    // Previous immutable hashed assets support tabs that still run an older app.
+    // Never fall back to old HTML, manifests or mutable metadata.
+    if (legacyAsset || url.pathname.startsWith(new URL('assets/', appRoot).pathname)) {
+      for (const name of (await caches.keys()).filter(name => name.startsWith(prefix)).reverse()) {
+        const previous = await (await caches.open(name)).match(key);
+        if (previous) return previous;
+      }
     }
     return fetch(event.request);
   })());
