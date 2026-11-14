@@ -466,3 +466,19 @@ Design rationale follows the prior review's W3C/GOV.UK references: clear action
 labels, visible status summaries, large touch targets and secondary details on
 demand. The single settings hierarchy is a project-specific design decision,
 not a prescribed standards layout.
+
+
+## 2026-11-14 — Installation guidance for persistent storage
+
+Make installation an explicit troubleshooting step when persistent storage is not
+granted: install from the browser menu, launch from the home screen and check the
+actual permission again in Settings → Offline & storage. Do not make installation
+a universal requirement or infer permission from standalone display mode. The
+browser's API result remains the only basis for the displayed grant.
+
+Chromium uses several signals, including installation or bookmarking and site
+engagement, to decide whether to grant persistent storage. Installation therefore
+can help, but is neither a cross-browser guarantee nor a universal prerequisite.
+See [Chrome team's persistent-storage guidance](https://web.dev/articles/persistent-storage).
+The bilingual help-text update also provides a normal small release for exercising
+the existing explicit update flow; storage schema and behavior are unchanged.
