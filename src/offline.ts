@@ -3,13 +3,14 @@ export type OfflineStatus = 'checking' | 'ready' | 'unavailable' | 'failed';
 export class OfflineApp {
   status: OfflineStatus = 'checking';
   registration?: ServiceWorkerRegistration;
-  private applying = false;
+  updateStatus: 'idle' | 'applying' | 'failed' = 'idle';
+  private updateTimer?: ReturnType<typeof setTimeout>;
   private notify: () => void;
 
   constructor(notify: () => void) {
     this.notify = notify;
     if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (this.applying) location.reload();
+      if (this.updateStatus === 'applying') { clearTimeout(this.updateTimer); location.reload(); }
       else void this.verify();
     });
   }
@@ -57,9 +58,21 @@ export class OfflineApp {
     this.status = ready ? 'ready' : 'failed'; this.notify();
   }
 
-  applyUpdate(): void {
-    if (!this.registration?.waiting) return;
-    this.applying = true;
-    this.registration.waiting.postMessage({ type: 'ACTIVATE_UPDATE' });
+  applyUpdate(): boolean {
+    if (this.updateStatus === 'applying') return false;
+    const worker = this.registration?.waiting;
+    if (!worker || worker.state !== 'installed') {
+      this.updateStatus = 'failed'; this.notify(); return false;
+    }
+    try {
+      this.updateStatus = 'applying';
+      worker.postMessage({ type: 'ACTIVATE_UPDATE' });
+      this.updateTimer = setTimeout(() => {
+        this.updateStatus = 'failed'; this.notify();
+      }, 10000);
+      this.notify(); return true;
+    } catch {
+      this.updateStatus = 'failed'; this.notify(); return false;
+    }
   }
 }

@@ -511,9 +511,10 @@ footer {
 }
 
 dialog {
+  scroll-padding-top:7rem;
   border:1px solid #dbe4d8;
   border-radius:19px;
-  padding:25px;
+  padding:0;
   width:calc(100% - 28px);
   max-width:550px;
   max-height:90dvh;
@@ -542,7 +543,7 @@ dialog::backdrop {
   color:#62756a
 }
 
-.status-panel,.reset-section {
+.reset-section {
   border-top:1px solid #dfe5dc;
   margin-top:25px;
   padding-top:4px
@@ -554,9 +555,6 @@ dialog::backdrop {
   margin:0
 }
 
-.status-panel button {
-  font-size:12px
-}
 
 .export-actions {
   display:flex;
@@ -677,7 +675,7 @@ h1 {
 }
 
 dialog {
-  padding:20px
+  padding:0
 }
 
 .brand {
@@ -700,3 +698,52 @@ dialog {
 }
 
 [data-storage-check]:empty { margin: 0; }
+
+.update-notice {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  margin:14px 0 0;
+  background:#edf1eb;
+  border:1px solid #d3ded4;
+  font-size:14px;
+  text-align:left;
+}
+.app-info-button {
+  background:transparent;
+  color:#385d47;
+  font-size:14px;
+  text-decoration:underline;
+  text-underline-offset:3px;
+  margin-bottom:8px;
+}
+footer p { margin:0; }
+.dialog-head {
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:#fff;
+  padding:18px 20px;
+  margin:0;
+  border-bottom:1px solid #dfe5dc;
+}
+.dialog-head h2 { font-size:21px; overflow-wrap:anywhere; }
+.dialog-body { padding:18px 20px 22px; }
+.app-section { padding:18px 0; border-bottom:1px solid #dfe5dc; }
+.app-section:first-child { padding-top:0; }
+.app-section:last-child { padding-bottom:0; border-bottom:0; }
+.app-section h3 { margin:0 0 8px; }
+.app-section button { max-width:100%; margin-top:8px; }
+.app-details { margin-top:8px; }
+.app-details summary,.clock-settings>summary {
+  min-height:46px;
+  padding:12px 0;
+  font-size:14px;
+  font-weight:600;
+  color:#385d47;
+}
+.clock-settings { margin:18px 0; border-top:1px solid #dfe5dc; border-bottom:1px solid #dfe5dc; }
+.clock-settings>summary { font-size:16px; }
+.clock-settings .calibration { margin:12px 0; }

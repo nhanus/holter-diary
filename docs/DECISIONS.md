@@ -381,3 +381,41 @@ failure, actual API grant reporting, English feedback and retained entries. The
 about provisional language and live-region replacement were fixed and re-reviewed;
 no blocking findings remain. Real browser grants and the Android translation
 prompt are not established by mocked browser tests.
+
+
+## 2026-11-14 — Separate diary settings from app maintenance
+
+Keep daily capture and export unchanged. Diary settings contain identity and a
+collapsed recorder-clock section. A separate **App & storage** dialog groups
+updates, offline readiness and optional eviction protection. A conditional notice
+below the header makes a waiting update discoverable without opening a dialog or
+reloading automatically. Installation help and storage explanations use disclosure
+sections; offline repair appears only after a failed readiness check.
+
+An update waits for unfinished notes, setup fields and pending symptom markers.
+Closing edited settings requires confirmation. Activation failures and a ten-second
+timeout restore normal navigation and unload protection. A stable polite live
+region announces a newly available update. Dialog headings remain visible, and
+scroll padding prevents focused controls from being hidden behind them.
+
+Chrome still offered translation after accurate language metadata was introduced.
+For this self-localized interface, use HTML `translate="no"` plus Chromium's
+`google/notranslate` metadata while retaining the real DE/EN document language and
+explicit language selector. This supersedes the earlier decision not to opt out.
+The intent is to avoid a second translation layer on operational controls; native
+Android translation UI still needs device confirmation.
+
+References: [GOV.UK details guidance](https://design-system.service.gov.uk/components/details/),
+[WCAG reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html),
+[modal dialog guidance](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/),
+[status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html),
+[Chromium translation exceptions](https://chromium.googlesource.com/playground/chromium-org-site/+/refs/heads/main/developers/design-documents/translate.md),
+and [HTML translation semantics](https://html.spec.whatwg.org/multipage/dom.html#the-translate-attribute).
+
+Validation: type checking and production build pass; 24 production-app tests cover
+real waiting-worker adoption, cross-tab data retention, blocked unsaved inputs,
+failed-marker recovery, narrow dialogs and language metadata. Two focused unit
+tests cover missing workers, activation errors and timeouts. Independent Astra
+source and visual review found no blocking issues; its live-announcement and
+focused-control visibility recommendations were implemented and tested. Only
+synthetic diary data was used. No dependencies or hosting settings changed.

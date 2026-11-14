@@ -55,8 +55,8 @@ and actual results in issue #6. Never attach real patient details or diaries.
 1. **Install / Installieren:** Open the HTTPS address in Android Chrome, install
    from its menu and launch from the home screen. / HTTPS-Adresse in Chrome öffnen,
    über das Menü installieren und vom Startbildschirm öffnen.
-2. **Storage / Speicher:** In Settings, note the actual persistent-storage result
-   and wait for offline readiness. / In Einstellungen die tatsächliche
+2. **Storage / Speicher:** In App & storage, note the actual persistent-storage result
+   and wait for offline readiness. / In App & Speicherung die tatsächliche
    Speicherfreigabe prüfen und auf Offline-Bereitschaft warten.
 3. **Save and restart / Speichern und neu starten:** Save two notes and a symptom
    marker, restart the phone and verify all entries. / Zwei Notizen und eine
@@ -81,3 +81,8 @@ printer acceptance is required for this project.
 After device acceptance, record the verified main commit and tag the first release.
 Keep untested behavior explicit; publication of repository history remains a
 separate review from testing the application.
+
+When an update is ready, a notice appears below the app header. Open it and choose
+**Update now**. Save or discard unfinished input first; the app will not apply an
+update while a note, setup entry or symptom marker remains unsaved. App & storage
+also contains offline status and the optional persistent-storage check.

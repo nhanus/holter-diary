@@ -59,7 +59,7 @@ test('later positive and negative calibration shifts actual PDF rows, including 
     ['2030-12-31T23:54:00', '23:54:00', '-240 s'],
   ]) {
     await page.locator('#settings').click();
-    await page.getByText('EKG-Uhrzeit abgleichen', { exact: true }).click();
+    await page.locator('.clock-settings > summary').click();
     await page.locator('#capture-time').click();
     await page.locator('#monitor-reading').fill(reading.replace(/:00$/, '')); // Chromium normalizes zero seconds in datetime-local values.
     await page.getByRole('button', { name: 'Einstellungen speichern' }).click();
@@ -76,6 +76,7 @@ test('later positive and negative calibration shifts actual PDF rows, including 
     expect(await rawEntries(page)).toEqual(original);
   }
   await page.locator('#settings').click();
+  await page.locator('.clock-settings > summary').click();
   await page.locator('#reset-clock').click();
   await page.getByRole('button', { name: 'Einstellungen speichern' }).click();
   const resetReport = await exportRows(page);

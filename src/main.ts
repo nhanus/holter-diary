@@ -25,13 +25,14 @@ let dirty = false, editing = false, invalidTime = false, busy = false, conflict 
 let pendingMarker: { entry: Entry; revision: number; display: string } | undefined;
 let setupDateOfBirth = '', settingsDateOfBirth = '';
 let setupName = '', settingsName = '', sampleAt: number | null = null, reading = '';
-let modal: 'settings' | 'export' | null = null;
+let modal: 'settings' | 'export' | 'app' | null = null;
+let appTrigger = 'app-info';
 let reportLanguage: Language = lang, reportFile: File | undefined;
 let persistence: PersistenceStatus = 'not-granted';
 let storageCheck: 'idle' | 'checking' | 'done' = 'idle';
 let message: { key: TextKey; params?: Record<string, string | number>; error?: boolean } | undefined;
 let messageTimer: number | undefined;
-let loadError = false, applyingUpdate = false;
+let loadError = false;
 const offline = new OfflineApp(refreshStatus);
 const t = (key: TextKey, params?: Record<string, string | number>) => translate(lang, key, params);
 const text = (key: TextKey, params?: Record<string, string | number>) => esc(t(key, params));
@@ -80,8 +81,27 @@ function refreshStatus(): void {
   for (const node of document.querySelectorAll('[data-offline-status]')) node.textContent = t(offlineKey());
   const badge = document.querySelector('#offline-badge');
   if (badge) badge.textContent = !navigator.onLine ? t('connection') : offline.status === 'ready' ? t('offlineReady') : t('device');
+  const waiting = offline.registration?.waiting?.state === 'installed';
+  const applying = offline.updateStatus === 'applying';
+  const blocked = hasUnsavedChanges();
+  const announcement = document.querySelector<HTMLElement>('#update-announcement');
+  const announcementText = waiting ? t('update') : '';
+  if (announcement && announcement.textContent !== announcementText) announcement.textContent = announcementText;
+  const notice = document.querySelector<HTMLElement>('#update-notice');
+  if (notice) notice.hidden = !waiting;
   const update = document.querySelector<HTMLButtonElement>('#apply-update');
-  if (update) update.hidden = !offline.registration?.waiting;
+  if (update) { update.hidden = !waiting && !applying; update.disabled = busy || blocked || applying; }
+  const close = document.querySelector<HTMLButtonElement>('#close-dialog');
+  if (close) close.disabled = busy || applying;
+  const updateHelp = document.querySelector<HTMLElement>('#update-help');
+  if (updateHelp) updateHelp.hidden = !waiting && !applying;
+  const updateBlocked = document.querySelector<HTMLElement>('#update-blocked');
+  if (updateBlocked) updateBlocked.hidden = !waiting || !blocked;
+  const updateStatus = document.querySelector<HTMLElement>('#update-status');
+  const updateMessage = t(applying ? 'updateApplying' : offline.updateStatus === 'failed' ? 'updateFailed' : waiting ? 'update' : 'updateNone');
+  if (updateStatus && updateStatus.textContent !== updateMessage) updateStatus.textContent = updateMessage;
+  const retryOffline = document.querySelector<HTMLButtonElement>('#retry-offline');
+  if (retryOffline) { retryOffline.hidden = offline.status !== 'failed'; retryOffline.disabled = busy; }
 }
 async function checkStorage(): Promise<void> {
   if (storageCheck === 'checking') return;
@@ -122,43 +142,56 @@ function touchDraft(): void {
 function remember(entry: Entry): void {
   entries = [...entries.filter(x => x.id !== entry.id), entry].sort((a, b) => a.eventAtMs - b.eventAtMs || a.id.localeCompare(b.id));
 }
+function settingsDirty(): boolean {
+  return modal === 'settings' && !!session && (settingsName !== session.name ||
+    settingsDateOfBirth !== (session.dateOfBirth ?? '') || sampleAt !== null || reading === 'reset');
+}
+function hasUnsavedChanges(): boolean {
+  return dirty || !!pendingMarker || settingsDirty() || (!session && !!(setupName || setupDateOfBirth || sampleAt !== null || reading));
+}
 function discardAllowed(): boolean { return !dirty || confirm(t('discardConfirm')); }
 function birthDateField(id: string, value: string): string {
   return `<label for="${id}">${text('dateOfBirth')}</label><input id="${id}" type="date" autocomplete="bday" min="0001-01-01" max="9999-12-31" value="${esc(value)}">`;
 }
-function calibrationFields(): string {
+function calibrationFields(inSettings = false): string {
   const clock = session?.clock ?? captureClock(sampleAt ?? Date.now());
   const phoneSession = newSession(sampleAt ?? Date.now(), clock);
-  return `<details class="calibration" ${sampleAt !== null ? 'open' : ''}><summary>${text('calibration')}</summary>
+  return `${inSettings ? '<div class="calibration">' : `<details class="calibration" ${sampleAt !== null ? 'open' : ''}><summary>${text('calibration')}</summary>`}
     <p class="help">${text('calibrationHelp')}</p><button type="button" id="capture-time" class="secondary">${text('capture')}</button>
     ${sampleAt === null ? '' : `<p class="help sample">${text('captured', { time: monitorTime(sampleAt, phoneSession).replace('T', ' ') })}</p>
     <label for="monitor-reading">${text('monitorReading')}</label><input id="monitor-reading" type="datetime-local" step="1" value="${esc(reading)}" required>
-    <p class="help">${text('minuteHint')}</p>`}</details>`;
+    <p class="help">${text('minuteHint')}</p>`}${inSettings ? '</div>' : '</details>'}`;
 }
-function statusPanel(): string {
-  return `<section class="status-panel"><h3>${text('storage')}</h3><p class="status-line" data-storage-status></p><p class="help">${text('storageHelp')}</p>
+function appPanel(): string {
+  return `<section class="app-section update-section"><h3>${text('updates')}</h3>
+    <p class="status-line" id="update-status" role="status"></p>
+    <p class="help" id="update-help" hidden>${text('updateHelp')}</p>
+    <p class="help" id="update-blocked" hidden>${text('updateBlocked')}</p>
+    <button type="button" class="primary full" id="apply-update" hidden>${text('updateAction')}</button></section>
+    <section class="app-section"><h3>${text('offline')}</h3><p class="status-line" data-offline-status></p>
+    <button type="button" class="secondary" id="retry-offline" hidden>${text('retryOffline')}</button>
+    <details class="app-details"><summary>${text('install')}</summary><p class="help">${text('installHelp')}</p></details></section>
+    <section class="app-section"><h3>${text('storageProtection')}</h3><p class="status-line" data-storage-status></p>
+    <details class="app-details"><summary>${text('storageDetails')}</summary><p class="help">${text('storageHelp')}</p>
     <button type="button" class="secondary" id="check-storage">${text('retryStorage')}</button>
-    <p class="help" role="status" data-storage-check></p>
-    <h3>${text('offline')}</h3><p class="status-line" data-offline-status></p><p class="help">${text('installHelp')}</p>
-    <button type="button" class="secondary" id="retry-offline">${text('retryOffline')}</button>
-    <button type="button" class="secondary" id="apply-update" hidden>${text('updateAction')}</button></section>`;
+    <p class="help" role="status" data-storage-check></p></details></section>`;
 }
 function renderDialog(): string {
-  if (!modal || !session) return '';
-  return `<dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-head"><h2 id="dialog-title">${text(modal === 'settings' ? 'settings' : 'export')}</h2>
-    <button type="button" class="icon-button" id="close-dialog" aria-label="${text('close')}">×</button></div>
+  if (!modal || (modal !== 'app' && !session)) return '';
+  return `<dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-head"><h2 id="dialog-title" tabindex="-1">${text(modal === 'app' ? 'appManagement' : modal === 'settings' ? 'diarySettings' : 'export')}</h2>
+    <button type="button" class="icon-button" id="close-dialog" aria-label="${text('close')}">×</button></div><div class="dialog-body">
     <p id="dialog-feedback" class="feedback" role="status" hidden></p><p id="dialog-error" class="error" role="alert" hidden></p>
-    ${modal === 'settings' ? `<form id="settings-form"><label for="settings-name">${text('name')}</label>
+    ${modal === 'app' ? appPanel() : modal === 'settings' ? `<form id="settings-form"><label for="settings-name">${text('name')}</label>
       <input id="settings-name" autocomplete="name" maxlength="120" value="${esc(settingsName)}">${birthDateField('settings-birth-date', settingsDateOfBirth)}
-      <h3>${text('clock')}</h3><p class="help">${text('clockBasis', { basis: basis(session) })}</p><p class="help">${text('clockHelp')}</p>
-      ${calibrationFields()}<button type="button" id="reset-clock" class="text-button">${text('resetClock')}</button>
-      <button class="primary full" type="submit">${text('saveSettings')}</button></form>${statusPanel()}
+      <details class="clock-settings" ${sampleAt !== null || reading === 'reset' ? 'open' : ''}><summary>${text('clockSection')}</summary><p class="help">${text('clockBasis', { basis: basis(session!) })}</p><p class="help">${text('clockHelp')}</p>
+      ${calibrationFields(true)}<button type="button" id="reset-clock" class="text-button">${text('resetClock')}</button></details>
+      <button class="primary full" type="submit">${text('saveSettings')}</button></form>
       <section class="reset-section"><p class="help">${text('resetHelp')}</p><button class="text-button danger" id="reset-diary" type="button">${text('reset')}</button></section>` :
       `<p class="help">${text('exportHelp')}</p><label for="report-language">${text('reportLanguage')}</label>
       <select id="report-language"><option value="de" ${reportLanguage === 'de' ? 'selected' : ''}>Deutsch</option><option value="en" ${reportLanguage === 'en' ? 'selected' : ''}>English</option></select>
       <div class="export-actions"><button id="download-pdf" class="primary">${text('pdf')} ${arrow}</button>
       ${reportFile && typeof navigator.share === 'function' && navigator.canShare?.({ files: [reportFile] }) ? `<button id="share-pdf" class="secondary">${text('share')}</button>` : ''}
-      <button id="download-text" class="secondary">${text('text')}</button></div>`}</dialog>`;
+      <button id="download-text" class="secondary">${text('text')}</button></div>`}</div></dialog>`;
 }
 function render(focusTarget?: string): void {
   const focused = focusTarget ?? document.activeElement?.id;
@@ -166,6 +199,7 @@ function render(focusTarget?: string): void {
   root.innerHTML = `<header class="topbar"><a class="brand" href="${import.meta.env.BASE_URL}" aria-label="Holter Diary">${pulse}<span>holter<span class="brand-light"> diary</span></span></a>
     <div class="header-controls"><label class="sr-only" for="language">${text('language')}</label><select id="language" class="language-select"><option value="de" ${lang === 'de' ? 'selected' : ''}>DE</option><option value="en" ${lang === 'en' ? 'selected' : ''}>EN</option></select>
     ${session ? `<button type="button" id="settings" class="icon-button" aria-label="${text('settings')}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 17h14M9 4v6m6 4v6"/></svg></button>` : ''}</div></header>
+    <button type="button" class="update-notice" id="update-notice" hidden>${text('update')} <span aria-hidden="true">→</span></button>
     ${pendingMarker ? `<div id="pending-marker" class="error"><p>${text('markerFailed')} <strong>${esc(pendingMarker.display)}</strong></p><button type="button" class="secondary" id="retry-marker" ${session?.id !== pendingMarker.entry.sessionId ? 'disabled' : ''}>${text('retryMarker')}</button><button type="button" class="text-button danger" id="discard-marker">${text('discardMarker')}</button></div>` : ''}
     ${conflict ? `<button type="button" class="secondary full" id="reload-data">${text('reload')}</button>` : ''}
     ${loadError ? `<main class="card"><h1>${text('loadFailed')}</h1><button class="primary" id="retry-load">${text('reload')}</button></main>` :
@@ -191,8 +225,8 @@ function render(focusTarget?: string): void {
         <span class="entry-time"><strong>${displayTime(entry.eventAtMs, session!)}</strong><span>${esc(displayDate(monitorTime(entry.eventAtMs, session!), lang))}</span></span>
         <span class="entry-content">${entry.kind === 'symptom' ? `<span class="symptom-label">${text('symptomsLabel')}</span>` : ''}<span class="entry-note">${esc(entry.note || t('noDetails'))}</span></span><span class="edit-arrow" aria-hidden="true">↗</span></button></li>`).join('')}</ol>` :
         `<div class="empty-state"><span class="empty-line" aria-hidden="true">${pulse}</span><strong>${text('empty')}</strong><p>${text('emptyHelp')}</p></div>`}</section>
-    <p class="footer-note" data-storage-status></p><p class="footer-note">${text('localOnly')}</p>${!isSecureContext ? `<p class="preview-note">${text('preview')}</p>` : ''}</main>`}
-    <footer>${text('appInfo')}</footer>${renderDialog()}`;
+    <p class="footer-note">${text('localOnly')}</p>${!isSecureContext ? `<p class="preview-note">${text('preview')}</p>` : ''}</main>`}
+    <footer><button type="button" class="app-info-button" id="app-info">${text('appManagement')}</button><p>${text('appInfo')}</p></footer>${renderDialog()}`;
   bind(); refreshStatus(); refreshFeedback();
   document.querySelector<HTMLDialogElement>('#dialog')?.showModal();
   if (focused && !['entry-time'].includes(focused)) (document.getElementById(focused) ?? document.getElementById(session ? 'settings' : 'setup-name'))?.focus({ preventScroll: true });
@@ -256,12 +290,14 @@ function bind(): void {
   }));
   on('reload-data', () => { if (!discardAllowed()) return; void task(async () => { await refreshData(); freshDraft(); conflict = false; message = undefined; if (pendingMarker && session && pendingMarker.entry.sessionId === session.id) pendingMarker.revision = session.revision; }); });
   on('settings', () => { modal = 'settings'; settingsName = session!.name; settingsDateOfBirth = session!.dateOfBirth ?? ''; sampleAt = null; reading = ''; message = undefined; render(); });
+  on('app-info', () => openApp('app-info'));
+  on('update-notice', () => openApp('update-notice'));
   on('export', () => { modal = 'export'; reportLanguage = lang; reportFile = undefined; message = undefined; render(); });
   on('close-dialog', closeDialog);
   document.querySelector('#dialog')?.addEventListener('cancel', event => { event.preventDefault(); closeDialog(); });
   on('check-storage', () => void checkStorage());
   on('retry-offline', () => void offline.start());
-  on('apply-update', () => { if ((dirty || pendingMarker) && !confirm(t('updateConfirm'))) return; applyingUpdate = true; offline.applyUpdate(); });
+  on('apply-update', () => { if (busy || hasUnsavedChanges()) { refreshStatus(); return; } offline.applyUpdate(); });
   on('reset-clock', () => { sampleAt = null; reading = 'reset'; notify('checkTimes'); render(); });
   document.querySelector('#settings-form')?.addEventListener('submit', event => {
     event.preventDefault(); void task(async () => {
@@ -292,7 +328,18 @@ function bind(): void {
   on('share-pdf', () => { if (reportFile) navigator.share({ files: [reportFile], title: 'Holter Diary' }).catch(error => { if (error?.name !== 'AbortError') { problem(error, 'error'); render(); } }); });
   on('retry-load', () => location.reload());
 }
-function closeDialog(): void { const trigger = modal === 'settings' ? 'settings' : 'export'; modal = null; sampleAt = null; message = undefined; render(trigger); }
+function openApp(trigger: string): void {
+  appTrigger = trigger; modal = 'app'; message = undefined; render();
+  void offline.verify();
+  document.querySelector<HTMLElement>('#dialog-title')?.focus();
+}
+function closeDialog(): void {
+  if (offline.updateStatus === 'applying') return;
+  if (settingsDirty() && !confirm(t('discardSettings'))) return;
+  const trigger = modal === 'app' ? appTrigger : modal === 'settings' ? 'settings' : 'export';
+  if (modal === 'settings') { sampleAt = null; reading = ''; }
+  modal = null; message = undefined; render(trigger);
+}
 async function saveMarker(): Promise<void> {
   if (!pendingMarker) return;
   await task(async () => { const saved = await store.addEntry(pendingMarker!.entry, pendingMarker!.revision); remember(saved.value); pendingMarker = undefined; notify('marked'); }, 'markerFailed');
@@ -302,7 +349,7 @@ function download(file: File): void {
   const url = URL.createObjectURL(file); const link = document.createElement('a'); link.href = url; link.download = file.name;
   document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
-window.addEventListener('beforeunload', event => { if ((dirty || pendingMarker) && !applyingUpdate) { event.preventDefault(); event.returnValue = ''; } });
+window.addEventListener('beforeunload', event => { if (hasUnsavedChanges() && offline.updateStatus !== 'applying') { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('online', refreshStatus); window.addEventListener('offline', refreshStatus);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && session && !dirty && !editing && !busy && !modal) { freshDraft(); render(); } });
 async function init(): Promise<void> {
