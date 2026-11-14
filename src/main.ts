@@ -68,6 +68,7 @@ function notify(key: TextKey, error = false, params?: Record<string, string | nu
   message = shown;
   refreshFeedback();
   requestAnimationFrame(() => {
+    if (shown.section && document.activeElement === document.querySelector(`#${shown.section} > summary`)) return;
     if (message === shown) document.getElementById(modal === 'settings' && shown.section ? `${shown.section}-feedback` : `${modal ? 'dialog-' : ''}${shown.error ? 'error' : 'feedback'}`)?.scrollIntoView({ block: 'nearest' });
   });
   if (!error) messageTimer = window.setTimeout(() => {
@@ -276,8 +277,10 @@ function render(focusTarget?: string): void {
     setPadding(); headerObserver = new ResizeObserver(setPadding); headerObserver.observe(header);
   }
   if (focused && focused !== 'entry-time') {
-    const target = document.getElementById(focused) ?? document.getElementById(modal ? 'dialog-title' : 'note');
-    if (target && (!modal || dialog?.contains(target))) target.focus({ preventScroll: true });
+    let target = document.getElementById(focused) ?? document.getElementById(modal ? 'dialog-title' : 'note');
+    const disabled = target?.matches(':disabled');
+    if (disabled) target = target?.closest('.setting-section')?.querySelector<HTMLElement>(':scope > summary') ?? document.getElementById('dialog-title');
+    if (target && (!modal || dialog?.contains(target))) { target.focus({ preventScroll: true }); if (disabled) target.scrollIntoView({ block: 'nearest' }); }
   }
   if (!modal && session) {
     const composer = document.querySelector('#entry-form');

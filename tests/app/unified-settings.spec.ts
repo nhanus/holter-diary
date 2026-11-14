@@ -59,13 +59,17 @@ test('independent settings saves retain the other section and failed writes rema
   await expect(page.locator('#clock-impact')).toContainText('+180 s');
   await abortWrite(page, 'sessions'); await page.locator('#save-identity').click();
   await expect(page.locator('#dialog-error')).toContainText('Speichern fehlgeschlagen');
+  await expect(page.locator('#save-identity')).toBeFocused();
   expect((await rows(page, 'sessions'))[0].revision).toBe(1);
   await expect(page.locator('#settings-name')).toHaveValue('Synthetic person'); await expect(page.locator('#monitor-reading')).toHaveValue('2028-01-10T13:03');
   await page.locator('#save-identity').click(); expect((await rows(page, 'sessions'))[0].calibration.offsetMs).toBe(0);
+  await expect(page.locator('#identity-settings > summary')).toBeFocused(); await expect(page.locator('#identity-settings > summary')).toBeInViewport();
   await expect(page.locator('#monitor-reading')).toHaveValue('2028-01-10T13:03');
   page.once('dialog', d => d.dismiss()); await page.locator('#close-dialog').click(); await expect(page.locator('#dialog')).toBeVisible();
   await page.locator('#save-clock').click(); expect((await rows(page, 'sessions'))[0].calibration.offsetMs).toBe(180000);
-  await expect(page.locator('#clock-settings-feedback')).toBeInViewport();
+  await expect(page.locator('#clock-settings-feedback')).toContainText('gespeichert');
+  await expect(page.locator('#clock-settings > summary')).toBeInViewport();
+  await expect(page.locator('#clock-settings > summary')).toBeFocused();
   expect(await page.locator('#dialog').evaluate(el => el.scrollTop)).toBeGreaterThan(100);
   await page.locator('#settings-name').fill('Another synthetic person');
   await page.locator('#capture-time').click(); await page.locator('#monitor-reading').fill('2028-01-10T12:58');

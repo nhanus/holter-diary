@@ -453,7 +453,9 @@ header height so enlarged text does not conceal focused controls.
 Independent Astra review identified settings feedback jumping to the top, focus
 restoration to a deleted entry, and stale transient flags after another tab reset
 the diary. These were corrected with section-local feedback, a surviving focus
-target and clearing draft flags before the no-session return. Regression tests
+target and clearing draft flags before the no-session return. After a successful
+section save disables its button, keyboard focus returns to the visible section
+summary; the success message cannot scroll that focus away. Regression tests
 exercise these transitions alongside actual IndexedDB aborts, stale writes,
 service-worker updates, offline restart and PDF extraction. No data migration,
 new dependencies or publication settings are needed. Real Android keyboard,
