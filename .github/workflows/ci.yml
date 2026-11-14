@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Type check and production build
+    name: Check, test and build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -31,8 +31,22 @@ jobs:
         run: npm ci
       - name: Type check
         run: npm run check
+      - name: Test time and persistence model
+        run: npm run test:unit
       - name: Build static app
         run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test browser storage
+        run: npm run test:browser
+      - name: Retain browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: browser-failures-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Retain build for inspection
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:

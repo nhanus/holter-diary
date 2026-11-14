@@ -93,3 +93,40 @@ technical decisions, using synthetic data and environment-neutral examples.
 the project. Review files, discussion text and artifacts for unintended personal
 information before publishing changes. A removal from the latest tree does not
 by itself remove historical copies.
+
+## 2026-11-14 — Transactional storage and fixed measurement clock
+
+**Choice:** Store versioned session, entry and language records in IndexedDB.
+A save resolves only after transaction completion and returns the browser's
+reported durability. Request strict durability; report the actual fallback if
+the browser rejects or ignores that option. No in-memory success fallback.
+
+**Why:** A successful individual request is not enough to confirm a committed
+record. Preserve caller drafts on failure. Revision checks prevent a stale tab
+from silently replacing a more recent edit. Entry inserts and updates also require
+the session revision used for time conversion, checked in the same transaction;
+the UI must preserve the draft and refresh/review it after a session conflict.
+Unknown database versions or invalid
+schemas fail without erasing existing data. A second session cannot silently
+replace the first.
+
+**Time basis:** Capture an IANA timezone label and its UTC offset at measurement
+start. Use that fixed offset throughout the session, independent of the browser's
+later timezone or DST changes. Monitor readings are explicit local date/time
+strings. A separate calibration offsets that fixed wall clock; it can be corrected
+without modifying original entry capture instants. Manual monitor-time edits
+convert back into the phone time basis. A correction to calibration applies to
+all event times; per-period clock drift correction is outside this version.
+
+**Limits:** If a phone or monitor clock changes during a measurement, a single
+constant offset cannot recover all affected timestamps automatically. Do not
+silently recalibrate on resume or timezone changes. The UI must explain the fixed
+time basis and allow explicit entry correction. A minute-only monitor reading is
+interpreted at second zero; matching the capture gesture to the reading limits
+calibration error, but does not establish sub-minute accuracy. Real-device
+persistence permission and restart/printing checks remain separate acceptance.
+
+**Validation:** Unit tests exercise offsets, date boundaries, manual corrections,
+fixed DST behavior and permission outcomes. Chromium tests exercise real IndexedDB
+transactions, reloads, failures, edit conflicts and non-destructive schema refusal.
+The fixture is bundled separately and excluded from the production app artifact.

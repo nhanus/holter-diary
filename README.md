@@ -3,8 +3,9 @@
 A small, local-first diary for Holter monitoring: open, write a note, save.
 Planned for Android, with German and English UI and printable PDF reports.
 
-**Status: project foundation only. The diary, offline storage and PDF export are
-not implemented yet. Do not use this baseline to record a monitoring session.**
+**Status: data and time foundations implemented; the diary interface, offline
+app installation and PDF export are not implemented yet. Do not use this version
+to record a monitoring session.**
 
 There is no released application yet. The included page is only a build placeholder.
 
@@ -23,7 +24,10 @@ Use Node.js 24 (see `.node-version`) and npm.
 ```sh
 npm ci
 npm run check
+npm run test:unit
 npm run build
+npx playwright install chromium
+npm run test:browser
 npm run dev
 ```
 
@@ -32,9 +36,11 @@ GitHub Pages site. `npm run preview` serves this build for local inspection.
 Open the local URL printed by Vite. Service-worker installation and persistent
 storage checks require a secure context: HTTPS or localhost in the test browser.
 
-CI runs type checking and a production build on pushes and pull requests and
-retains a build artifact for seven days. Functional tests will be added alongside
-the features; the baseline has no diary behavior to test. CI does not publish.
+CI runs type checking, time/permission unit tests, a production build and real
+Chromium storage tests on pushes and pull requests. It retains the app build and
+failure evidence for seven days. Browser storage tests use a separately bundled
+fixture; no test API is included in the application build. They do not establish
+actual Android restart behavior. CI does not publish.
 
 ## Planned data behavior
 

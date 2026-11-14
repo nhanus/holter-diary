@@ -1,17 +1,22 @@
 # Validation plan
 
-## Foundation (current)
+## Current automated checks
 
 - `npm ci` installs the committed dependency graph.
 - `npm run check` type-checks the source.
+- `npm run test:unit` tests the time model and storage-permission outcomes.
 - `npm run build` produces static assets for `/holter-diary/`.
+- `npm run test:browser` bundles a separate test fixture and runs actual Chromium
+  IndexedDB checks: committed-data reload, aborted writes, immutable capture time,
+  edit conflicts, schema refusal without deletion and durability fallback.
 - GitHub Actions runs these checks on pushes and PRs, uploads `dist/` for seven
   days, and has read-only repository permissions. It does not deploy.
 - An independent reviewer checks the code, workflow and plan; findings and fixes
   are recorded in the PR before merge.
 
-There are no feature tests yet. A passing baseline build does **not** validate
-storage, time conversion, offline behavior or PDF output.
+The data/time layer is tested independently of the future UI. Passing these
+checks does **not** validate app installation, offline launch, PDF output or
+actual Android restart. The production app remains a development placeholder.
 
 ## Automated acceptance (add with features)
 
