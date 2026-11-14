@@ -4,6 +4,7 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  workflow_call:
   schedule:
     - cron: '23 7 * * 1'
 
@@ -29,6 +30,8 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
+      - name: Use the tested npm toolchain
+        run: npm install --global npm@12.2.2 --ignore-scripts --no-fund
       - name: Test dependency policy without installing packages
         run: node --test tests/policy/*.test.mjs
       - name: Check all locked release ages before installation

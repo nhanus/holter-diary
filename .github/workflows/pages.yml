@@ -1,0 +1,48 @@
+name: Publish to Pages (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the website after reviewing its visibility
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-publication
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/main' && inputs.publish && vars.PAGES_ENABLED == 'true'
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download the build validated in this run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: holter-diary-${{ github.sha }}
+          path: dist
+      - name: Package only the static app
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+          include-hidden-files: true
+      - name: Deploy the validated artifact
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

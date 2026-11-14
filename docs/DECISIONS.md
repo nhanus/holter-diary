@@ -319,3 +319,40 @@ use the normalized datetime-local representation accepted by the aged Playwright
 release; the actual timestamp assertions remain unchanged. The delay
 reduces exposure to new malicious releases; it is not a safety guarantee for old
 packages or a replacement for vulnerability monitoring.
+
+## 2026-11-14 — Supported toolchain and manual deployment preparation
+
+**Problem:** Dependabot's npm 12.2.0 updater failed with EBADENGINE because the
+project permitted npm 11 only. The same error was reproduced with a local
+lockfile-only dry run. Expanding the npm engine range resolved it without
+turning off strict engine validation or changing the dependency graph.
+
+**Choice:** Standardize on npm 12 (minimum 12.2.0 for updater compatibility), with
+CI explicitly selecting the current tested patch 12.2.2. npm 11 is no longer a
+project target. Keep Node.js 24 on its maintained LTS line with current security
+patches; .node-version lets CI pick the latest patch. Node type definitions stay
+on major 24 until a coordinated runtime upgrade. The 14-day package age check,
+registry identity verification, full lockfile audit and disabled lifecycle scripts
+remain mandatory. Node/npm executables are separately managed toolchain components,
+as documented in the dependency policy.
+
+**Deployment:** Add a manual-only Pages workflow gated by the main branch, an
+explicit confirmation input and PAGES_ENABLED=true. Reuse full CI and deploy
+only its same-run static artifact; isolate Pages/OIDC permissions to deployment.
+No Pages activation, visibility change or deployment is part of this preparation.
+The hosting guide also explains how to serve the validated build on another HTTPS
+host and why a stable origin is needed before recording real entries.
+
+**Acceptance boundary:** This supersedes earlier references to pending physical
+printer acceptance. PDF structure, pagination and monochrome readability remain
+project responsibilities. Printing the downloaded PDF is handled by the phone
+and its viewer; a printer test is not a release requirement. Actual Android
+installation, storage status, phone restart and offline use remain pending.
+
+**Validation:** All 57 policy, unit/report, storage and production-app tests passed
+with npm 12.2.0 and again with npm 12.2.2 on patched Node.js 24 LTS. The 84 locked
+versions passed age/identity verification and the audit reported no known
+vulnerabilities. Type checking, production build, actionlint and whitespace checks
+passed. Independent Astra review found no blocking issue; documentation now
+explicitly supersedes the old printer requirement. Live Pages deployment and
+actual Android checks remain pending; CI and updater results are recorded in PR #23.
