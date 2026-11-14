@@ -355,7 +355,8 @@ versions passed age/identity verification and the audit reported no known
 vulnerabilities. Type checking, production build, actionlint and whitespace checks
 passed. Independent Astra review found no blocking issue; documentation now
 explicitly supersedes the old printer requirement. Live Pages deployment and
-actual Android checks remain pending; CI and updater results are recorded in PR #23.
+actual Android checks remain pending; automated updater coverage is recorded in
+[validation](VALIDATION.md).
 
 ## 2026-11-14 — Language metadata and storage-check feedback
 
@@ -573,8 +574,6 @@ and explicit language links working. Language switches retain the current anchor
 
 ## 2026-11-14 — Direct capture with stable keyboard actions
 
-Related issue: [#35](https://github.com/nhanus/holter-diary/issues/35).
-
 Keep a real note field on the diary screen: focusing it does not navigate or
 replace the field. Group note, symptom flag and time before Save/Discard. Keep
 the action row sticky inside the card from the initial render, with consistent
@@ -609,8 +608,6 @@ checks for the same pull request. Pages publication remains explicitly gated.
 
 ## 2026-11-14 — Readable clock differences and report access
 
-Related issue: [#37](https://github.com/nhanus/holter-diary/issues/37).
-
 Clock settings display durations in hours, minutes and seconds, with ahead/behind
 wording relative to phone time. Round the absolute magnitude once before splitting
 units, omit zero units, and preserve direction. A nonzero difference below one
@@ -625,8 +622,6 @@ containing its visible label. Let the entire button wrap at narrow widths or
 large text sizes; Save remains the primary capture action.
 
 ## 2026-11-14 — Validated review follow-up
-
-Related issue: [#39](https://github.com/nhanus/holter-diary/issues/39).
 
 Read a fresh atomic snapshot when opening reset confirmation. Compare its entry
 IDs/revisions and session revision within the deletion transaction, so changes
@@ -662,8 +657,6 @@ References: [manifest ID processing](https://www.w3.org/TR/appmanifest/#id-membe
 
 ## 2026-11-14 — Plain-language update and everyday help
 
-Related issue: [#41](https://github.com/nhanus/holter-diary/issues/41).
-
 Keep this a website-only change using the existing published app. Provide DE/EN
 numbered update steps: save unfinished input, connect, refresh where supported,
 apply the offered update and check the installed version. Pull-to-refresh is
@@ -682,8 +675,6 @@ References: [Chrome pull-to-refresh](https://developer.chrome.com/blog/overscrol
 [service worker update lifecycle](https://developer.chrome.com/docs/workbox/service-worker-lifecycle).
 
 ## 2026-11-14 — Capture the published app for website examples
-
-Related issue: [#43](https://github.com/nhanus/holter-diary/issues/43).
 
 Replace the independently styled phone illustration with real DE/EN app captures.
 This keeps Report beside the diary heading, the note composer first and Symptoms

@@ -39,14 +39,14 @@ explicit browser tests.
 
 ## Delivery sequence
 
-| Issue | Deliverable | Depends on |
+| Phase | Deliverable | Depends on |
 | --- | --- | --- |
-| [#1](https://github.com/nhanus/holter-diary/issues/1) | Plan, build baseline, CI and review process | — |
-| [#2](https://github.com/nhanus/holter-diary/issues/2) | Local persistence and monitor-time model | #1 |
-| [#3](https://github.com/nhanus/holter-diary/issues/3) | Minimal mobile UI, DE/EN and editing | #2 |
-| [#4](https://github.com/nhanus/holter-diary/issues/4) | Installation, offline assets and safe updates | #2, #3 |
-| [#5](https://github.com/nhanus/holter-diary/issues/5) | Local PDF export and print layout | #2–#4 |
-| [#6](https://github.com/nhanus/holter-diary/issues/6) | Integrated validation and reviewed release | #1–#5 |
+| Foundation | Plan, build baseline, CI and review process | — |
+| Data model | Local persistence and monitor-time model | Foundation |
+| Diary UI | Minimal mobile UI, DE/EN and editing | Data model |
+| Offline app | Installation, offline assets and safe updates | Data model, Diary UI |
+| Report | Local PDF export and print layout | Data model, Diary UI, Offline app |
+| Validation | Integrated validation and reviewed release | All preceding phases |
 
 The issue tracker owns live completion status. This table describes sequence,
 not a second checklist to keep synchronized. CI tests grow with each feature.
