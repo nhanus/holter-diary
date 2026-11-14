@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { newEntry } from '../../src/domain.ts';
-import { buildPdf, reportText, UnsupportedCharactersError } from '../../src/report.ts';
+import { APP_URL, REPOSITORY_URL, buildPdf, reportText, UnsupportedCharactersError } from '../../src/report.ts';
 import { calibrate, newSession } from '../../src/time.ts';
 
 const standardFontDataUrl = fileURLToPath(new URL('./standard_fonts/', import.meta.resolve('pdfjs-dist/package.json')));
@@ -26,6 +26,7 @@ async function extractPages(data: Uint8Array) {
       const { items } = await page.getTextContent();
       pages.push({
         bounds: page.view,
+        links: (await page.getAnnotations()).map(link => link.url),
         text: items.flatMap(item => 'str' in item && item.str.trim() ? [item] : []),
       });
     }
@@ -45,11 +46,13 @@ test('German PDF preserves umlauts and orders corrected monitor times across mid
   assert.equal(pages.length, 1);
   const strings = pages[0].text.map(item => item.str);
   assert.ok(strings.includes('Name: Jörg Weiß'));
+  assert.equal(strings[strings.indexOf('Erfasste Einträge') - 1], '2');
+  assert.equal(strings[strings.indexOf('Beschwerdemarkierungen') - 1], '1');
   assert.ok(strings.includes('Messbeginn: 31. Dez. 2030, 23:58:00'));
   assert.ok(strings.includes('Letzter Eintrag: 01. Jan. 2031, 00:00:00'));
   assert.ok(strings.includes('Bericht erstellt (EKG-Zeit): 01. Jan. 2031, 00:02:00'));
   assert.ok(strings.some(text => text.endsWith('UTC+01:00; +120 s')));
-  assert.deepEqual(strings.slice(strings.indexOf('31. Dez. 2030'), -1), [
+  assert.deepEqual(strings.slice(strings.indexOf('31. Dez. 2030'), strings.findIndex(text => text.startsWith('Holter Diary |'))), [
     '31. Dez. 2030', '23:59:00', 'Notiz', note.note,
     '01. Jan. 2031', '00:00:00', 'BESCHWERDEN', 'Beschwerdezeit markiert; keine Details eingetragen.',
   ]);
@@ -60,7 +63,7 @@ test('long notes fit on A4 pages with repeated headings and all text in order', 
   const lines = Array.from({ length: 130 }, (_, index) => `Synthetic row ${index + 1}`);
   const token = 'UnbrokenToken0123456789'.repeat(12);
   const ending = 'Final note ending';
-  const entry = newEntry(session.id, start + 60_000, 'note', [...lines, token, ending].join('\n'));
+  const entry = newEntry(session.id, start + 60_000, 'symptom', [...lines, token, ending].join('\n'));
   const pages = await extractPages(await buildPdf(session, [entry], 'en', generatedAt));
 
   assert.ok(pages.length >= 3);
@@ -70,8 +73,16 @@ test('long notes fit on A4 pages with repeated headings and all text in order', 
     assert.equal(strings[0], 'Holter monitoring diary');
     assert.ok(strings.includes('Date / monitor time'));
     assert.ok(strings.includes('Event'));
+    assert.ok(strings.includes('SYMPTOMS'));
     assert.equal(strings.includes('(continued)'), index > 0);
-    const footer = text.at(-1)!;
+    const footer = text.find(item => item.str.startsWith('Holter Diary |'))!;
+    assert.ok(strings.includes(`App: ${APP_URL}`));
+    assert.ok(strings.includes(`GitHub: ${REPOSITORY_URL}`));
+    assert.deepEqual(pages[index].links, [APP_URL, REPOSITORY_URL]);
+    for (const item of text.filter(item => item.transform[5] < 57)) {
+      assert.ok(item.transform[4] >= 40 && item.transform[4] + item.width <= bounds[2] - 40);
+      assert.ok(item.transform[5] >= 20);
+    }
     assert.equal(footer.str, `Holter Diary | Page ${index + 1} / ${pages.length}`);
 
     const heading = text.find(item => item.str === 'Activity / symptoms / notes');
