@@ -162,6 +162,31 @@ export class DiaryStore {
       return value;
     });
   }
+
+  async resetSession(id: string, expectedRevision: number): Promise<void> {
+    await this.run(['sessions', 'entries'], 'readwrite', async tx => {
+      await checkSession(tx, id, expectedRevision);
+      const entries = tx.objectStore('entries');
+      const values: Entry[] = await read(entries.getAll());
+      for (const entry of values) {
+        assertEntry(entry);
+        if (entry.sessionId === id) await read(entries.delete(entry.id));
+      }
+      await read(tx.objectStore('sessions').delete(id));
+    });
+  }
+
+  async reportSnapshot(sessionId: string): Promise<{ session: Session; entries: Entry[] }> {
+    return (await this.run(['sessions', 'entries'], 'readonly', async tx => {
+      const session: unknown = await read(tx.objectStore('sessions').get(sessionId));
+      requireValue(session !== undefined, 'SESSION_NOT_FOUND');
+      assertConsistentCalibration(session);
+      const values: unknown[] = await read(tx.objectStore('entries').getAll());
+      values.forEach(assertEntry);
+      return { session, entries: (values as Entry[]).filter(x => x.sessionId === sessionId)
+        .sort((a, b) => a.eventAtMs - b.eventAtMs || a.id.localeCompare(b.id)) };
+    })).value;
+  }
 }
 
 export function openDiaryStore(name = DATABASE_NAME): Promise<DiaryStore> {

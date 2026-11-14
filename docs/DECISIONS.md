@@ -130,3 +130,43 @@ persistence permission and restart/printing checks remain separate acceptance.
 fixed DST behavior and permission outcomes. Chromium tests exercise real IndexedDB
 transactions, reloads, failures, edit conflicts and non-destructive schema refusal.
 The fixture is bundled separately and excluded from the production app artifact.
+
+## 2026-11-14 — Complete mobile flow and explicit offline updates
+
+**Choice:** One main screen with a note composer and a separate immediate symptom
+button. Keep the current draft when marking symptoms, changing language or opening
+settings. Accept a write only after its transaction commits; update the in-memory
+history from the committed value so a later read cannot falsely report save failure.
+Same-tab settings changes rebase the draft's expected session revision. Another
+tab's change is rejected and shown for explicit recovery. Failed markers show their
+original time and offer retry or confirmed discard, even if the diary was replaced.
+
+**Time behavior:** Refresh untouched entry time on first typing or return from
+background; keep it fixed after the first edit. A manually entered time is not
+replaced. The symptom action always captures the actual tap time.
+
+**Offline behavior:** Generate an asset list and content-derived version at build
+time. Cache the entire application under its project scope and verify every asset
+before reporting readiness. Missing assets can be repaired online only when SHA-256 integrity matches that
+worker's build; never mix a newer document with an older asset set. A new worker
+waits for explicit adoption; accepting it reloads only the initiating tab, with
+confirmation for unsaved work. Other tabs retain their drafts. Previous asset
+caches are retained to support those tabs; IndexedDB is never touched by worker
+updates. This deliberately trades a small amount of cache space per release for
+simple, safe updates; automatic old-cache eviction is deferred.
+
+## 2026-11-14 — Local A4 report with honest character limits
+
+**Choice:** Bundle pdf-lib and generate a dated chronological A4 report from one
+transactional session/entry snapshot. Use standard PDF fonts, repeat table headers,
+continue long entries across pages and label symptoms in bold for monochrome print.
+Select report language independently from the UI and preserve original notes.
+
+**Why:** PDF is directly shareable/printable on the phone without a print service or
+network dependency. Standard fonts keep the application small and cover DE/EN text.
+
+**Consequences:** Unsupported glyphs stop PDF generation with an explicit message;
+a UTF-8 text download preserves all content. Do not replace unknown characters
+silently. Download is always offered; the native share sheet is an additional action
+when file sharing is supported. PDF extraction and layout bounds are automatically
+checked, while physical phone printing remains a separate acceptance step.

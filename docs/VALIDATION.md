@@ -14,11 +14,22 @@
 - An independent reviewer checks the code, workflow and plan; findings and fixes
   are recorded in the PR before merge.
 
-The data/time layer is tested independently of the future UI. Passing these
-checks does **not** validate app installation, offline launch, PDF output or
-actual Android restart. The production app remains a development placeholder.
+The complete app is implemented. Automated tests exercise the production build;
+real Android restart, installation and printer checks below remain pending.
 
-## Automated acceptance (add with features)
+- `npm run test:unit`: 14 tests covering fixed time, permission outcomes, actual
+  PDF text extraction, A4 bounds, multipage continuation and Unicode fallback.
+- `npm run test:browser`: 5 Chromium storage tests against a separate fixture.
+- `npm run test:app`: 13 production mobile-browser tests for notes, markers,
+  edits, failure recovery, conflicts, language, calibration, reset, offline reload
+  and export, cache readiness/repair, and explicit update adoption across tabs.
+- Synthetic German single-page and English multipage reports were rendered for visual inspection.
+- Mobile layouts checked at 320, 393 and 768 CSS pixels, including enlarged text.
+- Independent source review checked time, write acknowledgement, pending-marker
+  recovery, same-tab settings changes, PDF output and service-worker lifecycle.
+  Findings were resolved and consequential changes re-reviewed in the feature PR.
+
+## Automated acceptance coverage
 
 | Area | Required evidence |
 | --- | --- |

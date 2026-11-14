@@ -11,18 +11,23 @@
   "scripts": {
     "dev": "vite",
     "check": "tsc --noEmit",
-    "build": "vite build",
+    "build": "vite build && node scripts/build-offline.mjs",
     "preview": "vite preview",
     "test:unit": "node --test tests/unit/*.test.ts",
     "test:build": "vite build --config tests/browser/vite.config.ts",
     "test:serve": "vite preview --config tests/browser/vite.config.ts",
     "test:browser": "npm run test:build && playwright test",
-    "test": "npm run test:unit && npm run test:browser"
+    "test": "npm run test:unit && npm run test:browser && npm run test:app",
+    "test:app": "npm run build && playwright test --config playwright.app.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",
     "@types/node": "24.19.2",
+    "pdfjs-dist": "6.5.438",
     "typescript": "7.0.2",
     "vite": "8.3.8"
+  },
+  "dependencies": {
+    "pdf-lib": "1.17.1"
   }
 }

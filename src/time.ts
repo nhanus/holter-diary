@@ -1,4 +1,4 @@
-import { assertClock, assertInstant, assertSession, requireValue } from './domain.ts';
+import { assertClock, assertInstant, assertSession, requireValue, uniqueId } from './domain.ts';
 import type { Calibration, MeasurementClock, Session } from './domain.ts';
 
 const MINUTE = 60_000;
@@ -43,7 +43,7 @@ export function calibrate(capturedAtMs: number, monitorReading: string, clock: M
 
 export function newSession(startedAtMs: number, clock: MeasurementClock, name = ''): Session {
   const session: Session = {
-    schemaVersion: 1, id: crypto.randomUUID(), revision: 1, startedAtMs, name,
+    schemaVersion: 1, id: uniqueId(), revision: 1, startedAtMs, name,
     clock: { ...clock },
     calibration: { capturedAtMs: startedAtMs, monitorReading: null, offsetMs: 0 },
   };
