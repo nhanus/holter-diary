@@ -108,7 +108,13 @@ export async function publish(root, env, api = githubApi(env.GH_TOKEN)) {
   }
   assert(Number.isSafeInteger(release.id) && release.id > 0, 'Invalid release identifier.');
   for (const asset of assets) {
-    const existing = release.assets?.find(item => item.name === asset.name);
+    let existing = release.assets?.find(item => item.name === asset.name);
+    if (existing?.state === 'starter') {
+      // Only incomplete assets in this verified matching draft are recoverable.
+      assert(Number.isSafeInteger(existing.id) && existing.id > 0, 'Invalid incomplete asset identifier.');
+      await api('DELETE', `${base}/releases/assets/${existing.id}`);
+      existing = undefined;
+    }
     if (existing) assert(existing.state === 'uploaded' && existing.size === asset.size && existing.digest === asset.digest, `Existing asset differs: ${asset.name}`);
     else {
       const uploaded = await api('POST', `https://uploads.github.com/repos/${repo}/releases/${release.id}/assets?name=${encodeURIComponent(asset.name)}`, asset.bytes, true);

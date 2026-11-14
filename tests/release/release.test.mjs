@@ -26,6 +26,9 @@ function fakeApi(state = {}) {
     if (method === 'GET' && path.includes('/releases?')) return state.release ? [state.release] : [];
     if (method === 'POST' && path.endsWith('/git/refs')) return state.tag = { object: { type: 'commit', sha: body.sha } };
     if (method === 'POST' && path.endsWith('/releases')) return state.release = { ...body, id: 123, assets: [] };
+    if (method === 'DELETE' && path.includes('/releases/assets/')) {
+      state.release.assets = state.release.assets.filter(asset => asset.id !== Number(path.split('/').pop())); return null;
+    }
     if (binary) {
       const asset = { name: new URL(path).searchParams.get('name'), size: body.length, digest: 'sha256:' + createHash('sha256').update(body).digest('hex'), state: 'uploaded' };
       state.uploads++; state.release.assets.push(asset); return asset;
@@ -104,4 +107,32 @@ test('draft lookup paginates and rejects ambiguous matching drafts', async t => 
   state.release.draft = true;
   const duplicates = async (...args) => args[1].includes('/releases?') ? [draft, { ...draft, id: 124 }] : api(...args);
   await assert.rejects(() => publish(root, env, duplicates), /Multiple releases/);
+});
+
+
+test('a matching draft recovers an incomplete starter asset without replacing completed bytes', async t => {
+  const root = await fixture(t), files = await releaseFiles(root, sha);
+  const complete = { id: 10, ...files.assets[1], state: 'uploaded' };
+  const starter = { id: 11, name: files.assets[0].name, state: 'starter', size: 0, digest: null };
+  const { state, api } = fakeApi({ tag: { object: { type: 'commit', sha } }, release: {
+    id: 123, tag_name: `v${version}`, target_commitish: sha, draft: true, prerelease: true, assets: [complete, starter],
+  } });
+  assert.equal(await publish(root, env, api), 'published');
+  assert.equal(state.uploads, 2);
+  assert.deepEqual(state.calls.filter(c => c.method === 'DELETE').map(c => c.path), ['/repos/example/diary/releases/assets/11']);
+  assert.equal(state.release.assets.find(a => a.id === 10), complete);
+});
+
+test('incomplete-asset cleanup failures and invalid identifiers leave the draft unpublished', async t => {
+  const root = await fixture(t);
+  const f = fakeApi({ tag: { object: { type: 'commit', sha } }, release: {
+    id: 123, tag_name: `v${version}`, target_commitish: sha, draft: true, prerelease: true,
+    assets: [{ id: 11, name: `holter-diary-${version}.tar.gz`, state: 'starter', size: 0 }],
+  } });
+  const failedDelete = async (...args) => { if (args[0] === 'DELETE') throw new Error('Synthetic delete failure'); return f.api(...args); };
+  await assert.rejects(() => publish(root, env, failedDelete), /delete failure/);
+  assert.equal(f.state.uploads, 0); assert.equal(f.state.release.draft, true);
+  f.state.release.assets[0].id = -1;
+  await assert.rejects(() => publish(root, env, f.api), /Invalid incomplete asset identifier/);
+  assert.equal(f.state.uploads, 0); assert.equal(f.state.release.draft, true);
 });

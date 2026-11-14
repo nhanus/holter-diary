@@ -21,6 +21,7 @@ const arrow = '<span aria-hidden="true">↓</span>';
 let lang: Language = detectLanguage(navigator.languages);
 let store: DiaryStore, session: Session | undefined, draft: Entry | undefined;
 let entries: Entry[] = [];
+let resetSnapshot: { session: Session; entries: Entry[] } | undefined;
 let draftSessionRevision = 1;
 let draftTimeInput: string | undefined;
 let dirty = false, editing = false, invalidTime = false, busy = false, conflict = false;
@@ -36,6 +37,7 @@ const openSections = new Set<string>();
 let quickObserver: IntersectionObserver | undefined;
 
 let reportLanguage: Language = lang, reportFile: File | undefined;
+let reportEntryCount = 0;
 let persistence: PersistenceStatus = 'not-granted';
 let storageCheck: 'idle' | 'checking' | 'done' = 'idle';
 let message: { key: TextKey; params?: Record<string, string | number>; error?: boolean; section?: string } | undefined;
@@ -45,7 +47,7 @@ let nextFocus: string | undefined;
 let feedbackSection: string | undefined;
 let headerObserver: ResizeObserver | undefined;
 let actionObserver: ResizeObserver | undefined;
-const offline = new OfflineApp(refreshStatus);
+const offline = new OfflineApp(refreshStatus, () => !busy && !hasUnsavedChanges());
 const t = (key: TextKey, params?: Record<string, string | number>) => translate(lang, key, params);
 const text = (key: TextKey, params?: Record<string, string | number>) => esc(t(key, params));
 
@@ -88,7 +90,7 @@ function refreshFeedback(): void {
   }
 }
 const persistenceKey = (): TextKey => ({ granted: 'grant', 'not-granted': 'notGranted', denied: 'denied', unavailable: 'unavailable', failed: 'failed' })[persistence] as TextKey;
-const offlineKey = (): TextKey => ({ ready: 'offlineReady', checking: 'offlineChecking', failed: 'offlineFailed', unavailable: 'offlineUnavailable' })[offline.status] as TextKey;
+const offlineKey = (): TextKey => ({ ready: 'offlineReady', checking: 'offlineChecking', failed: 'offlineFailed', 'reload-required': 'offlineReload', unavailable: 'offlineUnavailable' })[offline.status] as TextKey;
 function refreshStatus(): void {
   for (const node of document.querySelectorAll('[data-storage-status]')) node.textContent = t(persistenceKey());
   for (const node of document.querySelectorAll<HTMLElement>('[data-storage-check]')) {
@@ -105,10 +107,12 @@ function refreshStatus(): void {
   if (offlineAction) offlineAction.hidden = offline.status !== 'failed';
   const waiting = offline.registration?.waiting?.state === 'installed';
   const applying = offline.updateStatus === 'applying';
+  const reloadRequired = offline.updateStatus === 'reload-required';
+  const actionable = waiting || reloadRequired;
   const blocked = hasUnsavedChanges();
   const failed = offline.updateStatus === 'failed';
-  const updateState = applying ? 'applying' : failed ? 'failed' : waiting ? 'available' : 'none';
-  const updateMessage = t(applying ? 'updateApplying' : failed ? 'updateFailedTitle' : waiting ? 'update' : 'updateNone');
+  const updateState = applying ? 'applying' : reloadRequired ? 'reload-required' : failed ? 'failed' : waiting ? 'available' : 'none';
+  const updateMessage = t(applying ? 'updateApplying' : reloadRequired ? 'updateReloadTitle' : failed ? 'updateFailedTitle' : waiting ? 'update' : 'updateNone');
   for (const id of ['update-announcement', 'dialog-update-announcement']) {
     const announcement = document.getElementById(id);
     const active = id === 'dialog-update-announcement' ? modal === 'settings' : !modal;
@@ -116,15 +120,15 @@ function refreshStatus(): void {
     if (announcement && announcement.textContent !== value) announcement.textContent = value;
   }
   const settingsButton = document.getElementById('settings');
-  settingsButton?.setAttribute('aria-label', waiting ? `${t('settings')}, ${t('update')}` : t('settings'));
+  settingsButton?.setAttribute('aria-label', actionable ? `${t('settings')}, ${updateMessage}` : t('settings'));
   const updateSection = document.getElementById('update-settings');
   if (updateSection) { updateSection.dataset.state = updateState; updateSection.setAttribute('aria-busy', String(applying)); }
   const sectionIcon = document.getElementById('update-section-icon');
   if (sectionIcon) sectionIcon.hidden = updateState === 'none';
   const notice = document.querySelector<HTMLElement>('#update-notice');
-  if (notice) notice.hidden = !waiting;
+  if (notice) notice.hidden = !actionable;
   const backToNote = document.querySelector<HTMLElement>('#return-note');
-  if (backToNote) backToNote.hidden = !waiting || !(dirty || pendingMarker);
+  if (backToNote) backToNote.hidden = !actionable || !(dirty || pendingMarker);
   const identitySave = document.querySelector<HTMLButtonElement>('#save-identity');
   if (identitySave) identitySave.disabled = busy || !identityDirty();
   const clockSave = document.querySelector<HTMLButtonElement>('#save-clock');
@@ -132,13 +136,13 @@ function refreshStatus(): void {
   const impact = document.querySelector<HTMLElement>('#clock-impact');
   if (impact) impact.textContent = calibrationImpact();
   const update = document.querySelector<HTMLButtonElement>('#apply-update');
-  if (update) { update.hidden = !waiting && !applying; update.disabled = busy || blocked || applying; update.textContent = t(applying ? 'updateApplying' : failed ? 'updateRetry' : 'updateAction'); }
+  if (update) { update.hidden = !actionable && !applying; update.disabled = busy || blocked || applying; update.textContent = t(applying ? 'updateApplying' : reloadRequired ? 'updateReloadAction' : failed ? 'updateRetry' : 'updateAction'); }
   const close = document.querySelector<HTMLButtonElement>('#close-dialog');
   if (close) close.disabled = busy || applying;
   const updateHelp = document.querySelector<HTMLElement>('#update-help');
-  if (updateHelp) { updateHelp.hidden = updateState === 'none'; updateHelp.textContent = t(failed ? 'updateFailed' : 'updateHelp'); }
+  if (updateHelp) { updateHelp.hidden = updateState === 'none'; updateHelp.textContent = t(reloadRequired ? 'updateReloadHelp' : failed ? 'updateFailed' : 'updateHelp'); }
   const updateBlocked = document.querySelector<HTMLElement>('#update-blocked');
-  if (updateBlocked) updateBlocked.hidden = !waiting || !blocked;
+  if (updateBlocked) updateBlocked.hidden = !actionable || !blocked;
   const updateStatus = document.querySelector<HTMLElement>('#update-status');
   if (updateStatus && updateStatus.textContent !== updateMessage) updateStatus.textContent = updateMessage;
   const retryOffline = document.querySelector<HTMLButtonElement>('#retry-offline');
@@ -311,8 +315,8 @@ function renderDialog(): string {
   if (modal === 'edit') return `<dialog id="dialog" class="editor-dialog" aria-labelledby="dialog-title">${composer()}</dialog>`;
   const title: TextKey = modal === 'reset' ? 'resetTitle' : modal === 'settings' ? 'settings' : 'export';
   return `<dialog id="dialog" class="${modal === 'reset' ? 'confirmation-dialog' : 'screen-dialog'}" aria-labelledby="dialog-title"><div class="dialog-head"><button type="button" class="back-button" id="close-dialog" aria-label="${text('close')}"><span aria-hidden="true">←</span> ${text(modal === 'reset' ? 'cancel' : 'back')}</button><span>${text(title)}</span></div><div class="dialog-body"><h1 id="dialog-title" tabindex="-1">${text(title)}</h1>
-    ${feedbackMarkup(true)}${modal === 'settings' ? settingsPanel() : modal === 'reset' ? `<p class="help">${text('resetCount', { count: entries.length })}</p><button id="export-before-reset" class="secondary full" ${!entries.length ? 'disabled' : ''}>${text('export')}</button><button id="confirm-reset" class="danger full">${text('resetAction')}</button>` :
-      `<p class="help">${text('exportSummary', { count: entries.length, date: displayDate(monitorTime(session!.startedAtMs, session!), lang) })}</p><div class="card"><p class="help">${text('exportHelp')}</p><label for="report-language">${text('reportLanguage')}</label>
+    ${feedbackMarkup(true)}${modal === 'settings' ? settingsPanel() : modal === 'reset' ? `<p class="help">${text('resetCount', { count: resetSnapshot!.entries.length })}</p><button id="export-before-reset" class="secondary full" ${!resetSnapshot!.entries.length ? 'disabled' : ''}>${text('export')}</button><button id="confirm-reset" class="danger full">${text('resetAction')}</button>` :
+      `<p class="help">${text('exportSummary', { count: reportEntryCount, date: displayDate(monitorTime(session!.startedAtMs, session!), lang) })}</p><div class="card"><p class="help">${text('exportHelp')}</p><label for="report-language">${text('reportLanguage')}</label>
       <select id="report-language"><option value="de" ${reportLanguage === 'de' ? 'selected' : ''}>Deutsch</option><option value="en" ${reportLanguage === 'en' ? 'selected' : ''}>English</option></select>
       <div class="export-actions"><button id="download-pdf" class="primary">${text('pdf')} ${arrow}</button>${reportFile && typeof navigator.share === 'function' && navigator.canShare?.({ files: [reportFile] }) ? `<button id="share-pdf" class="secondary">${text('share')}</button>` : ''}<button id="download-text" class="secondary">${text('text')}</button></div></div>`}</div></dialog>`;
 }
@@ -457,11 +461,15 @@ function bind(): void {
   });
   on('reset-diary', () => {
     if (settingsDirty() && !confirm(t('discardSettings'))) return;
-    sampleAt = null; reading = ''; modal = 'reset'; message = undefined; render(); focusDialog();
+    void task(async () => {
+      resetSnapshot = await store.reportSnapshot(session!.id);
+      sampleAt = null; reading = ''; modal = 'reset'; message = undefined; nextFocus = 'dialog-title';
+    });
   });
   on('export-before-reset', openExport);
   on('confirm-reset', () => void task(async () => {
-    await store.resetSession(session!.id, session!.revision);
+    await store.resetSession(resetSnapshot!.session.id, resetSnapshot!.session.revision, resetSnapshot!.entries);
+    resetSnapshot = undefined;
     session = undefined; entries = []; draft = undefined; suspendedDraft = undefined; dirty = false; editing = false; pendingMarker = undefined; lastMarkerId = undefined;
     setupName = ''; setupDateOfBirth = ''; settingsDateOfBirth = ''; sampleAt = null; reading = ''; modal = null; message = undefined; conflict = false; openSections.clear(); nextFocus = 'start-diary';
   }));
@@ -485,12 +493,13 @@ function focusDialog(): void {
 }
 function openSettings(): void {
   if (busy) return;
-  if (offline.registration?.waiting?.state === 'installed' || offline.updateStatus === 'failed') openSections.add('update-settings');
+  if (offline.registration?.waiting?.state === 'installed' || offline.updateStatus === 'failed' || offline.updateStatus === 'reload-required') openSections.add('update-settings');
   modal = 'settings'; dialogTrigger = 'settings'; settingsName = session?.name ?? ''; settingsDateOfBirth = session?.dateOfBirth ?? '';
   if (session) { sampleAt = null; reading = ''; }
   message = undefined; render(); focusDialog(); void offline.verify();
 }
 function openExport(): void {
+  reportEntryCount = modal === 'reset' ? resetSnapshot!.entries.length : entries.length;
   modal = 'export'; dialogTrigger = 'export'; reportLanguage = lang; reportFile = undefined; message = undefined; render(); focusDialog();
 }
 function openEditor(id: string): void {
@@ -531,7 +540,7 @@ function download(file: File): void {
   const url = URL.createObjectURL(file); const link = document.createElement('a'); link.href = url; link.download = file.name;
   document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
-window.addEventListener('beforeunload', event => { if (hasUnsavedChanges() && offline.updateStatus !== 'applying') { event.preventDefault(); event.returnValue = ''; } });
+window.addEventListener('beforeunload', event => { if (hasUnsavedChanges()) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('online', refreshStatus); window.addEventListener('offline', refreshStatus);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && session && !dirty && !editing && !busy && !modal && !document.querySelector('#entry-form')?.contains(document.activeElement)) { freshDraft(); render(); } });
 async function init(): Promise<void> {

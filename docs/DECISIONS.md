@@ -623,3 +623,39 @@ Keep Report beside the diary heading as an outlined secondary button with a
 hidden decorative document icon, a 48px minimum target and an accessible name
 containing its visible label. Let the entire button wrap at narrow widths or
 large text sizes; Save remains the primary capture action.
+
+## 2026-11-14 — Validated review follow-up
+
+Related issue: [#39](https://github.com/nhanus/holter-diary/issues/39).
+
+Read a fresh atomic snapshot when opening reset confirmation. Compare its entry
+IDs/revisions and session revision within the deletion transaction, so changes
+committed after opening also require renewed consent. Keep this snapshot separate
+from unfinished drafts; no schema or global revision redesign is necessary.
+
+Worker activation and page reload are separate states. A late or cross-tab
+activation exposes an explicit reload action even when no waiting worker remains.
+Recheck unsaved input and in-flight writes at the actual reload boundary. An older
+page controlled by a different-version worker must not claim verified offline
+readiness until it reloads. Installation can help persistence permission, but is
+not a universal prerequisite or guarantee.
+
+A small main-push workflow queues the whole reusable CI pipeline before builds
+with GitHub's `queue: max` (up to 100 pending runs). A faster later build cannot
+overtake a pipeline already in that queue, and newer pending runs do not replace
+earlier ones. Publication retains its separate queue as a safety barrier. GitHub
+orders by arrival at the queue, not an absolute commit-time guarantee. PR checks
+still replace obsolete runs;
+feature-branch pushes do not start duplicate builds. Only incomplete `starter`
+assets in a verified matching draft may be removed and reuploaded; completed
+assets, published releases and conflicting identities remain protected.
+
+Validate automated review findings against the PR goal and current evidence before
+making changes. Wait for completed automated review of the final changes as well
+as CI and independent review. The earlier settings-draft and npm findings were
+already fixed. The manifest-ID suggestion was invalid: both `./` and `/` resolve
+against the start URL's origin, so the current identity is preserved.
+
+References: [manifest ID processing](https://www.w3.org/TR/appmanifest/#id-member),
+[GitHub concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency),
+[release asset recovery](https://docs.github.com/en/rest/releases/assets).

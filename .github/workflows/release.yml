@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Queue the complete pipeline before building, so a faster later build cannot
+# overtake a pipeline that already entered this queue. GitHub limits it to 100.
+concurrency:
+  group: main-release
+  queue: max
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate and publish
+    permissions:
+      contents: write
+    uses: ./.github/workflows/ci.yml

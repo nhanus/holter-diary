@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
   workflow_call:
@@ -93,6 +91,7 @@ jobs:
       contents: write
     concurrency:
       group: release-publication
+      queue: max
       cancel-in-progress: false
     steps:
       - name: Check out the validated commit
