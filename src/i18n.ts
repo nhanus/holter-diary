@@ -1,0 +1,90 @@
+import type { Language } from './domain.ts';
+
+export const en = {
+  tagline: 'A small diary for your heart.', language: 'Language', settings: 'Settings', close: 'Close',
+  welcome: 'A moment. A note.', welcomeText: 'Keep track of what you do and feel during your Holter recording. Print a clear diary when you need it.',
+  name: 'Name (optional)', start: 'Start my diary', localOnly: 'Your entries stay on this device. No account needed.',
+  calibration: 'Compare monitor time', calibrationHelp: 'Only needed if the monitor clock differs from your phone. Capture a moment, then enter the date and time shown on the monitor at that moment.',
+  capture: 'Capture moment', captured: 'Phone time captured: {time}', monitorReading: 'Monitor date and time at that moment',
+  minuteHint: 'Seconds are optional. A minute-only reading is not precise to the second.',
+  today: 'Your diary', since: 'Started {date}', symptoms: 'Symptoms now', symptomHint: 'One tap saves the time. Add details afterwards.',
+  newNote: 'What happened?', note: 'Note', placeholder: 'For example: walked upstairs, then felt a flutter…', save: 'Save entry',
+  edit: 'Edit entry', editing: 'Edit your entry', cancel: 'Cancel', delete: 'Delete entry', symptomsLabel: 'Symptoms', activity: 'Activity / note',
+  time: 'Monitor time', changeTime: 'Change time', timeHelp: 'Use the monitor time for a late or corrected entry.',
+  saved: 'Entry saved on this device.', marked: 'Symptom time saved. Tap the entry below to add details.', deleted: 'Entry deleted.',
+  entries: 'Your entries', count: '{count} entries', empty: 'Nothing recorded yet.', emptyHelp: 'Your notes and symptom times will appear here.', noDetails: 'Time marked · details can be added later',
+  export: 'Export diary', exportHelp: 'Create a printable A4 report. Your notes stay in their original language.', reportLanguage: 'Report language',
+  pdf: 'Download PDF', text: 'Download text', share: 'Share PDF', exportReady: 'PDF ready. Save or print it from your device.',
+  pdfUnsupported: 'The PDF font cannot display these characters: {characters}. Edit them or download the text file, which preserves all characters.',
+  emptyExport: 'You can export as soon as you have saved an entry.',
+  device: 'On this device', storage: 'Storage', grant: 'Persistent storage confirmed', notGranted: 'Persistent storage not confirmed', denied: 'The browser has not granted persistent storage',
+  unavailable: 'Persistent storage check unavailable', failed: 'Storage permission could not be checked', retryStorage: 'Check persistent storage',
+  storageHelp: 'Saved entries normally survive closing the app and restarting your phone. Clearing this site’s data removes them. A downloaded report is a separate file.',
+  offline: 'Offline use', offlineReady: 'Ready to use offline', offlineChecking: 'Preparing offline use…', offlineFailed: 'Offline setup incomplete — retry while online',
+  offlineUnavailable: 'Offline installation needs HTTPS or localhost', retryOffline: 'Retry offline setup',
+  install: 'Install app', installHelp: 'In your browser menu, choose “Install app” or “Add to Home screen”. Open the app once online and check that offline use is ready.',
+  preview: 'Preview connection: offline installation is unavailable here. You can still try notes and export.',
+  clock: 'Time settings', clockBasis: 'Fixed time basis: {basis}', clockHelp: 'The measurement keeps its starting time zone. If a clock changes during recording, check and correct affected entries. A new calibration shifts all entries.',
+  saveSettings: 'Save settings', settingsSaved: 'Settings saved.', resetClock: 'Use phone time (no correction)',
+  reset: 'Start a new diary', resetHelp: 'This removes the current diary from this device. Export it first.',
+  resetConfirm: 'Delete this diary and all its entries? Download your report first. This cannot be undone.',
+  deleteConfirm: 'Delete this entry?', discardConfirm: 'Discard your unsaved changes?',
+  writeFailed: 'Could not save. Your text is still here. Please try again.', loadFailed: 'Could not open the diary. Your existing data has not been erased.',
+  invalidTime: 'Please enter a valid date and time.', conflict: 'The diary changed in another window. Your text is preserved. Reload the saved version and review your changes.',
+  reload: 'Reload saved version', retryMarker: 'Retry saving this symptom time', markerFailed: 'The symptom time has not been saved. Retry to keep the original time.',
+  discardMarker: 'Discard unsaved marker', discardMarkerConfirm: 'Discard this unsaved symptom time? Make a separate note of the displayed time first if you still need it.',
+  working: 'Saving…', invalidNote: 'Please write a note, or use “Symptoms now” to mark a time.',
+  update: 'Update available', updateAction: 'Apply update', updateConfirm: 'Reload to apply the update? Unsaved changes will be discarded.',
+  connection: 'Offline', error: 'Something went wrong. Please try again.', checkTimes: 'Times follow the monitor calibration.',
+  appInfo: 'Holter Diary · personal observation log', back: 'Back to diary',
+} as const;
+
+export type TextKey = keyof typeof en;
+export const de: Record<TextKey, string> = {
+  tagline: 'Ein kleines Tagebuch für dein Herz.', language: 'Sprache', settings: 'Einstellungen', close: 'Schließen',
+  welcome: 'Ein Moment. Eine Notiz.', welcomeText: 'Halte während deines Langzeit-EKGs fest, was du machst und spürst. Drucke dein übersichtliches Protokoll aus, wenn du es brauchst.',
+  name: 'Name (optional)', start: 'Tagebuch beginnen', localOnly: 'Deine Einträge bleiben auf diesem Gerät. Ohne Benutzerkonto.',
+  calibration: 'EKG-Uhrzeit abgleichen', calibrationHelp: 'Nur nötig, wenn die EKG-Uhr von deinem Handy abweicht. Halte einen Zeitpunkt fest und trage dann Datum und Uhrzeit ein, die das EKG in diesem Moment angezeigt hat.',
+  capture: 'Zeitpunkt festhalten', captured: 'Festgehaltene Handyzeit: {time}', monitorReading: 'EKG-Datum und Uhrzeit in diesem Moment',
+  minuteHint: 'Sekunden sind optional. Eine minutengenaue Ablesung ist nicht sekundengenau.',
+  today: 'Dein Tagebuch', since: 'Begonnen am {date}', symptoms: 'Beschwerden jetzt', symptomHint: 'Ein Tippen speichert die Zeit. Details kannst du später ergänzen.',
+  newNote: 'Was war gerade?', note: 'Notiz', placeholder: 'Zum Beispiel: Treppe gestiegen, danach kurz Herzstolpern …', save: 'Eintrag speichern',
+  edit: 'Eintrag bearbeiten', editing: 'Eintrag bearbeiten', cancel: 'Abbrechen', delete: 'Eintrag löschen', symptomsLabel: 'Beschwerden', activity: 'Tätigkeit / Notiz',
+  time: 'EKG-Uhrzeit', changeTime: 'Zeit ändern', timeHelp: 'Für nachträgliche Einträge oder Korrekturen die EKG-Zeit verwenden.',
+  saved: 'Eintrag auf diesem Gerät gespeichert.', marked: 'Beschwerdezeit gespeichert. Tippe unten auf den Eintrag, um Details zu ergänzen.', deleted: 'Eintrag gelöscht.',
+  entries: 'Deine Einträge', count: '{count} Einträge', empty: 'Noch nichts eingetragen.', emptyHelp: 'Hier erscheinen deine Notizen und Beschwerdezeiten.', noDetails: 'Zeit markiert · Details später ergänzen',
+  export: 'Protokoll exportieren', exportHelp: 'Erstelle einen druckbaren A4-Bericht. Deine Notizen bleiben in ihrer ursprünglichen Sprache.', reportLanguage: 'Sprache des Berichts',
+  pdf: 'PDF herunterladen', text: 'Textdatei herunterladen', share: 'PDF teilen', exportReady: 'PDF bereit. Du kannst es auf deinem Gerät speichern oder drucken.',
+  pdfUnsupported: 'Diese Zeichen kann die PDF-Schrift nicht darstellen: {characters}. Ändere sie oder lade die Textdatei herunter. Dort bleiben alle Zeichen erhalten.',
+  emptyExport: 'Sobald ein Eintrag gespeichert ist, kannst du das Protokoll exportieren.',
+  device: 'Auf diesem Gerät', storage: 'Speicherung', grant: 'Dauerhafter Speicher bestätigt', notGranted: 'Dauerhafter Speicher nicht bestätigt', denied: 'Der Browser hat dauerhaften Speicher nicht freigegeben',
+  unavailable: 'Prüfung auf dauerhaften Speicher nicht verfügbar', failed: 'Speicherfreigabe konnte nicht geprüft werden', retryStorage: 'Dauerhaften Speicher prüfen',
+  storageHelp: 'Gespeicherte Einträge bleiben normalerweise beim Schließen der App und einem Handyneustart erhalten. Das Löschen der Website-Daten entfernt sie. Ein heruntergeladenes Protokoll ist eine eigene Datei.',
+  offline: 'Offline-Nutzung', offlineReady: 'Für Offline-Nutzung bereit', offlineChecking: 'Offline-Nutzung wird vorbereitet …', offlineFailed: 'Offline-Einrichtung unvollständig – mit Internet erneut versuchen',
+  offlineUnavailable: 'Offline-Installation benötigt HTTPS oder localhost', retryOffline: 'Offline-Einrichtung wiederholen',
+  install: 'App installieren', installHelp: 'Wähle im Browsermenü „App installieren“ oder „Zum Startbildschirm hinzufügen“. Öffne die App einmal mit Internet und prüfe, ob die Offline-Nutzung bereit ist.',
+  preview: 'Vorschau-Verbindung: Hier ist keine Offline-Installation möglich. Notizen und Export kannst du trotzdem ausprobieren.',
+  clock: 'Zeiteinstellungen', clockBasis: 'Feste Zeitbasis: {basis}', clockHelp: 'Die Zeitzone vom Messbeginn bleibt gültig. Wird eine Uhr während der Messung umgestellt, prüfe und korrigiere betroffene Einträge. Ein neuer Zeitabgleich verschiebt alle Einträge.',
+  saveSettings: 'Einstellungen speichern', settingsSaved: 'Einstellungen gespeichert.', resetClock: 'Handyzeit verwenden (ohne Korrektur)',
+  reset: 'Neues Tagebuch beginnen', resetHelp: 'Dabei wird das aktuelle Tagebuch auf diesem Gerät gelöscht. Exportiere es vorher.',
+  resetConfirm: 'Dieses Tagebuch mit allen Einträgen löschen? Lade vorher dein Protokoll herunter. Das lässt sich nicht rückgängig machen.',
+  deleteConfirm: 'Diesen Eintrag löschen?', discardConfirm: 'Deine ungespeicherten Änderungen verwerfen?',
+  writeFailed: 'Speichern fehlgeschlagen. Dein Text bleibt erhalten. Bitte versuche es erneut.', loadFailed: 'Das Tagebuch konnte nicht geöffnet werden. Vorhandene Daten wurden nicht gelöscht.',
+  invalidTime: 'Bitte gib ein gültiges Datum und eine gültige Uhrzeit ein.', conflict: 'Das Tagebuch wurde in einem anderen Fenster geändert. Dein Text bleibt erhalten. Lade den gespeicherten Stand und prüfe deine Änderungen.',
+  reload: 'Gespeicherten Stand laden', retryMarker: 'Diese Beschwerdezeit erneut speichern', markerFailed: 'Die Beschwerdezeit ist noch nicht gespeichert. Beim erneuten Versuch bleibt die ursprüngliche Zeit erhalten.',
+  discardMarker: 'Ungespeicherte Markierung verwerfen', discardMarkerConfirm: 'Diese ungespeicherte Beschwerdezeit verwerfen? Notiere dir vorher die angezeigte Zeit, falls du sie noch brauchst.',
+  working: 'Wird gespeichert …', invalidNote: 'Bitte schreibe eine Notiz oder markiere mit „Beschwerden jetzt“ einen Zeitpunkt.',
+  update: 'Update verfügbar', updateAction: 'Update übernehmen', updateConfirm: 'Zum Aktualisieren neu laden? Ungespeicherte Änderungen gehen dabei verloren.',
+  connection: 'Offline', error: 'Etwas ist schiefgegangen. Bitte versuche es erneut.', checkTimes: 'Die Zeiten folgen dem EKG-Zeitabgleich.',
+  appInfo: 'Holter Diary · persönliches Beobachtungsprotokoll', back: 'Zurück zum Tagebuch',
+};
+
+export function translate(language: Language, key: TextKey, values: Record<string, string | number> = {}): string {
+  let text: string = (language === 'de' ? de : en)[key];
+  for (const [name, value] of Object.entries(values)) text = text.replaceAll(`{${name}}`, String(value));
+  return text;
+}
+
+export function detectLanguage(languages: readonly string[]): Language {
+  return languages[0]?.toLowerCase().startsWith('de') ? 'de' : 'en';
+}

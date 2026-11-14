@@ -49,6 +49,16 @@ export interface Preferences {
   language: Language;
 }
 
+// getRandomValues also works on ordinary HTTP preview origins.
+export function uniqueId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = [...bytes].map(x => x.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 export function requireValue(condition: unknown, code = 'INVALID_DATA'): asserts condition {
   if (!condition) throw new DiaryError(code);
 }
@@ -109,7 +119,7 @@ export function assertPreferences(value: unknown): asserts value is Preferences 
 
 export function newEntry(sessionId: string, capturedAtMs: number, kind: EntryKind, note = ''): Entry {
   const value: Entry = {
-    schemaVersion: 1, id: crypto.randomUUID(), revision: 1,
+    schemaVersion: 1, id: uniqueId(), revision: 1,
     sessionId, capturedAtMs, eventAtMs: capturedAtMs, kind, note,
   };
   assertEntry(value);

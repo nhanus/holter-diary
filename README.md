@@ -1,25 +1,75 @@
 # Holter Diary
 
-A small, local-first diary for Holter monitoring: open, write a note, save.
-Planned for Android, with German and English UI and printable PDF reports.
+A small diary for Holter monitoring: write a note, save, or mark symptoms with
+one tap. German and English, local storage, offline use and printable A4 PDF/TXT
+reports. No account, server database, analytics or external runtime assets.
 
-**Status: data and time foundations implemented; the diary interface, offline
-app installation and PDF export are not implemented yet. Do not use this version
-to record a monitoring session.**
+**Implementation complete; real Android installation, phone restart and physical
+printing acceptance remain pending.** There is no public deployment yet. See
+[validation](docs/VALIDATION.md) and [release checklist](https://github.com/nhanus/holter-diary/issues/6).
 
-There is no released application yet. The included page is only a build placeholder.
+## Quick start
 
-## Plan and history
+1. Start a diary. Your name and a monitor-clock comparison are optional.
+2. Type a note and save. **Symptoms now** immediately saves a timestamp; tap the
+   resulting entry later to add details. Tap any entry to correct it or its time.
+3. Open **Export diary**, choose the report language and download PDF or text.
+   Open the PDF in your phone's viewer to print; sharing appears if supported.
+4. Under **Settings**, check the actual persistent-storage and offline status.
+   On HTTPS, use the browser's **Install app / Add to Home screen** command.
+   Open once online and wait for **Ready to use offline** before disconnecting.
 
-- [Implementation plan](docs/PLAN.md): scope, screen flow and linked issues.
-- [Decisions](docs/DECISIONS.md): brief explanations of consequential choices.
-- [Validation](docs/VALIDATION.md): automated checks and real-device acceptance.
-- [Issues](https://github.com/nhanus/holter-diary/issues): work and acceptance criteria.
-- Pull requests: change rationale, independent review and validation evidence.
+A fresh note starts with the current time and refreshes on first typing if left
+idle. Its time stays fixed while composing; **Change time** accepts monitor time.
+A failed save keeps the draft and a failed symptom marker retains its original
+time for retry. Unsaved drafts are not durable records: use Save before leaving.
+
+## Kurz erklärt
+
+1. **Tagebuch beginnen**; Name und EKG-Zeitabgleich sind freiwillig.
+2. Notiz eingeben und **Eintrag speichern**. **Beschwerden jetzt** speichert sofort
+   die Uhrzeit. Einen Eintrag antippen, um Details oder die Zeit zu korrigieren.
+3. **Protokoll exportieren**, Sprache wählen und PDF oder Text herunterladen.
+   Das PDF anschließend im Dateibetrachter des Handys öffnen und drucken.
+4. Unter **Einstellungen** die Speicherfreigabe und Offline-Bereitschaft prüfen.
+   Über HTTPS im Browsermenü installieren und einmal mit Internet öffnen.
+
+Gespeicherte Einträge bleiben normalerweise auch nach einem Handyneustart erhalten.
+Ungespeicherte Entwürfe sind nicht dauerhaft gesichert. Das Löschen der Website-Daten
+entfernt das Tagebuch. Der tatsächliche Handy-/Druckertest steht noch aus.
+
+## Data and time
+
+Diary data stays in IndexedDB on this browser origin. A save is acknowledged only
+after transaction completion. The app requests strict durability where supported.
+Persistent storage is a browser decision, not reserved disk space or a backup;
+the app displays the observed result. A denied request does not prevent ordinary
+IndexedDB saving. Offline readiness is verified separately against cached assets.
+
+Clearing site data, using private browsing, changing browser/profile/origin or
+losing the device can make the diary unavailable. A downloaded report is an
+independent file. Starting a new diary requires confirmation and removes the old
+session and entries while retaining your language preference.
+
+The session uses the timezone offset recorded at start, plus an optional monitor
+clock correction. A correction applies to every entry. Original capture instants
+are retained. Automatic handling of clock drift or a clock change during recording
+is outside this version; check and correct affected entries explicitly. Minute-only
+monitor readings do not establish second-level accuracy.
+
+PDFs use standard Helvetica with Western European characters, including German
+umlauts. Unsupported characters (such as emoji) cause a clear message; they are
+never silently dropped. The UTF-8 text export preserves all characters. Report
+language changes labels only, never the written notes. This app records observations
+and does not interpret ECG data.
+
+Static hosting may log ordinary requests and IP addresses. The app never sends
+diary content in requests, URLs or telemetry. Browser data is isolated by origin,
+not repository path; unrelated untrusted apps should not share its hosting origin.
 
 ## Development
 
-Use Node.js 24 (see `.node-version`) and npm.
+Use Node.js 24 and npm:
 
 ```sh
 npm ci
@@ -28,31 +78,25 @@ npm run test:unit
 npm run build
 npx playwright install chromium
 npm run test:browser
+npm run test:app
 npm run dev
 ```
 
-The build produces `dist/`, with the `/holter-diary/` base path used by the future
-GitHub Pages site. `npm run preview` serves this build for local inspection.
-Open the local URL printed by Vite. Service-worker installation and persistent
-storage checks require a secure context: HTTPS or localhost in the test browser.
+`dist/` is the complete static app at `/holter-diary/`. `npm run preview` serves
+it for inspection; use the address printed by Vite. HTTPS or browser localhost
+is required for offline installation and storage-permission APIs. Ordinary HTTP
+previews still support notes and exports and display the limitation.
 
-CI runs type checking, time/permission unit tests, a production build and real
-Chromium storage tests on pushes and pull requests. It retains the app build and
-failure evidence for seven days. Browser storage tests use a separately bundled
-fixture; no test API is included in the application build. They do not establish
-actual Android restart behavior. CI does not publish.
+CI checks types, unit tests, real Chromium storage transactions and production-app
+flows, including offline PDF export and safe updates. Builds and failure evidence
+are retained seven days. CI does not publish. Test fixtures are excluded from the
+production build. The browser tests are intentionally small and Chromium-focused;
+they do not replace actual Android/printer acceptance.
 
-## Planned data behavior
+## Project history and license
 
-Diary content stays in IndexedDB on the device. Persistent storage will be
-requested and its actual result displayed; it cannot be guaranteed in advance.
-Offline readiness and persistent-storage permission are separate states.
-There is no server database, account, analytics or cloud sync. An explicitly
-exported PDF is a separate file. Clearing site data removes the local diary.
-
-The future GitHub Pages host can receive normal website requests and log IP
-addresses; diary notes must never be sent in requests, URLs or telemetry.
-
-## License
-
-[MIT](LICENSE). Third-party libraries and fonts retain their own licenses.
+- [Plan](docs/PLAN.md), [decisions](docs/DECISIONS.md), [validation](docs/VALIDATION.md)
+- [Issues](https://github.com/nhanus/holter-diary/issues) and pull requests record implementation, review and evidence.
+- [MIT](LICENSE). [Runtime dependency notices](public/THIRD_PARTY.txt) ship with the app.
+  PDF.js is a development-only PDF validation dependency (Apache-2.0); it is not
+  included in the application. Fonts used by the interface are system fonts.

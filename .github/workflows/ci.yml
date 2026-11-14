@@ -31,7 +31,7 @@ jobs:
         run: npm ci
       - name: Type check
         run: npm run check
-      - name: Test time and persistence model
+      - name: Test time, storage permissions and PDF output
         run: npm run test:unit
       - name: Build static app
         run: npm run build
@@ -39,6 +39,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Test browser storage
         run: npm run test:browser
+      - name: Test complete offline app
+        run: npm run test:app
       - name: Retain browser failure evidence
         if: failure()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
@@ -52,5 +54,6 @@ jobs:
         with:
           name: holter-diary-${{ github.sha }}
           path: dist/
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
