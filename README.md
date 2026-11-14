@@ -123,7 +123,10 @@ call an AI service or send diary entries to an AI provider.
 ## Project history and license
 
 - [Plan](docs/PLAN.md), [decisions](docs/DECISIONS.md), [validation](docs/VALIDATION.md)
-- [Issues](https://github.com/nhanus/holter-diary/issues) and pull requests record implementation, review and evidence.
+- [Issues](https://github.com/nhanus/holter-diary/issues) and pull requests record current implementation, review and evidence.
+  Git history and versioned release files retain the earlier development record.
+  Historical issue and pull request discussions were not imported; references in
+  older commits belong to the previous tracker.
 - [MIT](LICENSE). [Runtime dependency notices](public/THIRD_PARTY.txt) ship with the app.
   PDF.js is a development-only PDF validation dependency (Apache-2.0); it is not
   included in the application. Fonts used by the interface are system fonts.

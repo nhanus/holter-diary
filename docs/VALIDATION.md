@@ -94,7 +94,8 @@ browser and document the result; do not replace it with a fabricated green state
 ## Evidence and release
 
 Each feature PR records the relevant commands/results and independent review.
-Issue #6 collects real-device evidence and the final CI run/commit. Keep untested
+The [release-readiness issue](https://github.com/nhanus/holter-diary/issues/2) collects
+real-device evidence and the final CI run/commit. Keep untested
 items marked pending and unresolved issues explicit. The manual Pages workflow is prepared but remains disabled until maintainer
 approval and hosting configuration. See [deployment](DEPLOYMENT.md).
 
@@ -141,7 +142,7 @@ is checked at 320/393 CSS pixels with normal and 150% text. Existing report and
 update tests continue to verify the underlying calculations and stored diaries.
 # Validated review follow-up (0.1.0-beta.5)
 
-Regression coverage for [#39](https://github.com/nhanus/holter-diary/issues/39):
+Regression coverage for the validated review follow-up:
 
 - Reset counts and exports entries saved in another tab before opening. Inserts,
   edits, deletions and replacements after opening prevent deletion, preserve the

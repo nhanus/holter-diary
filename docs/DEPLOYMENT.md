@@ -51,7 +51,8 @@ canonical GitHub project, even when the test build is hosted elsewhere.
 ## Android test / Android-Test
 
 Use synthetic entries and record the tested commit, date, Android/browser versions
-and actual results in issue #6. Never attach real patient details or diaries.
+and actual results in the [release-readiness issue](https://github.com/nhanus/holter-diary/issues/2).
+Never attach real patient details or diaries.
 
 1. **Install / Installieren:** Open the app at the HTTPS address ending in `/app/` in Android Chrome, install
    from its menu and launch from the home screen. / HTTPS-Adresse in Chrome öffnen,
