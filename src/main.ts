@@ -43,6 +43,7 @@ let loadError = false;
 let nextFocus: string | undefined;
 let feedbackSection: string | undefined;
 let headerObserver: ResizeObserver | undefined;
+let actionObserver: ResizeObserver | undefined;
 const offline = new OfflineApp(refreshStatus);
 const t = (key: TextKey, params?: Record<string, string | number>) => translate(lang, key, params);
 const text = (key: TextKey, params?: Record<string, string | number>) => esc(t(key, params));
@@ -240,19 +241,76 @@ function settingsPanel(): string {
     </div>${session ? `<section class="reset-section"><button class="text-button danger" id="reset-diary" type="button">${text('reset')}</button><p class="help">${text('resetCount', { count: entries.length })}</p></section>` : ''}`;
 }
 function composer(): string {
-  return `<form id="entry-form" class="card composer"><label for="note" class="composer-title">${text(editing ? 'editing' : 'newEntry')}</label>
-    <textarea id="note" aria-label="${text('note')}" rows="3" placeholder="${text('placeholder')}">${esc(draft!.note)}</textarea>
-    <div class="time-row"><span class="time-stamp">${esc(draftStamp())}</span></div>
-    <details id="entry-time-details" data-disclosure class="time-details" ${invalidTime || openSections.has('entry-time-details') ? 'open' : ''}><summary>${text('changeTime')}</summary><label for="entry-time">${text(timeBasis())}</label>
-      <input id="entry-time" type="datetime-local" step="1" value="${esc(draftTimeInput ?? monitorTime(draft!.eventAtMs, session!))}" aria-describedby="time-help"><p class="help" id="time-help">${text(session!.calibration.offsetMs ? 'timeHelp' : 'phoneTimeHelp')}</p></details>
-    <div class="composer-actions"><label class="check"><input id="entry-kind" type="checkbox" ${draft!.kind === 'symptom' ? 'checked' : ''}>${text('symptomsLabel')}</label><button type="submit" id="save-entry" class="primary">${text(editing ? 'saveChanges' : 'save')}</button></div>
-    <div class="edit-actions" ${!editing && !dirty ? 'hidden' : ''}><button type="button" id="cancel-edit" class="text-button">${text('cancel')}</button>${editing ? `<button type="button" id="delete-entry" class="text-button danger">${text('delete')}</button>` : ''}</div></form>`;
+  return `<form id="entry-form" class="${editing ? 'note-editor' : 'card inline-composer'}"><div class="composer-fields">
+    ${editing ? `<h1 id="dialog-title" tabindex="-1">${text('editing')}</h1>${feedbackMarkup(true)}` : ''}
+    <label for="note" class="${editing ? 'sr-only' : 'composer-title'}">${text('note')}</label>
+    <textarea id="note" aria-label="${text('note')}" rows="2" placeholder="${text('placeholder')}">${esc(draft!.note)}</textarea>
+    <label class="check"><input id="entry-kind" type="checkbox" ${draft!.kind === 'symptom' ? 'checked' : ''}>${text('symptomsLabel')}</label>
+    <div class="editor-time"><span class="time-stamp">${esc(draftStamp())}</span>
+    <details id="entry-time-details" data-disclosure ${invalidTime || openSections.has('entry-time-details') ? 'open' : ''}><summary>${text('changeTime')}</summary><label for="entry-time">${text(timeBasis())}</label>
+      <input id="entry-time" type="datetime-local" step="1" value="${esc(draftTimeInput ?? monitorTime(draft!.eventAtMs, session!))}" aria-describedby="time-help"><p class="help" id="time-help">${text(session!.calibration.offsetMs ? 'timeHelp' : 'phoneTimeHelp')}</p></details></div>
+    ${editing ? `<button type="button" id="delete-entry" class="text-button danger">${text('delete')}</button>` : ''}
+    </div><div class="action-slot"><div class="capture-actions"><button type="button" id="cancel-edit" class="secondary" ${!editing && !dirty ? 'hidden' : ''}>${text(editing ? 'cancel' : 'discardDraft')}</button><button type="submit" id="save-entry" class="primary">${text('saveShort')}</button></div></div></form>`;
 }
+function syncCaptureActions(): void {
+  const form = document.querySelector<HTMLElement>('.inline-composer');
+  const actions = document.querySelector<HTMLElement>('.capture-actions');
+  const active = !!form && !modal && (dirty || !!form.querySelector('.composer-fields')?.contains(document.activeElement) || (form.classList.contains('capture-engaged') && form.contains(document.activeElement)));
+  document.documentElement.classList.toggle('capture-active', active);
+  form?.classList.toggle('capture-engaged', active);
+  const discard = document.getElementById('cancel-edit');
+  if (discard) discard.hidden = !editing && !dirty;
+  if (actions) {
+    const height = actions.offsetHeight;
+    form?.style.setProperty('--actions-height', `${height}px`);
+    document.documentElement.style.setProperty('--actions-height', `${height}px`);
+  }
+}
+function revealFocusedCaptureField(): void {
+  requestAnimationFrame(() => {
+    const field = document.activeElement;
+    if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) return;
+    const editorFields = field.closest<HTMLElement>('.note-editor .composer-fields');
+    if (editorFields) {
+      const bounds = field.getBoundingClientRect(), area = editorFields.getBoundingClientRect();
+      const amount = Math.min(bounds.bottom - area.bottom + 12, bounds.top - area.top - 12);
+      if (amount > 0) editorFields.scrollBy({ top: amount, behavior: 'instant' });
+      else if (bounds.top < area.top + 12) editorFields.scrollBy({ top: bounds.top - area.top - 12, behavior: 'instant' });
+      return;
+    }
+    if (!field.closest('.inline-composer.capture-engaged')) return;
+    const actions = document.querySelector('.capture-actions'); if (!actions) return;
+    const viewport = window.visualViewport;
+    const visibleBottom = viewport && viewport.scale === 1 ? viewport.offsetTop + viewport.height : window.innerHeight;
+    const bounds = field.getBoundingClientRect(), actionBounds = actions.getBoundingClientRect();
+    const limit = Math.min(actionBounds.top, visibleBottom - actionBounds.height) - 12;
+    const header = document.querySelector<HTMLElement>('.topbar');
+    const headerStyle = header ? getComputedStyle(header) : null;
+    const top = header && headerStyle?.position === 'sticky' ? Math.max(12, (parseFloat(headerStyle.top) || 0) + header.offsetHeight + 12) : 12;
+    const amount = Math.min(bounds.bottom - limit, bounds.top - top);
+    if (amount > 0) window.scrollBy({ top: amount, behavior: 'instant' });
+  });
+}
+let previousViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+function syncViewport(revealOnShrink = false): void {
+  const viewport = window.visualViewport;
+  const height = viewport && viewport.scale === 1 ? viewport.height : window.innerHeight;
+  const inset = viewport && viewport.scale === 1 ? Math.max(0, window.innerHeight - height - viewport.offsetTop) : 0;
+  document.documentElement.style.setProperty('--keyboard-inset', `${inset}px`);
+  // Scrolling must not pull the user back to the focused field.
+  if (revealOnShrink && height < previousViewportHeight) revealFocusedCaptureField();
+  if (revealOnShrink) previousViewportHeight = height;
+}
+window.visualViewport?.addEventListener('resize', () => syncViewport(true));
+window.visualViewport?.addEventListener('scroll', () => syncViewport());
+window.addEventListener('resize', () => syncViewport(true));
+syncViewport();
 function renderDialog(): string {
   if (!modal) return '';
-  const title: TextKey = modal === 'edit' ? 'editing' : modal === 'reset' ? 'resetTitle' : modal === 'settings' ? 'settings' : 'export';
-  return `<dialog id="dialog" class="${modal === 'reset' ? 'confirmation-dialog' : 'screen-dialog'}" aria-labelledby="dialog-title"><div class="dialog-head"><button type="button" class="back-button" id="close-dialog" aria-label="${text('close')}"><span aria-hidden="true">←</span> ${text(modal === 'edit' || modal === 'reset' ? 'cancel' : 'back')}</button><span>${text(title)}</span></div><div class="dialog-body"><h1 id="dialog-title" tabindex="-1">${text(title)}</h1>
-    ${feedbackMarkup(true)}${modal === 'settings' ? settingsPanel() : modal === 'edit' ? composer() : modal === 'reset' ? `<p class="help">${text('resetCount', { count: entries.length })}</p><button id="export-before-reset" class="secondary full" ${!entries.length ? 'disabled' : ''}>${text('export')}</button><button id="confirm-reset" class="danger full">${text('resetAction')}</button>` :
+  if (modal === 'edit') return `<dialog id="dialog" class="editor-dialog" aria-labelledby="dialog-title">${composer()}</dialog>`;
+  const title: TextKey = modal === 'reset' ? 'resetTitle' : modal === 'settings' ? 'settings' : 'export';
+  return `<dialog id="dialog" class="${modal === 'reset' ? 'confirmation-dialog' : 'screen-dialog'}" aria-labelledby="dialog-title"><div class="dialog-head"><button type="button" class="back-button" id="close-dialog" aria-label="${text('close')}"><span aria-hidden="true">←</span> ${text(modal === 'reset' ? 'cancel' : 'back')}</button><span>${text(title)}</span></div><div class="dialog-body"><h1 id="dialog-title" tabindex="-1">${text(title)}</h1>
+    ${feedbackMarkup(true)}${modal === 'settings' ? settingsPanel() : modal === 'reset' ? `<p class="help">${text('resetCount', { count: entries.length })}</p><button id="export-before-reset" class="secondary full" ${!entries.length ? 'disabled' : ''}>${text('export')}</button><button id="confirm-reset" class="danger full">${text('resetAction')}</button>` :
       `<p class="help">${text('exportSummary', { count: entries.length, date: displayDate(monitorTime(session!.startedAtMs, session!), lang) })}</p><div class="card"><p class="help">${text('exportHelp')}</p><label for="report-language">${text('reportLanguage')}</label>
       <select id="report-language"><option value="de" ${reportLanguage === 'de' ? 'selected' : ''}>Deutsch</option><option value="en" ${reportLanguage === 'en' ? 'selected' : ''}>English</option></select>
       <div class="export-actions"><button id="download-pdf" class="primary">${text('pdf')} ${arrow}</button>${reportFile && typeof navigator.share === 'function' && navigator.canShare?.({ files: [reportFile] }) ? `<button id="share-pdf" class="secondary">${text('share')}</button>` : ''}<button id="download-text" class="secondary">${text('text')}</button></div></div>`}</div></dialog>`;
@@ -260,10 +318,11 @@ function renderDialog(): string {
 function render(focusTarget?: string): void {
   const focused = focusTarget ?? document.activeElement?.id;
   const scroll = document.querySelector('#dialog')?.scrollTop ?? 0;
+  const editorScroll = document.querySelector('.note-editor .composer-fields')?.scrollTop ?? 0;
   for (const details of document.querySelectorAll<HTMLDetailsElement>('[data-disclosure]')) {
     if (details.open) openSections.add(details.id); else openSections.delete(details.id);
   }
-  quickObserver?.disconnect(); headerObserver?.disconnect();
+  quickObserver?.disconnect(); headerObserver?.disconnect(); actionObserver?.disconnect();
   updateDocumentLanguage(); document.title = 'Holter Diary';
   root.innerHTML = `<header class="topbar"><span class="brand">${pulse}<span>holter<span class="brand-light"> diary</span></span></span><button type="button" id="settings" class="settings-button" aria-label="${text('settings')}">${text('settings')}<span id="update-notice" aria-hidden="true" hidden>${updateIcon}</span></button></header>
     ${pendingMarker ? `<div id="pending-marker" class="error"><p>${text('markerFailed')} <strong>${esc(pendingMarker.display)}</strong></p><button type="button" class="secondary" id="retry-marker" ${session?.id !== pendingMarker.entry.sessionId ? 'disabled' : ''}>${text('retryMarker')}</button><button type="button" class="text-button danger" id="discard-marker">${text('discardMarker')}</button></div>` : ''}
@@ -271,11 +330,10 @@ function render(focusTarget?: string): void {
     !session ? `<main class="welcome"><h1>${text('newDiaryTitle')}</h1><p class="intro">${text('welcomeText')}</p><form id="setup" class="card setup-card"><p class="help">${text('optionalSetup')}</p>
       <details id="setup-identity" data-disclosure ${openSections.has('setup-identity') ? 'open' : ''}><summary>${text('identitySection')}</summary><label for="setup-name">${text('name')}</label><input id="setup-name" autocomplete="name" maxlength="120" value="${esc(setupName)}">${birthDateField('setup-birth-date', setupDateOfBirth)}</details>
       ${calibrationFields()}<button class="primary full" id="start-diary" type="submit">${text('start')}</button></form>${!modal ? feedbackMarkup() : ''}<p class="footer-note">${text('localOnly')}</p><p class="status-line" data-offline-status></p></main>` :
-    `<main><section class="page-heading"><h1>${text('today')}</h1><span class="eyebrow">${text('since', { date: displayDate(monitorTime(session.startedAtMs, session), lang) })}</span></section><p id="offline-badge" class="badge"></p><button id="offline-action" class="text-button" hidden>${text('offlineAction')}</button>
-    <button type="button" id="export" class="export-button" ${!entries.length ? 'disabled aria-describedby="empty-export"' : ''}>${text('export')} ${arrow}</button>${!entries.length ? `<p id="empty-export" class="help">${text('emptyExport')}</p>` : ''}
-    <section class="symptom-section"><button class="symptom-button" id="mark-symptom"><span>${text('symptoms')}</span><span aria-hidden="true">+</span></button><p>${text('symptomHint')}</p></section>
-    ${lastMarkerId && entries.some(e => e.id === lastMarkerId) ? `<div class="marker-receipt" role="status"><p>${text('markedAt', { time: displayTime(entries.find(e => e.id === lastMarkerId)!.eventAtMs, session) })}</p><button class="text-button" id="marker-details">${text('markerDetails')}</button></div>` : ''}
+    `<main><section class="page-heading"><div class="heading-row"><h1 id="diary-title" tabindex="-1">${text('today')}</h1><button type="button" id="export" class="export-utility" aria-label="${text('export')}" ${!entries.length ? 'disabled' : ''}>${text('reportShort')} ${arrow}</button></div><span class="eyebrow">${text('since', { date: displayDate(monitorTime(session.startedAtMs, session), lang) })}</span></section><p id="offline-badge" class="badge"></p><button id="offline-action" class="text-button" hidden>${text('offlineAction')}</button>
     ${editing ? '' : composer()}${!modal ? feedbackMarkup() : ''}
+    <section class="symptom-section"><button class="symptom-button" id="mark-symptom"><span>${text('symptoms')}</span><span aria-hidden="true">+</span></button><p>${text('symptomHint')}</p></section>
+    ${lastMarkerId && entries.some(e => e.id === lastMarkerId) ? `<div class="marker-receipt" role="status"><p>${text('markedAt', { time: displayTime(entries.find(e => e.id === lastMarkerId)!.eventAtMs, session!) })}</p><button class="text-button" id="marker-details">${text('markerDetails')}</button></div>` : ''}
     <section class="history"><div class="section-head"><h2>${text('entries')}</h2><span>${text('count', { count: entries.length })}</span></div>
       ${entries.length ? `<ol class="entries">${[...entries].reverse().map(entry => `<li class="entry ${entry.kind === 'symptom' ? 'is-symptom' : ''}"><button type="button" id="entry-${esc(entry.id)}" class="entry-button" data-entry="${esc(entry.id)}"><span class="entry-time"><strong>${displayTime(entry.eventAtMs, session!)}</strong><span>${esc(displayDate(monitorTime(entry.eventAtMs, session!), lang))}</span></span><span class="entry-content">${entry.kind === 'symptom' ? `<span class="symptom-label">${text('symptomsLabel')}</span>` : ''}<span class="entry-note">${esc(entry.note || t('noDetails'))}</span><span class="edit-word">${text('edit')}</span></span></button></li>`).join('')}</ol>` : `<div class="empty-state"><strong>${text('empty')}</strong><p>${text('emptyHelp')}</p></div>`}</section><p class="footer-note">${text('localOnly')}</p></main>`}
     ${!isSecureContext ? `<p class="preview-note">${text('preview')}</p>` : ''}<footer>${text('appInfo')}</footer>${renderDialog()}
@@ -283,6 +341,7 @@ function render(focusTarget?: string): void {
   bind(); refreshStatus(); refreshFeedback();
   const dialog = document.querySelector<HTMLDialogElement>('#dialog');
   dialog?.showModal(); if (dialog) dialog.scrollTop = scroll;
+  const editorBody = document.querySelector('.note-editor .composer-fields'); if (editorBody) editorBody.scrollTop = editorScroll;
   const header = document.querySelector<HTMLElement>(dialog ? '.dialog-head' : '.topbar');
   if (header) {
     const setPadding = () => { (dialog ?? document.documentElement).style.scrollPaddingTop = `${header.offsetHeight + 12}px`; };
@@ -294,6 +353,9 @@ function render(focusTarget?: string): void {
     if (disabled) target = target?.closest('.setting-section')?.querySelector<HTMLElement>(':scope > summary') ?? document.getElementById('dialog-title');
     if (target && (!modal || dialog?.contains(target))) { target.focus({ preventScroll: true }); if (disabled) target.scrollIntoView({ block: 'nearest' }); }
   }
+  syncCaptureActions();
+  const actions = document.querySelector('.capture-actions');
+  if (actions) { actionObserver = new ResizeObserver(syncCaptureActions); actionObserver.observe(actions); }
   if (!modal && session) {
     const composer = document.querySelector('#entry-form');
     quickObserver = new IntersectionObserver(([entry]) => {
@@ -306,6 +368,11 @@ function render(focusTarget?: string): void {
 }
 function on(id: string, action: () => void): void { document.getElementById(id)?.addEventListener('click', action); }
 function bind(): void {
+  const composer = document.querySelector('#entry-form');
+  composer?.addEventListener('focusin', () => { syncCaptureActions(); revealFocusedCaptureField(); });
+  composer?.addEventListener('focusout', () => requestAnimationFrame(syncCaptureActions));
+  composer?.addEventListener('input', syncCaptureActions);
+  composer?.addEventListener('change', syncCaptureActions);
   document.querySelector<HTMLSelectElement>('#language')?.addEventListener('change', event => {
     const next = (event.target as HTMLSelectElement).value as Language;
     void task(async () => { await store.setPreferences({ schemaVersion: 1, id: 'preferences', language: next }); lang = next; });
@@ -344,7 +411,7 @@ function bind(): void {
     if (!draft!.note.trim() && draft!.kind !== 'symptom') { notify('invalidNote', true); return; }
     void task(async () => {
       const saved = editing ? await store.updateEntry(draft!, draftSessionRevision) : await store.addEntry(draft!, draftSessionRevision);
-      remember(saved.value); if (editing) finishEdit(); else freshDraft(); conflict = false; lastMarkerId = undefined; notify('saved');
+      remember(saved.value); if (editing) finishEdit(); else { freshDraft(); nextFocus = 'diary-title'; } conflict = false; lastMarkerId = undefined; notify('saved');
     });
   });
   const mark = () => { if (pendingMarker || busy) return; const entry = newEntry(session!.id, Date.now(), 'symptom'); pendingMarker = { entry, revision: session!.revision, display: monitorTime(entry.eventAtMs, session!).replace('T', ' ') }; void saveMarker(); };
@@ -353,7 +420,7 @@ function bind(): void {
   on('marker-details', () => { if (lastMarkerId) openEditor(lastMarkerId); });
   on('retry-marker', () => void saveMarker());
   on('discard-marker', () => { if (confirm(t('discardMarkerConfirm'))) { pendingMarker = undefined; message = undefined; render(); } });
-  on('cancel-edit', () => { if (editing) closeDialog(); else if (discardAllowed()) { freshDraft(); conflict = false; message = undefined; render('note'); } });
+  on('cancel-edit', () => { if (editing) closeDialog(); else if (discardAllowed()) { freshDraft(); conflict = false; message = undefined; render('diary-title'); } });
   on('delete-entry', () => {
     if (!confirm(t('deleteConfirm'))) return;
     void task(async () => { await store.deleteEntry(draft!.id, draft!.revision); entries = entries.filter(x => x.id !== draft!.id); lastMarkerId = undefined; finishEdit(); notify('deleted'); });
@@ -412,6 +479,7 @@ function bind(): void {
 function focusDialog(): void {
   const dialog = document.querySelector<HTMLDialogElement>('#dialog');
   if (dialog) dialog.scrollTop = 0;
+  const content = document.querySelector('.note-editor .composer-fields'); if (content) content.scrollTop = 0;
   document.querySelector<HTMLElement>('#dialog-title')?.focus({ preventScroll: true });
 }
 function openSettings(): void {
@@ -464,7 +532,7 @@ function download(file: File): void {
 }
 window.addEventListener('beforeunload', event => { if (hasUnsavedChanges() && offline.updateStatus !== 'applying') { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('online', refreshStatus); window.addEventListener('offline', refreshStatus);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && session && !dirty && !editing && !busy && !modal) { freshDraft(); render(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && session && !dirty && !editing && !busy && !modal && !document.querySelector('#entry-form')?.contains(document.activeElement)) { freshDraft(); render(); } });
 async function init(): Promise<void> {
   try { store = await openDiaryStore(); const preferences = await store.preferences(); if (preferences) lang = preferences.language;
     const requestedLanguage = new URL(location.href).searchParams.get('lang');

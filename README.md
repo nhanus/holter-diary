@@ -13,7 +13,7 @@ acceptance remain pending.** There is no public deployment yet. See
 1. Start a diary. Your name, date of birth and a monitor-clock comparison are optional.
 2. Type a note and save. **Symptoms now** immediately saves a timestamp; tap the
    resulting entry later to add details. Tap any entry to correct it or its time.
-3. Open **Export diary**, choose the report language and download PDF or text.
+3. Open **Report**, choose the report language and download PDF or text.
    Open the PDF in your phone's viewer to print; sharing appears if supported.
 4. Under **Settings → Offline & storage**, check the actual persistent-storage and offline status. If permission is denied, install the app, launch it from the home screen and check again. Installation can help; the browser still decides.
    On HTTPS, use the browser's **Install app / Add to Home screen** command.
@@ -27,9 +27,9 @@ time for retry. Unsaved drafts are not durable records: use Save before leaving.
 ## Kurz erklärt
 
 1. **Tagebuch beginnen**; Name, Geburtsdatum und EKG-Zeitabgleich sind freiwillig.
-2. Notiz eingeben und **Eintrag speichern**. **Beschwerden jetzt** speichert sofort
+2. Notiz eingeben und **Speichern**. **Beschwerden jetzt** speichert sofort
    die Uhrzeit. Einen Eintrag antippen, um Details oder die Zeit zu korrigieren.
-3. **Protokoll exportieren**, Sprache wählen und PDF oder Text herunterladen.
+3. **Protokoll**, Sprache wählen und PDF oder Text herunterladen.
    Das PDF anschließend im Dateibetrachter des Handys öffnen und drucken.
 4. Unter **Einstellungen → Offline & Speicherung** die Speicherfreigabe und Offline-Bereitschaft prüfen. Bei fehlender Freigabe die App installieren, vom Startbildschirm öffnen und erneut prüfen. Die Installation kann helfen; die Entscheidung bleibt beim Browser.
    Über HTTPS im Browsermenü installieren und einmal mit Internet öffnen.

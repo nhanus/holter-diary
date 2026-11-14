@@ -90,7 +90,7 @@ test('aborted transaction retains draft and frozen time; a retry saves exactly o
   await expect(page.locator('#feedback')).toContainText('gespeichert');
   expect(await savedEntries(page)).toHaveLength(1);
   await expect(page.locator('#feedback')).toBeInViewport();
-  await expect(page.locator('#save-entry')).toBeFocused();
+  await expect(page.locator('#diary-title')).toBeFocused();
 });
 
 test('first input refreshes an idle form time; subsequent typing freezes it', async ({ page }) => {
@@ -464,7 +464,7 @@ test('success confirmations expire after four seconds without hiding a newer err
   await expect(page.locator('#feedback')).toBeVisible();
   await page.clock.fastForward(4100);
   await expect(page.locator('#feedback')).toBeHidden();
-  await expect(page.locator('#save-entry')).toBeFocused();
+  await expect(page.locator('#diary-title')).toBeFocused();
 });
 
 
