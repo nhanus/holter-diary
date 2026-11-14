@@ -570,3 +570,25 @@ detected website navigation omits the language parameter so it cannot silently
 turn detection into a remembered choice. App links still hand off the displayed
 language. Invalid values are ignored; blocked local storage leaves navigation
 and explicit language links working. Language switches retain the current anchor.
+
+## 2026-11-14 — Direct capture with stable keyboard actions
+
+Related issue: [#35](https://github.com/nhanus/holter-diary/issues/35).
+
+Keep a real note field on the diary screen: focusing it does not navigate or
+replace the field. Group note, symptom flag and time before Save/Discard. Keep
+the action row sticky inside the card from the initial render, with consistent
+padding and a layer below the header. Report export is a labelled utility by the
+diary heading; the immediate symptom marker stays a separate action.
+
+Viewport scrolling updates keyboard geometry without moving the document back
+to a focused field. Focus and viewport shrink may reveal a covered field. Existing
+entries use a scrollable editor with a separate action row. Successful new-entry
+save and discard return focus to the diary heading, ending text entry; failures
+retain the draft, its time and retry path. Existing draft suspension and timestamp
+rules are unchanged. The manifest, database schema and worker identity stay stable.
+
+Browser tests cover large text, narrow layouts, resizing and simulated visual
+viewport keyboard overlays, including repeated scrolling across the sticky edge.
+Physical keyboard animation, viewport panning and accessibility settings remain
+part of device validation; emulation is not a substitute for that check.

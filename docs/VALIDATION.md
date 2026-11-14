@@ -100,3 +100,16 @@ saved records and raw timestamps survived adoption, both tabs' drafts remained
 protected, the old start URL reopened the new diary offline, old hashed assets
 remained available, and PDF export worked. Standalone launch was simulated;
 physical Android/WebAPK migration still requires device acceptance.
+
+## Direct capture regression coverage
+
+Nine additional production-app tests exercise stable action coordinates on focus
+and first input, retained textarea identity/selection, constant spacing through
+bidirectional scrolling, manual time changes, editor actions, header layering
+and settings access. The matrix covers 320/393 CSS pixels, normal/150% root text,
+layout resizing and a simulated visual viewport overlay. Scroll-only events and
+unchanged viewport sizes must not pull the page back to the focused note.
+
+Existing failure/retry, suspended draft, time calibration, offline/PDF and update
+protection tests remain applicable. Native keyboards and nonzero viewport panning
+require device validation; the synthetic overlay uses a zero vertical offset.

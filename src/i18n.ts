@@ -1,6 +1,7 @@
 import type { Language } from './domain.ts';
 
 export const en = {
+  saveShort: 'Save', discardDraft: 'Discard', reportShort: 'Report',
   identitySection: 'Report details', identitySummary: 'Name and date of birth · optional', identityHelp: 'Shown on every report page. Blank details are omitted.',
   saveIdentity: 'Save details', saveClock: 'Save time comparison', saveChanges: 'Save changes',
   phoneClock: 'Phone time', now: 'Now', noCorrection: 'Phone time · no correction', clockOffset: 'Correction: {seconds} s',
@@ -64,6 +65,7 @@ export const en = {
 
 export type TextKey = keyof typeof en;
 export const de: Record<TextKey, string> = {
+  saveShort: 'Speichern', discardDraft: 'Verwerfen', reportShort: 'Protokoll',
   identitySection: 'Angaben fürs Protokoll', identitySummary: 'Name und Geburtsdatum · optional', identityHelp: 'Erscheinen auf jeder Seite des Protokolls. Leere Angaben werden weggelassen.',
   saveIdentity: 'Angaben speichern', saveClock: 'Zeitabgleich speichern', saveChanges: 'Änderungen speichern',
   phoneClock: 'Handyzeit', now: 'Jetzt', noCorrection: 'Handyzeit · keine Korrektur', clockOffset: 'Korrektur: {seconds} s',

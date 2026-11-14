@@ -44,6 +44,7 @@ export class OfflineApp {
   }
 
   async verify(repair = false): Promise<void> {
+    if (!isSecureContext || !('serviceWorker' in navigator)) { this.status = 'unavailable'; this.notify(); return; }
     const worker = navigator.serviceWorker.controller ?? this.registration?.active;
     if (!worker) return;
     const ready = await new Promise<boolean>(resolve => {

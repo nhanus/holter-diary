@@ -40,9 +40,9 @@ test('new-note draft survives editor failure, save, cancel and deletion with its
   await page.locator('#save-entry').click(); await expect(page.locator('#note')).toHaveValue('New draft remains');
   await expect(page.locator('#entry-time')).toHaveValue('2028-02-03T10:17');
   await page.locator('.entry-button').click(); await page.locator('#note').fill('Do not keep');
-  page.once('dialog', d => d.dismiss()); await page.locator('#close-dialog').click();
+  page.once('dialog', d => d.dismiss()); await page.locator('#cancel-edit').click();
   await expect(page.locator('#note')).toHaveValue('Do not keep');
-  page.once('dialog', d => d.accept()); await page.locator('#close-dialog').click();
+  page.once('dialog', d => d.accept()); await page.locator('#cancel-edit').click();
   await expect(page.locator('.entry-button')).toBeFocused();
   await expect(page.locator('#note')).toHaveValue('New draft remains');
   await page.locator('.entry-button').click(); page.once('dialog', d => d.accept()); await page.locator('#delete-entry').click();

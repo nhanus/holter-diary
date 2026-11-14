@@ -55,7 +55,7 @@ p { overflow-wrap: anywhere; }
 .primary { background: #194d42; color: white; }
 .secondary { border: 1px solid #b8c9bd; background: #f1f5ee; }
 .full { width: 100%; }
-.help { font-size: 14px; color: #50665b; margin: 8px 0 14px; }
+.help { font-size: .875rem; color: #50665b; margin: 8px 0 14px; }
 .text-button { background: transparent; padding: 8px 0; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
 .danger { color: #963f2e; background: transparent; }
 .edit-actions { grid-column: 1/-1; display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #d8e1d7; margin-top: 12px; }
@@ -69,7 +69,7 @@ p { overflow-wrap: anywhere; }
 .entry-time strong { font-size: 16px; font-weight: 600; }
 .entry-time>span { font-size: 13px; color: #50665b; }
 .entry-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.entry-note { font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.entry-note { font-size: .9375rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .symptom-label { font-size: 13px; color: #85492b; font-weight: 650; }
 .edit-word { font-size: 13px; text-decoration: underline; color: #365c49; margin-top: 2px; }
 .empty-state { text-align: center; color: #50665b; padding: 20px 12px; font-size: 14px; }
@@ -145,3 +145,36 @@ dialog::backdrop { background: #18312977; }
   #quick-actions button { font-size: 13px; padding: 8px; }
 }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior: auto!important; } }
+
+/* Direct capture and keyboard-aware editing. */
+.heading-row { display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; justify-content:space-between; }
+.export-utility { min-height:48px; padding:8px 0; background:transparent; font-size:14px; text-decoration:underline; text-underline-offset:3px; }
+.inline-composer { display:block; padding:14px 14px 0; }
+.inline-composer .composer-title { display:block; margin:0 0 8px; font-size:1.125rem; }
+.inline-composer textarea,.note-editor textarea { display:block; min-height:0; height:max(76px,calc(2.8em + 24px)); resize:vertical; line-height:1.4; font-size:1rem; }
+.inline-composer .check,.note-editor .check { margin:4px 0; padding:8px 0; font-size:.9375rem; }
+.inline-composer .check input,.note-editor .check input { width:22px; height:22px; }
+.editor-time { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:0 12px; border-top:1px solid #d8e1d7; padding-top:5px; }
+.editor-time .time-stamp { flex:1 1 130px; min-height:calc(3em + 24px); padding:12px 0; font-size:.8125rem; }
+.editor-time summary { min-height:48px; padding:10px 0; font-size:.875rem; text-decoration:underline; text-underline-offset:3px; }
+.editor-time details[open] { flex-basis:100%; }
+.editor-time input { font-size:1rem; }
+.capture-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:10px 0 0; }
+.capture-actions button { border:1px solid transparent; padding-inline:8px; overflow-wrap:anywhere; font-size:1rem; }
+.capture-actions #save-entry { grid-column:2; }
+.capture-actions .secondary { background:transparent; border-color:#b8c9bd; }
+.inline-composer .action-slot { position:sticky; z-index:1; bottom:var(--keyboard-inset,0px); background:white; }
+.inline-composer .capture-actions { background:white; padding:10px 0 max(24px,env(safe-area-inset-bottom)); border-top:1px solid #d8e1d7; }
+.capture-active { scroll-padding-bottom:calc(var(--actions-height,68px) + var(--keyboard-inset,0px) + 12px); }
+@media (max-height:520px) { .topbar { position:static; } }
+.capture-active #quick-actions { display:none!important; }
+.symptom-section { margin-top:18px; }
+.symptom-button { background:transparent; min-height:48px; font-size:.9375rem; }
+.symptom-section p { font-size:12px; }
+.editor-dialog { border:0; border-radius:0; padding:0; margin:0 auto; width:100%; max-width:540px; height:calc(100dvh - var(--keyboard-inset,0px)); max-height:calc(100dvh - var(--keyboard-inset,0px)); overflow:hidden; background:white; }
+.note-editor { height:100%; display:grid; grid-template-rows:minmax(0,1fr) auto; }
+.note-editor .composer-fields { min-height:0; overflow-y:auto; padding:16px; scroll-padding:12px; }
+.note-editor h1 { font-size:1.25rem; margin:0 0 10px; }
+.note-editor .capture-actions { padding:10px 12px; padding-bottom:max(10px,env(safe-area-inset-bottom)); background:#f7f7f2; border-top:1px solid #b8c9bd; }
+.editor-time details { min-width:0; max-width:100%; }
+.editor-time input { min-width:0; max-width:100%; }

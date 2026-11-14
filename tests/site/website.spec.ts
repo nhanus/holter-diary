@@ -91,7 +91,7 @@ test('an offline old root launch preserves diary records, and documentation alwa
   await page.getByRole('button', { name: 'Tagebuch beginnen' }).click();
   const note = 'Synthetic observation before an offline launch';
   await page.getByRole('textbox', { name: 'Notiz', exact: true }).fill(note);
-  await page.getByRole('button', { name: 'Eintrag speichern' }).click();
+  await page.locator('#save-entry').click();
   await expect(page.locator('.entry-note')).toHaveText(note);
   await expect(page.locator('#offline-badge')).toHaveText('Für Offline-Nutzung bereit');
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
