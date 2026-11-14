@@ -4,9 +4,12 @@ A small diary for Holter monitoring: write a note, save, or mark symptoms with
 one tap. German and English, local storage, offline use and printable A4 PDF/TXT
 reports. No account, server database, analytics or external runtime assets.
 
-**Implementation complete; real Android installation and phone restart
-acceptance remain pending.** There is no public deployment yet. See
-[validation](docs/VALIDATION.md) and [release checklist](https://github.com/nhanus/holter-diary/issues/6).
+**AI-developed project:** The project-specific implementation of this first
+version was developed entirely with **OpenAI Codex**, guided by a human maintainer.
+See [development transparency](#development-transparency).
+
+**Status: beta.** See [releases](https://github.com/nhanus/holter-diary/releases)
+for available versions and changes.
 
 ## Quick start
 
@@ -20,7 +23,8 @@ acceptance remain pending.** There is no public deployment yet. See
    Open once online and wait for **Ready to use offline** before disconnecting.
 
 A fresh note starts with the current time and refreshes on first typing if left
-idle. Its time stays fixed while composing; **Change time** accepts monitor time.
+idle. Its time stays fixed while composing; **Change time** uses the clock named
+in the field: phone time without a correction, monitor time with a correction.
 A failed save keeps the draft and a failed symptom marker retains its original
 time for retry. Unsaved drafts are not durable records: use Save before leaving.
 
@@ -36,7 +40,7 @@ time for retry. Unsaved drafts are not durable records: use Save before leaving.
 
 Gespeicherte Einträge bleiben normalerweise auch nach einem Handyneustart erhalten.
 Ungespeicherte Entwürfe sind nicht dauerhaft gesichert. Das Löschen der Website-Daten
-entfernt das Tagebuch. Der tatsächliche Handytest steht noch aus.
+entfernt das Tagebuch.
 
 ## Data and time
 
@@ -93,10 +97,28 @@ in `website/app-release.json` without rebuilding it. See [hosting](docs/DEPLOYME
 
 CI checks types, unit tests, real Chromium storage transactions and production-app
 flows, including offline PDF export and safe updates. Builds and failure evidence
-are retained seven days. CI does not publish automatically. A separate, disabled-by-default manual workflow
-is prepared; see [deployment and Android acceptance](docs/DEPLOYMENT.md). Test fixtures are excluded from the
+are retained seven days. Main-branch automation publishes new app versions as GitHub Releases and
+assembles the website with the selected published app. Website deployment uses a
+separate, disabled-by-default manual workflow; see
+[deployment and Android acceptance](docs/DEPLOYMENT.md). Test fixtures are excluded from the
 production build. The browser tests are intentionally small and Chromium-focused;
 they do not replace actual Android acceptance. Printing is handled by the phone's PDF viewer, not by the app.
+
+## Development transparency
+
+OpenAI Codex produced the project-specific application code, website, tests,
+documentation and build/release workflows for the first version. The human
+maintainer supplied requirements, made product and design decisions, provided
+feedback and tested the app on an Android device. Existing third-party libraries
+and tools retain their own authorship and licenses.
+
+Reviews also used AI agents, including Astra, and automated Codex pull-request
+reviews. These are AI reviews, not independent human code audits. Automated tests
+and reported device checks are described in [validation](docs/VALIDATION.md);
+this disclosure is not a claim that the software is error-free.
+
+AI was used during development. The running diary does not use an AI model,
+call an AI service or send diary entries to an AI provider.
 
 ## Project history and license
 
