@@ -76,8 +76,9 @@ evidence.
 Prepare release automation after the diary works and passes release-readiness
 review. Do not deploy from CI in this foundation. Pages eligibility and website
 visibility must be checked separately from repository visibility. Real Android
-storage permission, restart and printer checks cannot be replaced by desktop
+storage permission and restart checks cannot be replaced by desktop
 browser emulation; keep results pending until a tester supplies device evidence.
+Printing belongs to the phone's PDF viewer; report layout remains in scope.
 All documentation, discussions and artifacts must be suitable for public release,
 using environment-neutral setup instructions and synthetic examples.
 

@@ -4,13 +4,13 @@ A small diary for Holter monitoring: write a note, save, or mark symptoms with
 one tap. German and English, local storage, offline use and printable A4 PDF/TXT
 reports. No account, server database, analytics or external runtime assets.
 
-**Implementation complete; real Android installation, phone restart and physical
-printing acceptance remain pending.** There is no public deployment yet. See
+**Implementation complete; real Android installation and phone restart
+acceptance remain pending.** There is no public deployment yet. See
 [validation](docs/VALIDATION.md) and [release checklist](https://github.com/nhanus/holter-diary/issues/6).
 
 ## Quick start
 
-1. Start a diary. Your name and a monitor-clock comparison are optional.
+1. Start a diary. Your name, date of birth and a monitor-clock comparison are optional.
 2. Type a note and save. **Symptoms now** immediately saves a timestamp; tap the
    resulting entry later to add details. Tap any entry to correct it or its time.
 3. Open **Export diary**, choose the report language and download PDF or text.
@@ -26,7 +26,7 @@ time for retry. Unsaved drafts are not durable records: use Save before leaving.
 
 ## Kurz erklärt
 
-1. **Tagebuch beginnen**; Name und EKG-Zeitabgleich sind freiwillig.
+1. **Tagebuch beginnen**; Name, Geburtsdatum und EKG-Zeitabgleich sind freiwillig.
 2. Notiz eingeben und **Eintrag speichern**. **Beschwerden jetzt** speichert sofort
    die Uhrzeit. Einen Eintrag antippen, um Details oder die Zeit zu korrigieren.
 3. **Protokoll exportieren**, Sprache wählen und PDF oder Text herunterladen.
@@ -36,7 +36,7 @@ time for retry. Unsaved drafts are not durable records: use Save before leaving.
 
 Gespeicherte Einträge bleiben normalerweise auch nach einem Handyneustart erhalten.
 Ungespeicherte Entwürfe sind nicht dauerhaft gesichert. Das Löschen der Website-Daten
-entfernt das Tagebuch. Der tatsächliche Handy-/Druckertest steht noch aus.
+entfernt das Tagebuch. Der tatsächliche Handytest steht noch aus.
 
 ## Data and time
 
@@ -69,7 +69,7 @@ not repository path; unrelated untrusted apps should not share its hosting origi
 
 ## Development
 
-Use Node.js 24 and npm 11.19.1 or later in the npm 11 line. Follow the
+Use Node.js 24 and npm 12.2.0 or later in the npm 12 line. Follow the
 [dependency policy](docs/DEPENDENCIES.md):
 
 ```sh
@@ -91,9 +91,10 @@ previews still support notes and exports and display the limitation.
 
 CI checks types, unit tests, real Chromium storage transactions and production-app
 flows, including offline PDF export and safe updates. Builds and failure evidence
-are retained seven days. CI does not publish. Test fixtures are excluded from the
+are retained seven days. CI does not publish automatically. A separate, disabled-by-default manual workflow
+is prepared; see [deployment and Android acceptance](docs/DEPLOYMENT.md). Test fixtures are excluded from the
 production build. The browser tests are intentionally small and Chromium-focused;
-they do not replace actual Android/printer acceptance.
+they do not replace actual Android acceptance. Printing is handled by the phone's PDF viewer, not by the app.
 
 ## Project history and license
 

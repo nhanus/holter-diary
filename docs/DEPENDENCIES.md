@@ -7,7 +7,7 @@ ecosystem time to detect bad releases; it does not prove a package is safe.
 
 ## Installing the reviewed lockfile
 
-Use Node.js 24 and npm 11.19.1 or later in the npm 11 line, then run:
+Use Node.js 24 and npm 12.2.0 or later in the npm 12 line, then run:
 
 ```sh
 npm run deps:install
@@ -34,7 +34,9 @@ Explicit project scripts and test tools still execute code when invoked.
 
 ## Updates and security fixes
 
-Dependabot proposes weekly npm version updates with a 14-day cooldown. No update
+Dependabot proposes weekly npm version updates with a 14-day cooldown. Node type
+definitions stay on the runtime major (24); major updates require a coordinated
+runtime review. No update
 is auto-merged. Security-update proposals are not delayed by Dependabot's cooldown
 when GitHub security updates are enabled; our CI still requires the age check or
 an explicitly approved exception. The workflow also runs weekly so newly reported
@@ -81,7 +83,11 @@ Remove it during subsequent maintenance. Currently no exceptions are granted.
 Node.js, the npm executable, GitHub Actions and the explicitly downloaded test
 browser are separate toolchain components. This npm lockfile policy does not
 claim to age-check them. Use the maintained Node.js 24 line and keep its security
-patches current; Actions are pinned to commit hashes. The test browser is fetched
+patches current. CI explicitly selects npm 12.2.2. The current Dependabot updater uses
+12.2.0, which is also supported. npm 11 is no longer a project target. Retain strict engines,
+release-age checks and disabled install scripts. The npm executable is installed
+as a separately pinned toolchain component, before project dependency checks.
+Actions are pinned to commit hashes. The test browser is fetched
 through the installed, reviewed Playwright version rather than an `npx` fallback.
 
 ## References

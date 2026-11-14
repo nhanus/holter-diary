@@ -11,12 +11,13 @@
   IndexedDB checks: committed-data reload, aborted writes, immutable capture time,
   edit conflicts, schema refusal without deletion and durability fallback.
 - GitHub Actions runs these checks on pushes, PRs and a weekly schedule, uploads `dist/` for seven
-  days, and has read-only repository permissions. It does not deploy.
+  days, and has read-only repository permissions. It does not deploy on pushes, PRs or the schedule. The separate manual Pages
+  workflow reuses CI before deployment; it requires explicit enablement.
 - An independent reviewer checks the code, workflow and plan; findings and fixes
   are recorded in the PR before merge.
 
 The complete app is implemented. Automated tests exercise the production build;
-real Android restart, installation and printer checks below remain pending.
+real Android restart and installation checks below remain pending.
 
 - `npm run test:unit`: 21 tests covering fixed time, permission outcomes, actual
   PDF text extraction, A4 bounds, multipage continuation and Unicode fallback.
@@ -61,7 +62,10 @@ Desktop emulation cannot complete this checklist.
 - [ ] Airplane mode: reopen, record an entry and generate a PDF.
 - [ ] Compare sample monitor and phone times, including an entry across midnight.
 - [ ] Read a long multi-page report in both languages; check umlauts and wrapping.
-- [ ] Print a sample from the actual phone to the intended printer.
+
+Printing is delegated to the phone's PDF viewer. A physical printer test is not a
+project acceptance requirement; PDF layout, pagination and monochrome readability
+remain covered by report validation.
 
 If persistence is denied, keep that status visible, investigate on the actual
 browser and document the result; do not replace it with a fabricated green state.
@@ -70,8 +74,8 @@ browser and document the result; do not replace it with a fabricated green state
 
 Each feature PR records the relevant commands/results and independent review.
 Issue #6 collects real-device evidence and the final CI run/commit. Keep untested
-items marked pending and unresolved issues explicit. Prepare Pages deployment
-after release-readiness review and maintainer approval.
+items marked pending and unresolved issues explicit. The manual Pages workflow is prepared but remains disabled until maintainer
+approval and hosting configuration. See [deployment](DEPLOYMENT.md).
 
 Review repository files, examples, discussions, logs and artifacts for unintended
 personal information. Setup instructions must be portable and examples synthetic.
