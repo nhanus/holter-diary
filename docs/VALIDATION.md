@@ -147,3 +147,12 @@ Actionlint versions report `queue` as unknown (upstream issue
 [rhysd/actionlint#657](https://github.com/rhysd/actionlint/issues/657)); when using
 such a version, exclude only that known diagnostic and retain all other checks.
 PR CI and completed automated review of the final head remain merge requirements.
+
+## Website FAQ help
+
+The DE/EN update walkthrough uses semantic numbered lists. Browser tests at 320px
+with 150% text verify reading without horizontal overflow, keyboard disclosure
+operation, repeated activation of the same update shortcut, retained legacy
+fragments and language switching. Website composition still preserves the app,
+manifest and worker bytes. Native pull-to-refresh and Android task-switcher
+gestures are browser/device behavior and are not claimed as emulated validation.

@@ -659,3 +659,24 @@ against the start URL's origin, so the current identity is preserved.
 References: [manifest ID processing](https://www.w3.org/TR/appmanifest/#id-member),
 [GitHub concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency),
 [release asset recovery](https://docs.github.com/en/rest/releases/assets).
+
+## 2026-11-14 — Plain-language update and everyday help
+
+Related issue: [#41](https://github.com/nhanus/holter-diary/issues/41).
+
+Keep this a website-only change using the existing published app. Provide DE/EN
+numbered update steps: save unfinished input, connect, refresh where supported,
+apply the offered update and check the installed version. Pull-to-refresh is
+browser behavior and reload alone may not activate a waiting update. Provide a
+browser reload or installed-app close/reopen alternative without recommending
+data deletion or reinstallation.
+
+Group FAQs by task, retain the existing numbered fragment links and make the
+update walkthrough directly reachable from the FAQ introduction and guide. Use
+relative font sizes, readable answers and native keyboard-operable disclosures.
+Explain save acknowledgement, the clock label when correcting times, keyboard
+controls, finding PDFs and replacing a diary safely. Downloaded reports do not
+update themselves or provide a diary-import mechanism.
+
+References: [Chrome pull-to-refresh](https://developer.chrome.com/blog/overscroll-behavior/),
+[service worker update lifecycle](https://developer.chrome.com/docs/workbox/service-worker-lifecycle).
