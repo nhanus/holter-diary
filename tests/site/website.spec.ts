@@ -16,6 +16,19 @@ test('the bilingual landing page, guide and FAQ link together on narrow phones',
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Your day.\s*Clearly recorded\./);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await noOverflow();
+  // Both website languages must load the captured UI, including full-size access.
+  for (const lang of ['de', 'en']) {
+    await page.goto(`./?lang=${lang}`);
+    const screenshot = page.locator('.phone img');
+    await expect(screenshot).toHaveAttribute('src', new RegExp(`/diary-${lang}-[0-9].*\\.png$`));
+    await expect(screenshot).toHaveAttribute('alt', /.+/);
+    await expect.poll(() => screenshot.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth === 786 && img.naturalHeight === 2000)).toBe(true);
+    const path = await screenshot.getAttribute('src');
+    await expect(page.locator('.app-stage figcaption a')).toHaveAttribute('href', path!);
+    await page.evaluate(() => { document.documentElement.style.fontSize = '24px'; });
+    await noOverflow();
+    await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+  }
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Guide' }).click();
   await expect(page).toHaveURL(/\/guide\/\?lang=en$/);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ready in a few steps.');

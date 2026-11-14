@@ -11,15 +11,9 @@ const de = {
   beta: 'Vorabversion __APP_RELEASE_VERSION__',
   benefits: ['Ohne Benutzerkonto', 'Offline nach Einrichtung', 'PDF & Text zum Mitnehmen'],
   sample: 'Beispielansicht mit erfundenen Einträgen',
-  today: 'Dein Tagebuch',
-  offline: 'Für Offline-Nutzung bereit',
-  export: 'Protokoll',
-  symptoms: 'Beschwerden jetzt',
-  newnote: 'Neue Notiz',
-  placeholder: 'Zum Beispiel: Spaziergang, etwa 20 Minuten …',
-  now: 'Jetzt · Handyzeit',
-  save: 'Speichern',
-  entries: 'Deine Einträge',
+  phoneSample: 'Aktuelle App · erfundene Einträge',
+  enlarge: 'Ansicht vergrößern',
+  screenDescription: 'Tagebuch: Protokoll rechts oben, Notizfeld mit Beschwerden-Häkchen und Speichern; darunter Beschwerden jetzt und die Einträge.',
   sampleActivity: 'Spaziergang, etwa 20 Minuten',
   sampleSymptom: 'Treppe gestiegen, kurz Herzstolpern',
   time: 'Uhrzeit',
@@ -110,15 +104,9 @@ const en = {
   beta: 'Pre-release version __APP_RELEASE_VERSION__',
   benefits: ['No account needed', 'Offline after setup', 'PDF & text to take with you'],
   sample: 'Example view with fictional entries',
-  today: 'Your diary',
-  offline: 'Ready to use offline',
-  export: 'Report',
-  symptoms: 'Symptoms now',
-  newnote: 'New note',
-  placeholder: 'For example: a walk, about 20 minutes …',
-  now: 'Now · Phone time',
-  save: 'Save',
-  entries: 'Your entries',
+  phoneSample: 'Current app · fictional entries',
+  enlarge: 'Enlarge view',
+  screenDescription: 'Diary: Report at the top right, note field with Symptoms checkbox and Save; Symptoms now and entries below.',
   sampleActivity: 'A walk, about 20 minutes',
   sampleSymptom: 'Climbed stairs, briefly noticed palpitations',
   time: 'Time',
@@ -224,28 +212,9 @@ const logo = `<svg viewBox="0 0 40 32" fill="none" aria-hidden="true">
 const arrow = '<span aria-hidden="true">↗</span>';
 
 function examplePhone() {
+  const image = `${root}screenshots/diary-${lang}-__APP_RELEASE_VERSION__.png`;
   return `<div class="phone">
-    <div class="phone-top"><span>09:41</span><span aria-hidden="true">▰</span></div>
-    <div class="phone-brand">
-      ${logo}<span class="phone-settings">${lang === 'de' ? 'Einstellungen' : 'Settings'}</span>
-    </div>
-    <div class="phone-content">
-      <h3>${t.today}</h3>
-      <p class="phone-ready">● ${t.offline}</p>
-      <div class="phone-export">${t.export}<span>↓</span></div>
-      <div class="phone-symptom">${t.symptoms}<span>+</span></div>
-      <div class="phone-note">
-        <b>${t.newnote}</b>
-        <div class="phone-input">${t.placeholder}</div>
-        <small>${t.now}</small>
-        <div class="phone-save">${t.save}</div>
-      </div>
-      <div class="phone-history">
-        <b>${t.entries}</b>
-        <div><span>09:10</span><span>${t.sampleActivity}</span></div>
-        <div><span>10:24</span><span>${t.sampleSymptom}</span></div>
-      </div>
-    </div>
+    <img src="${image}" width="393" height="1000" alt="${t.screenDescription}" fetchpriority="high">
   </div>`;
 }
 
@@ -290,7 +259,7 @@ function home() {
     <figure class="app-stage">
       <div class="stage-orbit" aria-hidden="true"></div>
       ${examplePhone()}
-      <figcaption>${t.sample}</figcaption>
+      <figcaption>${t.phoneSample}<br><a href="${root}screenshots/diary-${lang}-__APP_RELEASE_VERSION__.png">${t.enlarge}</a></figcaption>
     </figure>
   </section>
   <div class="benefit-bar wrap">

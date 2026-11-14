@@ -156,3 +156,13 @@ operation, repeated activation of the same update shortcut, retained legacy
 fragments and language switching. Website composition still preserves the app,
 manifest and worker bytes. Native pull-to-refresh and Android task-switcher
 gestures are browser/device behavior and are not claimed as emulated validation.
+
+## Website captures of the selected app
+
+The DE/EN landing-page images were captured from the unchanged published
+0.1.0-beta.5 app using a fresh Chromium profile and fictional entries. Visually
+check actual button order and labels against the captures. Website tests check
+both images load, full-size links, text alternatives and no horizontal overflow
+at 320px with enlarged text. Release assembly tests verify website image copying
+and unchanged app bytes. Desktop captures do not establish physical-device
+keyboard or installation behavior.
