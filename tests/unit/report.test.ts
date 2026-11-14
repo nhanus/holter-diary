@@ -233,3 +233,53 @@ test('fractional nonzero comparisons retain the second column and an exact local
     }
   }
 });
+
+
+test('each page identifies the patient using only supplied name and birth date', async () => {
+  for (const language of ['de', 'en'] as const) {
+    for (const name of ['', 'Alexandra Beispiel']) for (const birth of ['', '1980-02-29']) {
+      const session = sessionWithCalibration(name);
+      session.dateOfBirth = birth;
+      const lines = Array.from({ length: 130 }, (_, i) => `Identity row ${i}`);
+      const entry = newEntry(session.id, start, 'note', lines.join('\n'));
+      const pages = await extractPages(await buildPdf(session, [entry], language, generatedAt));
+      assert.ok(pages.length >= 3);
+      const birthLabel = language === 'de' ? 'Geburtsdatum' : 'Date of birth';
+      const expected = [name ? `Name: ${name}` : '', birth ? `${birthLabel}: ${language === 'de' ? '29.02.1980' : '1980-02-29'}` : ''].filter(Boolean).join(' | ');
+      for (const page of pages) {
+        const identity = page.text.filter(item => item.str.includes('Name:') || item.str.includes(`${birthLabel}:`));
+        assert.deepEqual(identity.map(item => item.str), expected ? [expected] : []);
+        if (expected) {
+          const table = page.text.find(item => item.str === (language === 'de' ? 'Uhrzeit (Referenz)' : 'Reference time'))!;
+          assert.ok(identity[0].transform[5] > table.transform[5] + table.height);
+          assert.ok(identity[0].height >= 9.9);
+          assert.ok(identity[0].transform[4] + identity[0].width <= 555.28);
+        }
+        assert.deepEqual(page.links, [APP_URL, REPOSITORY_URL]);
+      }
+      assert.deepEqual(pages.flatMap(page => page.text.filter(item => item.str.startsWith('Identity row ')).map(item => item.str)), lines);
+      const txt = reportText(session, [entry], language, generatedAt);
+      assert.equal(txt.includes('Name:'), !!name);
+      assert.equal(txt.includes(`${birthLabel}:`), !!birth);
+      if (birth) assert.ok(txt.includes(language === 'de' ? '29.02.1980' : '1980-02-29'));
+      assert.ok(!txt.includes('Nicht angegeben') && !txt.includes('Not provided'));
+    }
+  }
+});
+
+test('long patient names wrap in every header without clipping; excessive headers retain a text fallback', async () => {
+  const session = sessionWithCalibration('W'.repeat(120));
+  session.dateOfBirth = '2000-02-29';
+  const entry = newEntry(session.id, start, 'symptom', Array.from({ length: 100 }, (_, i) => `Long header row ${i}`).join('\n'));
+  const pages = await extractPages(await buildPdf(session, [entry], 'de', generatedAt));
+  assert.ok(pages.length >= 3);
+  for (const page of pages) {
+    const table = page.text.find(item => item.str === 'Uhrzeit (Referenz)')!;
+    const header = page.text.filter(item => item.transform[5] > table.transform[5] && (item.str.includes('Name:') || item.str.includes('W') || item.str.includes('Geburtsdatum')));
+    assert.equal(header.map(item => item.str).join('').replace(/\s/g, ''), `Name:${'W'.repeat(120)}|Geburtsdatum:29.02.2000`);
+    for (const item of header) assert.ok(item.transform[4] >= 40 && item.transform[4] + item.width <= 555.28);
+  }
+  session.name = 'W'.repeat(2000);
+  await assert.rejects(buildPdf(session, [entry], 'de', generatedAt), /REPORT_IDENTITY_TOO_LONG/);
+  assert.ok(reportText(session, [entry], 'de', generatedAt).includes(session.name));
+});

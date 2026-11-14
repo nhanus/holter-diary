@@ -17,12 +17,13 @@
 The complete app is implemented. Automated tests exercise the production build;
 real Android restart, installation and printer checks below remain pending.
 
-- `npm run test:unit`: 18 tests covering fixed time, permission outcomes, actual
+- `npm run test:unit`: 21 tests covering fixed time, permission outcomes, actual
   PDF text extraction, A4 bounds, multipage continuation and Unicode fallback.
-- `npm run test:browser`: 5 Chromium storage tests against a separate fixture.
-- `npm run test:app`: 18 production mobile-browser tests for notes, markers,
+- `npm run test:browser`: 6 Chromium storage tests against a separate fixture.
+- `npm run test:app`: 19 production mobile-browser tests for notes, markers,
   edits, failure recovery, conflicts, language, calibration, reset, offline reload
   and export, cache readiness/repair, explicit update adoption across tabs, export above a long history, timed confirmations and downloaded PDFs after setup, later clock corrections and resetting the correction.
+- Patient details: all four name/birth-date combinations on every DE/EN PDF page and in TXT; leap dates, long names, legacy records, reload/edit/clear/reset, and unchanged existing entries. Missing fields and labels are omitted entirely.
 - Missing comparisons and recorded zero differences each use one timestamp column with distinct explanations. Positive, negative and fractional nonzero differences use two. PDF/TXT, DE/EN, backdated events and empty reports are covered.
 - Synthetic 24/48-hour diaries verify both dated phone and monitor timestamps and retain 49/97 short entries in 2/4 A4 pages.
 - Synthetic German and English multipage reports with one reference clock or adjacent reference/recorder clocks were rendered for visual inspection. Tests also cover derived phone dates outside the monitor input year boundaries.

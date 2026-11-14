@@ -135,3 +135,35 @@ test('unsupported strict durability falls back and reports the actual browser mo
   });
   expect(result).toBe('default');
 });
+
+
+test('legacy sessions can add, reload and clear a birth date without changing entries', async ({ page }) => {
+  const expected = await page.evaluate(async () => {
+    const d = window.diary;
+    const store = await d.openDiaryStore();
+    const legacy = d.newSession(Date.parse('2030-01-01T00:00:00Z'), { timeZone: 'UTC', utcOffsetMinutes: 0 }, 'Synthetic person');
+    delete legacy.dateOfBirth;
+    await store.startSession(legacy);
+    const entry = (await store.addEntry(d.newEntry(legacy.id, legacy.startedAtMs, 'note', 'Existing observation'), legacy.revision)).value;
+    const loaded = (await store.sessions())[0];
+    const saved = await store.updateSession({ ...loaded, dateOfBirth: '1980-02-29' });
+    let invalidRejected = false;
+    try { await store.updateSession({ ...saved.value, dateOfBirth: '1980-02-30' }); } catch { invalidRejected = true; }
+    store.close();
+    return { session: saved.value, entry, invalidRejected };
+  });
+  expect(expected.invalidRejected).toBe(true);
+  await page.reload();
+  await page.waitForFunction(() => !!window.diary);
+  const result = await page.evaluate(async id => {
+    const store = await window.diary.openDiaryStore();
+    const snapshot = await store.reportSnapshot(id);
+    const cleared = (await store.updateSession({ ...snapshot.session, dateOfBirth: '' })).value;
+    const after = await store.reportSnapshot(id);
+    store.close();
+    return { snapshot, cleared, after };
+  }, expected.session.id);
+  expect(result.snapshot).toEqual({ session: expected.session, entries: [expected.entry] });
+  expect(result.cleared.dateOfBirth).toBe('');
+  expect(result.after.entries).toEqual([expected.entry]);
+});

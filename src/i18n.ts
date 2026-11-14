@@ -3,7 +3,7 @@ import type { Language } from './domain.ts';
 export const en = {
   tagline: 'A small diary for your heart.', language: 'Language', settings: 'Settings', close: 'Close',
   welcome: 'A moment. A note.', welcomeText: 'Keep track of what you do and feel during your Holter recording. Print a clear diary when you need it.',
-  name: 'Name (optional)', start: 'Start my diary', localOnly: 'Your entries stay on this device. No account needed.',
+  name: 'Name (optional)', dateOfBirth: 'Date of birth (optional)', invalidBirthDate: 'Enter a valid date of birth.', identityTooLong: 'The name is too long for the repeated PDF header. Shorten it in Settings or download the text report.', start: 'Start my diary', localOnly: 'Your entries stay on this device. No account needed.',
   calibration: 'Compare monitor time', calibrationHelp: 'Only needed if the monitor clock differs from your phone. Capture a moment, then enter the date and time shown on the monitor at that moment.',
   capture: 'Capture moment', captured: 'Phone time captured: {time}', monitorReading: 'Monitor date and time at that moment',
   minuteHint: 'Seconds are optional. A minute-only reading is not precise to the second.',
@@ -43,7 +43,7 @@ export type TextKey = keyof typeof en;
 export const de: Record<TextKey, string> = {
   tagline: 'Ein kleines Tagebuch für dein Herz.', language: 'Sprache', settings: 'Einstellungen', close: 'Schließen',
   welcome: 'Ein Moment. Eine Notiz.', welcomeText: 'Halte während deines Langzeit-EKGs fest, was du machst und spürst. Drucke dein übersichtliches Protokoll aus, wenn du es brauchst.',
-  name: 'Name (optional)', start: 'Tagebuch beginnen', localOnly: 'Deine Einträge bleiben auf diesem Gerät. Ohne Benutzerkonto.',
+  name: 'Name (optional)', dateOfBirth: 'Geburtsdatum (optional)', invalidBirthDate: 'Bitte ein gültiges Geburtsdatum eingeben.', identityTooLong: 'Der Name ist zu lang für die wiederholte PDF-Kopfzeile. Bitte in den Einstellungen kürzen oder den Textbericht herunterladen.', start: 'Tagebuch beginnen', localOnly: 'Deine Einträge bleiben auf diesem Gerät. Ohne Benutzerkonto.',
   calibration: 'EKG-Uhrzeit abgleichen', calibrationHelp: 'Nur nötig, wenn die EKG-Uhr von deinem Handy abweicht. Halte einen Zeitpunkt fest und trage dann Datum und Uhrzeit ein, die das EKG in diesem Moment angezeigt hat.',
   capture: 'Zeitpunkt festhalten', captured: 'Festgehaltene Handyzeit: {time}', monitorReading: 'EKG-Datum und Uhrzeit in diesem Moment',
   minuteHint: 'Sekunden sind optional. Eine minutengenaue Ablesung ist nicht sekundengenau.',

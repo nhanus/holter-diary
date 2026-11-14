@@ -255,3 +255,33 @@ Production-interface downloads cover default setup, a recorded zero, nonzero
 corrections and restoring uncorrected reference time. Rendered DE/EN samples
 were inspected in all three modes. Real Android/printer acceptance remains
 separate.
+
+## 2026-11-14 — Patient identification on every report page
+
+**Choice:** Add an optional date of birth beside the existing name in setup and
+settings. Repeat supplied details in a compact 10pt dark-text header beneath the
+title on every PDF page, including long-note continuation pages. Omit absent
+values and their labels completely; omit the whole identity line when both are
+absent. Use the same presence rules in TXT. This helps associate separated pages
+with the correct person while preserving a minimal report.
+
+**Storage:** Keep date of birth as a validated YYYY-MM-DD calendar string, not a
+timestamp. German output uses DD.MM.YYYY; English uses YYYY-MM-DD. Missing or
+empty fields are accepted in existing schema-version-1 sessions, requiring no
+database reset or migration. Normal revision checks still guard edits; entries
+and event times are unaffected. Validation is independent of the current device
+clock so a clock adjustment cannot invalidate stored patient details.
+
+**Layout:** Names wrap without clipping or shrinking the type. Exceptionally
+large identity blocks that cannot reasonably repeat are rejected explicitly for
+PDF; TXT preserves the full name. No patient details are placed in filenames or
+PDF document metadata. Both fields remain optional, and starting a new diary
+clears them.
+
+**Evidence:** Calendar validation includes leap-year boundaries. Real IndexedDB
+tests add, reopen and clear the field in a legacy session while retaining entries.
+Production-interface tests cover input, language changes, committed reload,
+editing, omission and reset. DE/EN PDF extraction checks every page for each
+presence combination and a 120-character name. Synthetic rendered first and
+continuation pages were inspected. Independent review checked compatibility,
+layout, data integrity and privacy; no unresolved findings.
