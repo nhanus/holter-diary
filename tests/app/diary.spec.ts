@@ -167,17 +167,27 @@ test('worker update waits, preserves another tab draft, and keeps saved records'
     await page.evaluate(async () => { const registration = await navigator.serviceWorker.getRegistration(); await registration!.update(); });
     await page.waitForFunction(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting);
     await expect(page.getByRole('textbox', { name: 'Notiz', exact: true })).toHaveValue('Offener Entwurf');
-    await page.getByRole('button', { name: 'Einstellungen', exact: true }).click();
-    page.once('dialog', dialog => dialog.dismiss());
-    await page.getByRole('button', { name: 'Update übernehmen' }).click();
-    await expect(page.locator('#dialog')).toBeVisible();
-    page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('button', { name: 'Update übernehmen' }).click();
-    await expect(page.locator('.entry-note')).toHaveText('Vor dem Update gespeichert');
+    await expect(page.locator('#update-notice')).toBeVisible();
+    await expect(page.locator('#update-announcement')).toHaveText('Update verfügbar');
+    await page.locator('#update-notice').click();
+    await expect(page.getByRole('heading', { name: 'App & Speicherung' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Jetzt aktualisieren' })).toBeDisabled();
+    await expect(page.locator('#update-blocked')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#update-notice')).toBeFocused();
+    await expect(page.getByRole('textbox', { name: 'Notiz', exact: true })).toHaveValue('Offener Entwurf');
+    await page.getByRole('button', { name: 'Eintrag speichern' }).click();
+    await page.locator('#update-notice').click();
+    await expect(page.getByRole('button', { name: 'Jetzt aktualisieren' })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Jetzt aktualisieren' })).toBeInViewport();
+    await page.getByRole('button', { name: 'Jetzt aktualisieren' }).click();
+    await expect(page.locator('.entry-note')).toContainText(['Offener Entwurf', 'Vor dem Update gespeichert']);
     await expect(page.getByRole('textbox', { name: 'Notiz', exact: true })).toHaveValue('');
     await expect(other.getByRole('textbox', { name: 'Notiz', exact: true })).toHaveValue('Entwurf im zweiten Fenster');
     await other.getByRole('button', { name: 'Eintrag speichern' }).click();
-    await expect(other.locator('.entry')).toHaveCount(2);
+    await expect(other.locator('.entry-note').filter({ hasText: 'Entwurf im zweiten Fenster' })).toBeVisible();
+    await other.reload();
+    await expect(other.locator('.entry')).toHaveCount(3);
   } finally { await writeFile(workerPath, original); }
 });
 
@@ -187,16 +197,22 @@ test('denied persistence is visible and does not prevent real database saves', a
     Object.defineProperty(navigator.storage, 'persisted', { value: async () => false });
   });
   await start(page);
-  await expect(page.locator('main [data-storage-status]')).toContainText('nicht freigegeben');
+  await expect(page.locator('main [data-storage-status]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'App & Speicherung', exact: true }).click();
+  await expect(page.locator('[data-storage-status]')).toContainText('nicht freigegeben');
+  await page.keyboard.press('Escape');
   await note(page, 'Gespeichert trotz abgelehnter Freigabe');
   await page.reload();
   await expect(page.locator('.entry-note')).toHaveText('Gespeichert trotz abgelehnter Freigabe');
-  await expect(page.locator('main [data-storage-status]')).toContainText('nicht bestätigt');
+  await page.getByRole('button', { name: 'App & Speicherung', exact: true }).click();
+  await expect(page.locator('[data-storage-status]')).toContainText('nicht bestätigt');
 });
 
 test('document language and description follow the interface and saved preference', async ({ page, browser }) => {
   await page.goto('');
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+  await expect(page.locator('html')).toHaveAttribute('translate', 'no');
+  await expect(page.locator('meta[name="google"]')).toHaveAttribute('content', 'notranslate');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Langzeit-EKG/);
   await page.locator('#language').selectOption('en');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -259,7 +275,8 @@ test('storage check reports repeated denial, API failure and actual grant separa
   await start(page);
   await note(page, 'Synthetische gespeicherte Notiz');
   await expect(page.locator('#offline-badge')).toHaveText('Für Offline-Nutzung bereit');
-  await page.getByRole('button', { name: 'Einstellungen', exact: true }).click();
+  await page.getByRole('button', { name: 'App & Speicherung', exact: true }).click();
+  await page.getByText('Was bedeutet Speicherschutz?', { exact: true }).click();
   const check = page.getByRole('button', { name: 'Dauerhaften Speicher prüfen' });
   const result = page.locator('#dialog [data-storage-check]');
   for (let i = 0; i < 2; i++) {
@@ -277,7 +294,8 @@ test('storage check reports repeated denial, API failure and actual grant separa
   await expect(result).toHaveText('Prüfung abgeschlossen: Dauerhafter Speicher bestätigt.');
   await page.getByRole('button', { name: 'Schließen', exact: true }).click();
   await page.locator('#language').selectOption('en');
-  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('button', { name: 'App & storage', exact: true }).click();
+  await page.getByText('What does storage protection mean?', { exact: true }).click();
   await page.evaluate(() => Object.defineProperty(navigator.storage, 'persisted', { configurable: true, value: async () => false }));
   await page.getByRole('button', { name: 'Check persistent storage' }).click();
   await expect(result).toHaveText('Checking storage protection…');
@@ -340,8 +358,9 @@ test('missing cached asset withdraws offline readiness and repairs online withou
     const cache = await caches.open(name);
     await cache.delete(new URL('icon-192.png', location.href).href);
   });
-  await page.getByRole('button', { name: 'Einstellungen', exact: true }).click();
   await context.setOffline(true);
+  await page.getByRole('button', { name: 'App & Speicherung', exact: true }).click();
+  await expect(page.locator('#retry-offline')).toBeVisible();
   await page.locator('#retry-offline').click();
   await expect(page.locator('[data-offline-status]')).toContainText('unvollständig');
   await context.setOffline(false);
@@ -434,4 +453,87 @@ test('success confirmations expire after four seconds without hiding a newer err
   await page.clock.fastForward(4100);
   await expect(page.locator('#feedback')).toBeHidden();
   await expect(page.locator('#save-entry')).toBeFocused();
+});
+
+
+test('diary settings protect edits and app maintenance stays separate and usable on narrow screens', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await start(page);
+  await page.getByRole('button', { name: 'Einstellungen', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Tagebuch-Einstellungen' })).toBeVisible();
+  await expect(page.locator('#check-storage')).toHaveCount(0);
+  await expect(page.locator('#apply-update')).toHaveCount(0);
+  await page.locator('#settings-name').fill('Synthetic edited name');
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#settings-name')).toHaveValue('Synthetic edited name');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Schließen', exact: true }).click();
+  await expect(page.locator('#settings')).toBeFocused();
+  await page.locator('#settings').click();
+  await expect(page.locator('#settings-name')).toHaveValue('');
+  await page.locator('.clock-settings > summary').click();
+  await page.locator('#capture-time').click();
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#monitor-reading')).toBeVisible();
+  page.once('dialog', dialog => dialog.accept());
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'App & Speicherung', exact: true }).click();
+  await expect(page.locator('#dialog-title')).toBeFocused();
+  await expect(page.locator('#settings-name')).toHaveCount(0);
+  await expect(page.locator('#apply-update')).toBeHidden();
+  await expect(page.locator('[data-offline-status]')).toHaveText('Für Offline-Nutzung bereit');
+  await expect(page.locator('#retry-offline')).toBeHidden();
+  await page.getByText('Was bedeutet Speicherschutz?', { exact: true }).click();
+  await page.addStyleTag({ content: 'body { font-size: 24px } .help,button,summary,.status-line { font-size: 24px !important }' });
+  await page.locator('#check-storage').focus();
+  await page.locator('#check-storage').evaluate(el => el.scrollIntoView({ block: 'start' }));
+  const control = await page.locator('#check-storage').boundingBox();
+  const heading = await page.locator('.dialog-head').boundingBox();
+  expect(control!.y).toBeGreaterThanOrEqual(heading!.y + heading!.height);
+  await page.locator('#dialog').evaluate(el => el.scrollTop = el.scrollHeight);
+  await expect(page.locator('#close-dialog')).toBeInViewport();
+  expect(await page.locator('#dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#app-info')).toBeFocused();
+});
+
+
+test('an available update cannot discard setup fields or a pending symptom marker', async ({ page }) => {
+  const workerPath = 'dist/sw.js'; const original = await readFile(workerPath, 'utf8');
+  try {
+    await page.goto('');
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+    await page.locator('#setup-name').fill('Synthetic setup draft');
+    await writeFile(workerPath, original + '\n// Synthetic setup update\n');
+    await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())!.update());
+    await expect(page.locator('#update-notice')).toBeVisible();
+    await page.locator('#update-notice').click();
+    await expect(page.locator('#apply-update')).toBeDisabled();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#setup-name')).toHaveValue('Synthetic setup draft');
+    await page.locator('#start-diary').click();
+    await page.evaluate(() => {
+      const add = IDBObjectStore.prototype.add;
+      IDBObjectStore.prototype.add = function (...args: Parameters<IDBObjectStore['add']>) {
+        const request = add.apply(this, args);
+        if (this.name === 'entries') {
+          IDBObjectStore.prototype.add = add;
+          request.addEventListener('success', () => this.transaction.abort());
+        }
+        return request;
+      };
+    });
+    await page.locator('#mark-symptom').click();
+    await expect(page.locator('#retry-marker')).toBeVisible();
+    await page.locator('#update-notice').click();
+    await expect(page.locator('#apply-update')).toBeDisabled();
+    await page.keyboard.press('Escape');
+    await page.locator('#retry-marker').click();
+    await expect(page.locator('.entry')).toHaveCount(1);
+    await page.locator('#update-notice').click();
+    await expect(page.locator('#apply-update')).toBeEnabled();
+  } finally { await writeFile(workerPath, original); }
 });
