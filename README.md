@@ -69,14 +69,16 @@ not repository path; unrelated untrusted apps should not share its hosting origi
 
 ## Development
 
-Use Node.js 24 and npm:
+Use Node.js 24 and npm 11.19.1 or later in the npm 11 line. Follow the
+[dependency policy](docs/DEPENDENCIES.md):
 
 ```sh
-npm ci
+npm run deps:install
+npm run test:policy
 npm run check
 npm run test:unit
 npm run build
-npx playwright install chromium
+./node_modules/.bin/playwright install chromium
 npm run test:browser
 npm run test:app
 npm run dev

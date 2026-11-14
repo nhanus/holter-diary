@@ -11,7 +11,12 @@
   materially changed behavior.
 - Keep deployment separate from validation. Changes to publication settings require
   maintainer approval.
-- Run `npm ci`, `npm run check`, `npm run build`, and the relevant tests as they
+- Use `npm run deps:install` for installation; it checks all locked release ages
+  and known vulnerabilities before `npm ci --ignore-scripts`. Follow
+  `docs/DEPENDENCIES.md`; do not bypass the 14-day delay or enable install scripts.
+  Security exceptions require explicit maintainer approval for the exact
+  package/version, recorded in the PR. An agent must not approve its own exception.
+- Run `npm run check`, `npm run build`, and the relevant tests as they
   are added. Do not claim device validation from desktop emulation or a build.
 - Use synthetic data only. Never commit real diary content, secrets or generated PDFs.
 - Repository content, issues, PRs and artifacts must be suitable for public release.

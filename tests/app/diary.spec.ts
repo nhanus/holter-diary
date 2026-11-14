@@ -34,7 +34,7 @@ test('quick capture, marker preserves draft, editing, language and confirmed del
   await page.locator('.entry-button').filter({ hasText: 'Spaziergang' }).click();
   await text.fill('Spaziergang, danach Pause');
   await page.getByText('Zeit ändern', { exact: true }).click();
-  await page.locator('#entry-time').fill('2028-01-10T13:20:00');
+  await page.locator('#entry-time').fill('2028-01-10T13:20');
   await expect(page.locator('.time-stamp')).toHaveText('13:20:00');
   await page.getByRole('button', { name: 'Eintrag speichern' }).click();
   await expect(page.locator('.entry-button').filter({ hasText: 'Spaziergang' })).toContainText('13:20:00');
@@ -270,7 +270,7 @@ test('calibration captures the reference moment, not later form submission; rese
   await page.getByText('EKG-Uhrzeit abgleichen', { exact: true }).click();
   await page.clock.setFixedTime(new Date('2028-01-10T12:00:00Z'));
   await page.getByRole('button', { name: 'Zeitpunkt festhalten' }).click();
-  await page.locator('#monitor-reading').fill('2028-01-10T12:58:00');
+  await page.locator('#monitor-reading').fill('2028-01-10T12:58');
   await page.clock.setFixedTime(new Date('2028-01-10T12:01:00Z'));
   await page.getByRole('button', { name: 'Tagebuch beginnen' }).click();
   await note(page, 'Kalibrierter Eintrag');

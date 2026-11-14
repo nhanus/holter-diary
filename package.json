@@ -6,7 +6,8 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=24 <25"
+    "node": ">=24 <25",
+    "npm": ">=11.19.1 <12"
   },
   "scripts": {
     "dev": "vite",
@@ -17,15 +18,19 @@
     "test:build": "vite build --config tests/browser/vite.config.ts",
     "test:serve": "vite preview --config tests/browser/vite.config.ts",
     "test:browser": "npm run test:build && playwright test",
-    "test": "npm run test:unit && npm run test:browser && npm run test:app",
-    "test:app": "npm run build && playwright test --config playwright.app.config.ts"
+    "test": "npm run test:policy && npm run test:unit && npm run test:browser && npm run test:app",
+    "test:app": "npm run build && playwright test --config playwright.app.config.ts",
+    "check:dependencies": "node scripts/check-dependency-policy.mjs",
+    "test:policy": "node --test tests/policy/*.test.mjs",
+    "deps:install": "node scripts/check-dependency-policy.mjs && npm audit --package-lock-only --audit-level=low && npm ci --ignore-scripts",
+    "audit:dependencies": "npm audit --package-lock-only --audit-level=low"
   },
   "devDependencies": {
-    "@playwright/test": "1.65.1",
+    "@playwright/test": "1.64.1",
     "@types/node": "24.19.2",
-    "pdfjs-dist": "6.5.438",
+    "pdfjs-dist": "6.4.299",
     "typescript": "7.0.2",
-    "vite": "8.3.8"
+    "vite": "8.3.5"
   },
   "dependencies": {
     "pdf-lib": "1.17.1"
