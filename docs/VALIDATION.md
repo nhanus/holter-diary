@@ -22,11 +22,12 @@ real Android restart and installation checks below remain pending.
 - `npm run test:unit`: 23 tests covering fixed time, permission outcomes, actual
   PDF text extraction, A4 bounds, multipage continuation, Unicode fallback and update activation failures/timeouts.
 - `npm run test:browser`: 6 Chromium storage tests against a separate fixture.
-- `npm run test:app`: 24 production mobile-browser tests for notes, markers,
+- `npm run test:app`: 32 production mobile-browser tests for notes, markers,
   edits, failure recovery, conflicts, language, calibration, reset, offline reload
   and export, cache readiness/repair, explicit update adoption across tabs, export above a long history, timed confirmations and downloaded PDFs after setup, later clock corrections and resetting the correction.
-- Document language and localized description follow DE/EN selection and persisted preferences, including a delayed database open with a neutral loading shell. Repeated storage checks visibly report denial, API failure and grant without changing offline readiness or saved entries. Native browser translation prompts and real persistence grants still require device checks.
-- Update adoption is blocked by unsaved notes, setup fields and pending symptom markers. Closing edited settings requires confirmation. Maintenance dialogs are checked at 320 pixels with enlarged text, visible focused controls and return focus. Translation opt-out metadata is asserted; the native Android prompt still requires a device check.
+- Document language and localized description follow DE/EN selection and persisted preferences, including a delayed database open with a neutral loading shell. Repeated storage checks visibly report denial, API failure and grant without changing offline readiness or saved entries. Real persistence grants still require device checks. The translation prompt has stopped in reported device use; this is not an automated native-browser UI guarantee.
+- Update adoption is blocked by unsaved notes, setup fields and pending symptom markers. Closing edited settings or an edited entry requires confirmation. Unified settings dialogs are checked at 320 pixels with enlarged text, visible focused controls and return focus. Translation opt-out metadata is asserted; native browser UI remains outside automated coverage.
+- A separate editor retains the complete unfinished new note across save, failure, cancel and delete. Independent identity/time saves preserve the other section; aborted and stale writes stay retryable without overwriting committed data. Calibration changes only derived displays; invalid input remains editable. Conflict recovery after a reset in another tab clears discarded transient state. Long-list quick capture, connection versus offline readiness and explicit reset/export flows are covered.
 - Patient details: all four name/birth-date combinations on every DE/EN PDF page and in TXT; leap dates, long names, legacy records, reload/edit/clear/reset, and unchanged existing entries. Missing fields and labels are omitted entirely.
 - Missing comparisons and recorded zero differences each use one timestamp column with distinct explanations. Positive, negative and fractional nonzero differences use two. PDF/TXT, DE/EN, backdated events and empty reports are covered.
 - Synthetic 24/48-hour diaries verify both dated phone and monitor timestamps and retain 49/97 short entries in 2/4 A4 pages.
@@ -59,6 +60,8 @@ Record date, build SHA, Android version, browser version and observed results.
 Desktop emulation cannot complete this checklist.
 
 - [ ] Install on the Android home screen over HTTPS.
+- [ ] Check the revised interface with the on-screen keyboard, large text and TalkBack.
+- [ ] Check platform Back behavior; use the explicit app back/cancel control for the supported return path.
 - [ ] Observe the actual persistent-storage permission result.
 - [ ] Save entries, close the app, restart the phone normally, reopen and compare.
 - [ ] Airplane mode: reopen, record an entry and generate a PDF.

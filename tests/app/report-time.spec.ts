@@ -4,6 +4,18 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
+
+async function settings(page: Page, section: string) {
+  if (!await page.locator('#dialog').isVisible()) await page.locator('#settings').click();
+  const panel = page.locator('#' + section);
+  if (!await panel.evaluate((el: HTMLDetailsElement) => el.open)) await panel.locator(':scope > summary').click();
+}
+async function language(page: Page, value: string) {
+  await settings(page, 'language-settings'); await page.locator('#language').selectOption(value); await page.locator('#close-dialog').click();
+}
+async function setupIdentity(page: Page) {
+  if (!await page.locator('#setup-identity').evaluate((el: HTMLDetailsElement) => el.open)) await page.locator('#setup-identity > summary').click();
+}
 async function exportRows(page: Page) {
   await page.locator('#export').click();
   const download = page.waitForEvent('download');
@@ -59,10 +71,10 @@ test('later positive and negative calibration shifts actual PDF rows, including 
     ['2030-12-31T23:54:00', '23:54:00', '-240 s'],
   ]) {
     await page.locator('#settings').click();
-    await page.locator('.clock-settings > summary').click();
+    await settings(page, 'clock-settings');
     await page.locator('#capture-time').click();
     await page.locator('#monitor-reading').fill(reading.replace(/:00$/, '')); // Chromium normalizes zero seconds in datetime-local values.
-    await page.getByRole('button', { name: 'Einstellungen speichern' }).click();
+    await page.locator('#save-clock').click(); await page.locator('#close-dialog').click();
     await expect(page.locator('.entry-time strong')).toHaveText([expected, expected]);
     const report = await exportRows(page);
     expect(rowTime(report, 'Automatic activity')).toEqual([expected]);
@@ -76,9 +88,9 @@ test('later positive and negative calibration shifts actual PDF rows, including 
     expect(await rawEntries(page)).toEqual(original);
   }
   await page.locator('#settings').click();
-  await page.locator('.clock-settings > summary').click();
+  await settings(page, 'clock-settings');
   await page.locator('#reset-clock').click();
-  await page.getByRole('button', { name: 'Einstellungen speichern' }).click();
+  await page.locator('#save-clock').click(); await page.locator('#close-dialog').click();
   const resetReport = await exportRows(page);
   expect(resetReport.some(item => item.str === 'EKG-Gerätezeit')).toBe(false);
   expect(rowTime(resetReport, 'Automatic activity', 'Uhrzeit (Referenz)')).toEqual(['23:58:00']);
@@ -126,9 +138,10 @@ test('an explicitly equal recorder clock keeps one timestamp column', async ({ p
 
 test('patient details survive reload, update existing reports, and can be omitted or reset', async ({ page }) => {
   await page.goto('');
+  await setupIdentity(page);
   await page.locator('#setup-name').fill('Alexandra Beispiel');
   await page.locator('#setup-birth-date').fill('1980-02-29');
-  await page.locator('#language').selectOption('en');
+  await language(page, 'en');
   await expect(page.getByLabel('Date of birth (optional)')).toHaveValue('1980-02-29');
   await page.locator('#start-diary').click();
   await page.locator('#note').fill('Synthetic observation'); await page.locator('#save-entry').click();
@@ -136,21 +149,20 @@ test('patient details survive reload, update existing reports, and can be omitte
   await page.reload();
   const report = await exportRows(page);
   expect(report.map(item => item.str.replace(/\s+/g, ' '))).toContain('Name: Alexandra Beispiel | Date of birth: 1980-02-29');
-  await page.locator('#settings').click();
+  await settings(page, 'identity-settings');
   await expect(page.locator('#settings-birth-date')).toHaveValue('1980-02-29');
   await page.locator('#settings-name').fill('Alexandra Muster');
   await page.locator('#settings-birth-date').fill('1981-03-01');
-  await page.getByRole('button', { name: 'Save settings' }).click();
+  await page.locator('#save-identity').click(); await page.locator('#close-dialog').click();
   const updated = await exportRows(page);
   expect(updated.map(item => item.str.replace(/\s+/g, ' '))).toContain('Name: Alexandra Muster | Date of birth: 1981-03-01');
-  await page.locator('#settings').click();
+  await settings(page, 'identity-settings');
   await page.locator('#settings-name').fill(''); await page.locator('#settings-birth-date').fill('');
-  await page.getByRole('button', { name: 'Save settings' }).click();
+  await page.locator('#save-identity').click(); await page.locator('#close-dialog').click();
   const anonymous = await exportRows(page);
   expect(anonymous.some(item => /Name:|Date of birth:|Not provided/.test(item.str))).toBe(false);
   await page.locator('#settings').click();
-  page.once('dialog', dialog => dialog.accept());
-  await page.locator('#reset-diary').click();
+  await page.locator('#reset-diary').click(); await page.locator('#confirm-reset').click();
   await expect(page.locator('#setup-name')).toHaveValue('');
   await expect(page.locator('#setup-birth-date')).toHaveValue('');
 });

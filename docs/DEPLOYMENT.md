@@ -55,8 +55,8 @@ and actual results in issue #6. Never attach real patient details or diaries.
 1. **Install / Installieren:** Open the HTTPS address in Android Chrome, install
    from its menu and launch from the home screen. / HTTPS-Adresse in Chrome öffnen,
    über das Menü installieren und vom Startbildschirm öffnen.
-2. **Storage / Speicher:** In App & storage, note the actual persistent-storage result
-   and wait for offline readiness. / In App & Speicherung die tatsächliche
+2. **Storage / Speicher:** In Settings → Offline & storage, note the actual persistent-storage result
+   and wait for offline readiness. / In Einstellungen → Offline & Speicherung die tatsächliche
    Speicherfreigabe prüfen und auf Offline-Bereitschaft warten.
 3. **Save and restart / Speichern und neu starten:** Save two notes and a symptom
    marker, restart the phone and verify all entries. / Zwei Notizen und eine
@@ -82,7 +82,12 @@ After device acceptance, record the verified main commit and tag the first relea
 Keep untested behavior explicit; publication of repository history remains a
 separate review from testing the application.
 
-When an update is ready, a notice appears below the app header. Open it and choose
-**Update now**. Save or discard unfinished input first; the app will not apply an
-update while a note, setup entry or symptom marker remains unsaved. App & storage
-also contains offline status and the optional persistent-storage check.
+When an update is ready, the single **Settings** button shows **Update available**.
+Open Settings → App updates and choose **Update now**. Save or explicitly discard
+unfinished input first: new notes, editor changes, setup fields, settings sections
+and pending symptom markers remain protected. Settings also contains offline
+status, installation help and the optional persistent-storage check.
+
+Use the visible back/cancel controls to return from full-height dialogs. Their
+native cancel event uses the same unsaved-change protection. Browser/device Back
+behavior varies and is not claimed as a validated app navigation mechanism.
