@@ -8,14 +8,14 @@ export const APP_URL = 'https://nhanus.github.io/holter-diary/';
 export const REPOSITORY_URL = 'https://github.com/nhanus/holter-diary';
 
 const labels = {
-  en: { entries: 'Recorded entries', symptoms: 'Symptom markers', title: 'Holter monitoring diary', name: 'Name', start: 'Measurement start (reference)', last: 'Last entry (reference)', created: 'Report created (reference)',
+  en: { entries: 'Recorded entries', symptoms: 'Symptom markers', title: 'Holter monitoring diary', name: 'Name', dateOfBirth: 'Date of birth', start: 'Measurement start (reference)', last: 'Last entry (reference)', created: 'Report created (reference)',
     reference: 'Reference: event time based on the phone/computer clock, without clock adjustment.', fixedOffset: 'Fixed UTC offset for this measurement',
     missing: 'No clock comparison with the recorder entered.', equal: 'Recorded clock comparison: difference 0 s; one time column.',
     calculated: 'Calculated from the recorded clock comparison.', equation: 'Recorder time = reference time',
     phone: 'Reference time', time: 'Recorder time', kind: 'Event', note: 'Activity / symptoms / notes',
     symptom: 'SYMPTOMS', activity: 'Note', marker: 'Symptom time marked; no details recorded.', continued: '(continued)', page: 'Page',
     observation: 'Patient observations. Notes are reproduced without translation or medical interpretation.', empty: 'No entries recorded.' },
-  de: { entries: 'Erfasste Einträge', symptoms: 'Beschwerdemarkierungen', title: 'Langzeit-EKG-Tagebuch', name: 'Name', start: 'Messbeginn (Referenz)', last: 'Letzter Eintrag (Referenz)', created: 'Bericht erstellt (Referenz)',
+  de: { entries: 'Erfasste Einträge', symptoms: 'Beschwerdemarkierungen', title: 'Langzeit-EKG-Tagebuch', name: 'Name', dateOfBirth: 'Geburtsdatum', start: 'Messbeginn (Referenz)', last: 'Letzter Eintrag (Referenz)', created: 'Bericht erstellt (Referenz)',
     reference: 'Referenz: Ereigniszeit auf Basis der Smartphone-/Computeruhr, ohne Zeitkorrektur.', fixedOffset: 'Fester UTC-Abstand dieser Messung',
     missing: 'Kein Zeitvergleich mit dem EKG-Gerät eingetragen.', equal: 'Eingetragener Zeitvergleich: Abweichung 0 s; eine Zeitspalte.',
     calculated: 'Aus dem eingetragenen Zeitvergleich berechnet.', equation: 'EKG-Gerätezeit = Referenzzeit',
@@ -43,6 +43,18 @@ function dateTime(value: string, language: Language): string {
   return `${date} ${time}`;
 }
 
+function patientIdentity(session: Session, language: Language): string[] {
+  const l = labels[language];
+  const identity: string[] = [];
+  if (session.name.trim()) identity.push(`${l.name}: ${session.name.trim()}`);
+  if (session.dateOfBirth) {
+    const date = session.dateOfBirth;
+    const birthDate = language === 'de' ? `${date.slice(8, 10)}.${date.slice(5, 7)}.${date.slice(0, 4)}` : date;
+    identity.push(`${l.dateOfBirth}: ${birthDate}`);
+  }
+  return identity;
+}
+
 export class UnsupportedCharactersError extends Error {
   readonly characters: string[];
   constructor(characters: string[]) {
@@ -62,7 +74,7 @@ export function reportText(session: Session, entries: readonly Entry[], language
   const sorted = sortedEntries(session, entries);
   const clock = reportClock(session, language);
   const stamp = (at: number) => phoneTime(at, session).replace('T', ' ');
-  const lines = [l.title, session.name ? `${l.name}: ${session.name}` : '', `${l.start}: ${stamp(session.startedAtMs)}`,
+  const lines = [l.title, ...patientIdentity(session, language), `${l.start}: ${stamp(session.startedAtMs)}`,
     sorted.length ? `${l.last}: ${stamp(sorted.at(-1)!.eventAtMs)}` : '', `${l.created}: ${stamp(generatedAt)}`,
     clock.reference, clock.status, l.observation, ''];
   for (const entry of sorted) lines.push(`${l.phone}: ${stamp(entry.eventAtMs)}${clock.dual ? ` | ${l.time}: ${monitorTime(entry.eventAtMs, session).replace('T', ' ')}` : ''} | ${entry.kind === 'symptom' ? l.symptom : l.activity}`, entry.note || l.marker, '');
@@ -110,6 +122,10 @@ export async function buildPdf(session: Session, entries: readonly Entry[], lang
   const bottom = 82, lineHeight = 13;
   const columns = clock.dual ? [left, 155, 270, 360] : [left, 0, 155, 245];
   const textWidth = right - columns[3] - 8;
+  const identity = patientIdentity(session, language);
+  const identityLines = identity.length ? wrap(identity.join('  |  '), font, right - left, 10) : [];
+  // Refuse an unusably large repeated header rather than clip identity or overlap rows.
+  requireValue(identityLines.length <= 8, 'REPORT_IDENTITY_TOO_LONG');
   const ink = rgb(0.12, 0.19, 0.18), muted = rgb(0.30, 0.37, 0.35);
   const teal = rgb(0.10, 0.30, 0.26), rule = rgb(0.79, 0.83, 0.81);
   let page!: PDFPage;
@@ -122,7 +138,9 @@ export async function buildPdf(session: Session, entries: readonly Entry[], lang
     y = pageHeight - 59;
     draw(l.title, left, y, true, table ? 16 : 22, teal);
     draw('HOLTER DIARY', right - bold.widthOfTextAtSize('HOLTER DIARY', 8), pageHeight - 20, true, 8, muted);
-    y -= 29;
+    y -= identityLines.length ? 20 : 19;
+    for (const line of identityLines) { draw(line, left, y, false, 10); y -= lineHeight; }
+    y -= 10;
     if (table) tableHead();
   }
   function tableHead() {
@@ -140,7 +158,6 @@ export async function buildPdf(session: Session, entries: readonly Entry[], lang
     }
   }
   header(false);
-  if (session.name) { metadata(`${l.name}: ${session.name}`, 11, true); y -= 5; }
   const stamp = (at: number) => dateTime(phoneTime(at, session), language);
   metadata(`${l.start}: ${stamp(session.startedAtMs)}`);
   if (sorted.length) metadata(`${l.last}: ${stamp(sorted.at(-1)!.eventAtMs)}`);

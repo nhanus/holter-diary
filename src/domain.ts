@@ -28,6 +28,8 @@ export interface Session {
   revision: number;
   startedAtMs: number;
   name: string;
+  // Optional for compatibility with diaries created before this field existed.
+  dateOfBirth?: string;
   clock: MeasurementClock;
   calibration: Calibration;
 }
@@ -90,11 +92,22 @@ export function assertClock(value: unknown): asserts value is MeasurementClock {
   catch { throw new DiaryError('INVALID_TIME_ZONE'); }
 }
 
+// A birth date is a calendar date, never an instant in a time zone.
+export function assertDateOfBirth(value: unknown): asserts value is string | undefined {
+  if (value === undefined || value === '') return;
+  requireValue(typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value), 'INVALID_BIRTH_DATE');
+  const [year, month, day] = value.split('-').map(Number);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  requireValue(year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days[month - 1], 'INVALID_BIRTH_DATE');
+}
+
 export function assertSession(value: unknown): asserts value is Session {
   base(value);
   revision(value.revision);
   assertInstant(value.startedAtMs);
   requireValue(typeof value.name === 'string');
+  assertDateOfBirth(value.dateOfBirth);
   assertClock(value.clock);
   record(value.calibration);
   assertInstant(value.calibration.capturedAtMs);

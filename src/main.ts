@@ -23,6 +23,7 @@ let draftSessionRevision = 1;
 let draftTimeInput: string | undefined;
 let dirty = false, editing = false, invalidTime = false, busy = false, conflict = false;
 let pendingMarker: { entry: Entry; revision: number; display: string } | undefined;
+let setupDateOfBirth = '', settingsDateOfBirth = '';
 let setupName = '', settingsName = '', sampleAt: number | null = null, reading = '';
 let modal: 'settings' | 'export' | null = null;
 let reportLanguage: Language = lang, reportFile: File | undefined;
@@ -73,6 +74,8 @@ function problem(error: unknown, fallback: TextKey = 'writeFailed'): void {
   const code = error instanceof Error ? error.message : '';
   if (['EDIT_CONFLICT', 'SESSION_CHANGED', 'ENTRY_NOT_FOUND', 'SESSION_NOT_FOUND', 'SESSION_EXISTS'].includes(code)) { conflict = true; notify('conflict', true); }
   else if (['INVALID_MONITOR_TIME', 'INVALID_TIME', 'INVALID_CALIBRATION'].includes(code)) notify('invalidTime', true);
+  else if (code === 'INVALID_BIRTH_DATE') notify('invalidBirthDate', true);
+  else if (code === 'REPORT_IDENTITY_TOO_LONG') notify('identityTooLong', true);
   else if (error instanceof UnsupportedCharactersError) notify('pdfUnsupported', true, { characters: error.characters.slice(0, 16).join(' ') });
   else notify(fallback, true);
 }
@@ -100,6 +103,9 @@ function remember(entry: Entry): void {
   entries = [...entries.filter(x => x.id !== entry.id), entry].sort((a, b) => a.eventAtMs - b.eventAtMs || a.id.localeCompare(b.id));
 }
 function discardAllowed(): boolean { return !dirty || confirm(t('discardConfirm')); }
+function birthDateField(id: string, value: string): string {
+  return `<label for="${id}">${text('dateOfBirth')}</label><input id="${id}" type="date" autocomplete="bday" min="0001-01-01" max="9999-12-31" value="${esc(value)}">`;
+}
 function calibrationFields(): string {
   const clock = session?.clock ?? captureClock(sampleAt ?? Date.now());
   const phoneSession = newSession(sampleAt ?? Date.now(), clock);
@@ -122,7 +128,7 @@ function renderDialog(): string {
     <button type="button" class="icon-button" id="close-dialog" aria-label="${text('close')}">×</button></div>
     <p id="dialog-feedback" class="feedback" role="status" hidden></p><p id="dialog-error" class="error" role="alert" hidden></p>
     ${modal === 'settings' ? `<form id="settings-form"><label for="settings-name">${text('name')}</label>
-      <input id="settings-name" autocomplete="name" maxlength="120" value="${esc(settingsName)}">
+      <input id="settings-name" autocomplete="name" maxlength="120" value="${esc(settingsName)}">${birthDateField('settings-birth-date', settingsDateOfBirth)}
       <h3>${text('clock')}</h3><p class="help">${text('clockBasis', { basis: basis(session) })}</p><p class="help">${text('clockHelp')}</p>
       ${calibrationFields()}<button type="button" id="reset-clock" class="text-button">${text('resetClock')}</button>
       <button class="primary full" type="submit">${text('saveSettings')}</button></form>${statusPanel()}
@@ -143,7 +149,7 @@ function render(focusTarget?: string): void {
     ${conflict ? `<button type="button" class="secondary full" id="reload-data">${text('reload')}</button>` : ''}
     ${loadError ? `<main class="card"><h1>${text('loadFailed')}</h1><button class="primary" id="retry-load">${text('reload')}</button></main>` :
     !session ? `<main class="welcome"><span class="eyebrow">HOLTER DIARY</span><h1>${text('welcome')}</h1><p class="intro">${text('welcomeText')}</p>
-      <form id="setup" class="card setup-card"><label for="setup-name">${text('name')}</label><input id="setup-name" autocomplete="name" maxlength="120" value="${esc(setupName)}">
+      <form id="setup" class="card setup-card"><label for="setup-name">${text('name')}</label><input id="setup-name" autocomplete="name" maxlength="120" value="${esc(setupName)}">${birthDateField('setup-birth-date', setupDateOfBirth)}
       ${calibrationFields()}<button class="primary full" id="start-diary" type="submit">${text('start')} <span aria-hidden="true">→</span></button><p class="local-note">${text('localOnly')}</p></form>
       ${!isSecureContext ? `<p class="preview-note">${text('preview')}</p>` : ''}</main>` :
     `<main><section class="page-heading"><div><span class="eyebrow">${text('since', { date: displayDate(monitorTime(session.startedAtMs, session), lang) })}</span><h1>${text('today')}</h1></div>
@@ -178,11 +184,14 @@ function bind(): void {
   });
   document.querySelector<HTMLInputElement>('#setup-name')?.addEventListener('input', event => { setupName = (event.target as HTMLInputElement).value; });
   document.querySelector<HTMLInputElement>('#settings-name')?.addEventListener('input', event => { settingsName = (event.target as HTMLInputElement).value; });
+  document.querySelector<HTMLInputElement>('#setup-birth-date')?.addEventListener('input', event => { setupDateOfBirth = (event.target as HTMLInputElement).value; });
+  document.querySelector<HTMLInputElement>('#settings-birth-date')?.addEventListener('input', event => { settingsDateOfBirth = (event.target as HTMLInputElement).value; });
   document.querySelector<HTMLInputElement>('#monitor-reading')?.addEventListener('input', event => { reading = (event.target as HTMLInputElement).value; });
   on('capture-time', () => { sampleAt = Date.now(); reading = monitorTime(sampleAt, newSession(sampleAt, session?.clock ?? captureClock(sampleAt))); render(); });
   document.querySelector('#setup')?.addEventListener('submit', event => {
     event.preventDefault(); void task(async () => {
       const startedAt = Date.now(); const value = newSession(startedAt, captureClock(startedAt), setupName.trim());
+      value.dateOfBirth = setupDateOfBirth;
       if (sampleAt !== null) value.calibration = calibrate(sampleAt, reading, value.clock);
       const permission = persistenceStatus(true);
       session = (await store.startSession(value)).value; entries = []; sampleAt = null; freshDraft();
@@ -225,7 +234,7 @@ function bind(): void {
     document.querySelector<HTMLTextAreaElement>('#note')?.focus(); document.querySelector('#entry-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }));
   on('reload-data', () => { if (!discardAllowed()) return; void task(async () => { await refreshData(); freshDraft(); conflict = false; message = undefined; if (pendingMarker && session && pendingMarker.entry.sessionId === session.id) pendingMarker.revision = session.revision; }); });
-  on('settings', () => { modal = 'settings'; settingsName = session!.name; sampleAt = null; reading = ''; message = undefined; render(); });
+  on('settings', () => { modal = 'settings'; settingsName = session!.name; settingsDateOfBirth = session!.dateOfBirth ?? ''; sampleAt = null; reading = ''; message = undefined; render(); });
   on('export', () => { modal = 'export'; reportLanguage = lang; reportFile = undefined; message = undefined; render(); });
   on('close-dialog', closeDialog);
   document.querySelector('#dialog')?.addEventListener('cancel', event => { event.preventDefault(); closeDialog(); });
@@ -235,7 +244,7 @@ function bind(): void {
   on('reset-clock', () => { sampleAt = null; reading = 'reset'; notify('checkTimes'); render(); });
   document.querySelector('#settings-form')?.addEventListener('submit', event => {
     event.preventDefault(); void task(async () => {
-      const value = structuredClone(session!); value.name = settingsName.trim();
+      const value = structuredClone(session!); value.name = settingsName.trim(); value.dateOfBirth = settingsDateOfBirth;
       if (sampleAt !== null) value.calibration = calibrate(sampleAt, reading, value.clock);
       else if (reading === 'reset') value.calibration = { capturedAtMs: Date.now(), monitorReading: null, offsetMs: 0 };
       session = (await store.updateSession(value)).value;
@@ -248,7 +257,7 @@ function bind(): void {
   });
   on('reset-diary', () => {
     if (!confirm(t('resetConfirm'))) return;
-    void task(async () => { await store.resetSession(session!.id, session!.revision); session = undefined; entries = []; draft = undefined; dirty = false; pendingMarker = undefined; setupName = ''; sampleAt = null; modal = null; message = undefined; conflict = false; });
+    void task(async () => { await store.resetSession(session!.id, session!.revision); session = undefined; entries = []; draft = undefined; dirty = false; pendingMarker = undefined; setupName = ''; setupDateOfBirth = ''; settingsDateOfBirth = ''; sampleAt = null; modal = null; message = undefined; conflict = false; });
   });
   document.querySelector<HTMLSelectElement>('#report-language')?.addEventListener('change', event => { reportLanguage = (event.target as HTMLSelectElement).value as Language; reportFile = undefined; message = undefined; render(); });
   on('download-pdf', () => void task(async () => {

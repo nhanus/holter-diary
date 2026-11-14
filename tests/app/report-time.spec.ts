@@ -121,3 +121,35 @@ test('an explicitly equal recorder clock keeps one timestamp column', async ({ p
   expect(report.some(item => item.str === 'EKG-Gerätezeit')).toBe(false);
   expect(report.some(item => item.str.includes('Eingetragener Zeitvergleich: Abweichung 0 s'))).toBe(true);
 });
+
+
+test('patient details survive reload, update existing reports, and can be omitted or reset', async ({ page }) => {
+  await page.goto('');
+  await page.locator('#setup-name').fill('Alexandra Beispiel');
+  await page.locator('#setup-birth-date').fill('1980-02-29');
+  await page.locator('#language').selectOption('en');
+  await expect(page.getByLabel('Date of birth (optional)')).toHaveValue('1980-02-29');
+  await page.locator('#start-diary').click();
+  await page.locator('#note').fill('Synthetic observation'); await page.locator('#save-entry').click();
+  await expect(page.locator('.entry-note')).toHaveText('Synthetic observation');
+  await page.reload();
+  const report = await exportRows(page);
+  expect(report.map(item => item.str.replace(/\s+/g, ' '))).toContain('Name: Alexandra Beispiel | Date of birth: 1980-02-29');
+  await page.locator('#settings').click();
+  await expect(page.locator('#settings-birth-date')).toHaveValue('1980-02-29');
+  await page.locator('#settings-name').fill('Alexandra Muster');
+  await page.locator('#settings-birth-date').fill('1981-03-01');
+  await page.getByRole('button', { name: 'Save settings' }).click();
+  const updated = await exportRows(page);
+  expect(updated.map(item => item.str.replace(/\s+/g, ' '))).toContain('Name: Alexandra Muster | Date of birth: 1981-03-01');
+  await page.locator('#settings').click();
+  await page.locator('#settings-name').fill(''); await page.locator('#settings-birth-date').fill('');
+  await page.getByRole('button', { name: 'Save settings' }).click();
+  const anonymous = await exportRows(page);
+  expect(anonymous.some(item => /Name:|Date of birth:|Not provided/.test(item.str))).toBe(false);
+  await page.locator('#settings').click();
+  page.once('dialog', dialog => dialog.accept());
+  await page.locator('#reset-diary').click();
+  await expect(page.locator('#setup-name')).toHaveValue('');
+  await expect(page.locator('#setup-birth-date')).toHaveValue('');
+});

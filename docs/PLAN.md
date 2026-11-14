@@ -8,7 +8,7 @@ records the user's observations; it does not interpret ECG data.
 
 ## First version
 
-- A short setup: optional name, measurement start and optional monitor-clock calibration.
+- A short setup: optional name and date of birth, measurement start and optional monitor-clock calibration.
 - A single main screen: timestamp, free-text note, Save, Symptoms now, recent entries and PDF.
 - No required symptom categories, severity scales or activity questionnaires.
 - Save a symptom marker immediately on tap; allow details later.
@@ -17,7 +17,7 @@ records the user's observations; it does not interpret ECG data.
 - Persist language choice; independent PDF language selection; never translate notes.
 - Explicit dates and 24-hour times. Preserve phone timestamps and calibration.
 - Local database and offline launch/export after verified initial setup.
-- A4 PDF with optional name, session period, time basis, ordered entries and monochrome symptom markers.
+- A4 PDF with supplied name/date of birth on every page, session period, time basis, ordered entries and monochrome symptom markers.
 
 ## Screen flow
 
