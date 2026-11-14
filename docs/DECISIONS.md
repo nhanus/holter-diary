@@ -680,3 +680,21 @@ update themselves or provide a diary-import mechanism.
 
 References: [Chrome pull-to-refresh](https://developer.chrome.com/blog/overscroll-behavior/),
 [service worker update lifecycle](https://developer.chrome.com/docs/workbox/service-worker-lifecycle).
+
+## 2026-11-14 — Capture the published app for website examples
+
+Related issue: [#43](https://github.com/nhanus/holter-diary/issues/43).
+
+Replace the independently styled phone illustration with real DE/EN app captures.
+This keeps Report beside the diary heading, the note composer first and Symptoms
+now below it. Capture a fresh browser profile with fictional records; do not
+retouch the UI or load personal data. Provide a full-size image link and a text
+alternative. Keep the report illustration and FAQ content unchanged.
+
+Refresh captures when selecting a new app release or changing the illustrated UI.
+With dependencies installed, run `node scripts/capture-website.mjs APP_DIRECTORY`
+against the unpacked selected release (or a matching local build; default `dist`).
+The script serves it temporarily on loopback port 4178, checks the selected version,
+creates two fictional entries through the UI and captures both languages.
+Versioned image names make missing captures visible in website tests when the
+selected release changes. Images belong only to the website, outside app caches.

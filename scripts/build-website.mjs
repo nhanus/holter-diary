@@ -7,10 +7,10 @@ export async function assembleWebsite(appDir = 'dist', output = 'site-dist', web
   const selected = JSON.parse(await readFile(join(site, 'app-release.json'), 'utf8'));
   const version = JSON.parse(await readFile(join(app, 'app/version.json'), 'utf8')).version;
   if (version !== selected.version) throw new Error('Selected app release does not match the supplied app package.');
-  for (const file of await readdir(site)) if (!['index.html', 'guide', 'faq', 'site.js', 'style.css', 'app-release.json'].includes(file)) throw new Error('Unexpected website source.');
+  for (const file of await readdir(site)) if (!['index.html', 'guide', 'faq', 'site.js', 'style.css', 'app-release.json', 'screenshots'].includes(file)) throw new Error('Unexpected website source.');
   await rm(out, { recursive: true, force: true }); await mkdir(out, { recursive: true });
   for (const file of ['app', 'sw.js', 'manifest.webmanifest', '.nojekyll']) await cp(join(app, file), join(out, file), { recursive: true });
-  for (const file of ['index.html', 'guide', 'faq', 'style.css']) await cp(join(site, file), join(out, file), { recursive: true });
+  for (const file of ['index.html', 'guide', 'faq', 'style.css', 'screenshots']) await cp(join(site, file), join(out, file), { recursive: true });
   const script = (await readFile(join(site, 'site.js'), 'utf8')).replaceAll('__APP_RELEASE_VERSION__', version);
   await writeFile(join(out, 'site.js'), script);
   console.log(`Assembled website with app ${version} in ${relative(process.cwd(), out)}; app bytes copied unchanged.`);

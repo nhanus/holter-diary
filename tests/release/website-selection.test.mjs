@@ -10,6 +10,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function fixture(t, failure) {
   const root = await mkdtemp(join(tmpdir(), 'website-selection-')); t.after(() => rm(root, {recursive:true,force:true}));
   const app=join(root,'input'), site=join(root,'website');await mkdir(join(app,'app'),{recursive:true});await mkdir(site);
+  await mkdir(join(site,'screenshots'));await writeFile(join(site,'screenshots/example.png'),'synthetic image fixture');
   const version='0.1.0-beta.2', sha='a'.repeat(40), archive=`holter-diary-${version}.tar.gz`;
   for(const [name,text] of Object.entries({'app/version.json':JSON.stringify({version}),'app/index.html':'App','sw.js':'worker','manifest.webmanifest':'{}','.nojekyll':''})) await writeFile(join(app,name),text);
   for(const name of ['guide','faq']) {await mkdir(join(site,name));await writeFile(join(site,name,'index.html'),name);}
@@ -30,6 +31,7 @@ test('website copies the exact selected published app without rebuilding',async 
  const f=await fixture(t);await selectRelease(f.root,{GITHUB_REPOSITORY:'example/diary'},f.api,f.run);
  for(const name of ['sw.js','manifest.webmanifest','app/index.html','app/version.json']) assert.deepEqual(await readFile(join(f.root,'site-dist',name)),await readFile(join(f.app,name)));
  assert.equal(await readFile(join(f.root,'site-dist/site.js'),'utf8'),f.version);
+ assert.equal(await readFile(join(f.root,'site-dist/screenshots/example.png'),'utf8'),'synthetic image fixture');
 });
 for(const failure of ['draft','digest','commit','path','link']) test(`website rejects release ${failure}`,async t=>{
  const f=await fixture(t,failure);await assert.rejects(selectRelease(f.root,{GITHUB_REPOSITORY:'example/diary'},f.api,f.run));
