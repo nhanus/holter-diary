@@ -597,3 +597,12 @@ CI exposed a font-dependent timestamp wrap at 150% text. Its flex basis now
 scales with its own font size, allowing the time controls to wrap before editing
 rather than moving Save when the first timestamp replaces “Now”. A wider-font
 regression reproduces the original failure independently of installed fonts.
+
+## 2026-11-14 — One CI run per pull request update
+
+Validate feature branches through pull requests; automatic push builds target
+only `main`, where the validated commit also produces the release and website
+artifact. Manual, scheduled and reusable execution remain available. Separate
+concurrency groups by event so a manual or scheduled check cannot cancel an
+in-progress main-push release. Newer pull request updates still cancel obsolete
+checks for the same pull request. Pages publication remains explicitly gated.
