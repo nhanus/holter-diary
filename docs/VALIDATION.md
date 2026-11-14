@@ -6,12 +6,13 @@
 - `npm run test:policy`: 11 dependency-free tests of the 14-day boundary, exact exceptions, registry/identity failures, optional dependencies and alternate lockfile rejection. CI runs these and the policy/audit checks before installing.
 - `npm run check` type-checks the source.
 - `npm run test:unit` tests the time model and storage-permission outcomes.
-- `npm run build` produces static assets for `/holter-diary/`.
+- `npm run build` produces app assets for `/holter-diary/app/` and root compatibility files.
+- `npm run test:site` validates the composed website, locale links and offline separation.
 - `npm run test:browser` bundles a separate test fixture and runs actual Chromium
   IndexedDB checks: committed-data reload, aborted writes, immutable capture time,
   edit conflicts, schema refusal without deletion and durability fallback.
 - GitHub Actions runs these checks on pushes, PRs and a weekly schedule, uploads `dist/` for seven
-  days, and has read-only repository permissions. It does not deploy on pushes, PRs or the schedule. The separate manual Pages
+  days, with read-only build permissions. A separate main-push release job can publish versioned app assets; a read-only website job composes the selected published app. It does not deploy on pushes, PRs or the schedule. The separate manual Pages
   workflow reuses CI before deployment; it requires explicit enablement.
 - An independent reviewer checks the code, workflow and plan; findings and fixes
   are recorded in the PR before merge.
@@ -86,3 +87,16 @@ Review repository files, examples, discussions, logs and artifacts for unintende
 personal information. Setup instructions must be portable and examples synthetic.
 When removing accidentally included private information, verify historical refs
 and discussion revisions separately; editing the current files is insufficient.
+
+## Website separation validation
+
+The separation change passes 94 automated checks: 11 dependency-policy tests,
+14 release/selection tests, 23 unit tests, 6 browser-storage tests, 35 app tests
+and 5 website tests. Type checking, workflow lint, locked dependency age checks
+and the vulnerability audit also pass. No dependencies were added.
+
+A separate Chromium transition exercise used the actual published beta.1 archive:
+saved records and raw timestamps survived adoption, both tabs' drafts remained
+protected, the old start URL reopened the new diary offline, old hashed assets
+remained available, and PDF export worked. Standalone launch was simulated;
+physical Android/WebAPK migration still requires device acceptance.

@@ -10,3 +10,6 @@ test-results/
 .test-build/
 
 /release/
+
+site-dist/
+.website-release/

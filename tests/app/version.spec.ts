@@ -11,7 +11,7 @@ test('installed version stays tied to the running offline app in both languages 
     await page.locator('#settings').click();
     await expect(page.locator('#installed-version')).toHaveText(`Installierte Version: ${version}`);
     await expect(page.locator('#installed-version')).toBeVisible();
-    const manifest = JSON.parse(await readFile('dist/version.json', 'utf8'));
+    const manifest = JSON.parse(await readFile('dist/app/version.json', 'utf8'));
     expect(manifest.version).toBe(version);
     expect(original).toContain('version.json');
     await writeFile(workerPath, original + '\n// Synthetic version-display update\n');

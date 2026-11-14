@@ -33,9 +33,10 @@ async function regularFiles(dir) {
 export async function prepare(root, sourceSha) {
   assert(/^[0-9a-f]{40}$/.test(sourceSha ?? ''), 'Invalid source commit.');
   const version = await packageVersion(root), dist = join(root, 'dist'), output = join(root, 'release');
-  assert((await json(join(dist, 'version.json'))).version === version, 'Built version differs from package version.');
+  assert((await json(join(dist, 'app/version.json'))).version === version, 'Built version differs from package version.');
   const files = await regularFiles(dist);
-  for (const required of ['index.html', 'sw.js', 'manifest.webmanifest', 'version.json']) assert(files.includes(join(dist, required)), `Missing build file: ${required}`);
+  for (const required of ['app/index.html', 'sw.js', 'manifest.webmanifest', 'app/version.json']) assert(files.includes(join(dist, required)), `Missing build file: ${required}`);
+  assert(files.every(path => path.startsWith(join(dist, 'app') + '/') || ['sw.js', 'manifest.webmanifest', '.nojekyll'].some(name => path === join(dist, name))), 'App release contains website or unexpected files.');
   // Normalize metadata so retries package identical bytes, including hidden files.
   await mkdir(output, { recursive: true });
   const archive = `holter-diary-${version}.tar.gz`;

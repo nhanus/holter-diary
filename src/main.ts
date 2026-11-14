@@ -467,6 +467,13 @@ window.addEventListener('online', refreshStatus); window.addEventListener('offli
 document.addEventListener('visibilitychange', () => { if (!document.hidden && session && !dirty && !editing && !busy && !modal) { freshDraft(); render(); } });
 async function init(): Promise<void> {
   try { store = await openDiaryStore(); const preferences = await store.preferences(); if (preferences) lang = preferences.language;
+    const requestedLanguage = new URL(location.href).searchParams.get('lang');
+    if (requestedLanguage === 'de' || requestedLanguage === 'en') {
+      lang = requestedLanguage;
+      if (preferences?.language !== lang) await store.setPreferences({ schemaVersion: 1, id: 'preferences', language: lang });
+      const cleanUrl = new URL(location.href); cleanUrl.searchParams.delete('lang');
+      history.replaceState(history.state, '', cleanUrl);
+    }
     updateDocumentLanguage();
     await refreshData(); freshDraft(); persistence = await persistenceStatus(); } catch { loadError = true; }
   render(); void offline.start();

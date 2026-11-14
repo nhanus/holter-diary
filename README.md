@@ -84,10 +84,12 @@ npm run test:app
 npm run dev
 ```
 
-`dist/` is the complete static app at `/holter-diary/`. `npm run preview` serves
-it for inspection; use the address printed by Vite. HTTPS or browser localhost
-is required for offline installation and storage-permission APIs. Ordinary HTTP
-previews still support notes and exports and display the limitation.
+`npm run build` produces the app-only release in `dist/`, with the diary at
+`/holter-diary/app/` and compatibility worker/manifest at the parent path.
+`npm run build:site` composes the bilingual website and app into `site-dist/`.
+Preview the complete site with `npm run preview -- --dir site-dist`; open
+`/holter-diary/`. Production website assembly copies the published app selected
+in `website/app-release.json` without rebuilding it. See [hosting](docs/DEPLOYMENT.md).
 
 CI checks types, unit tests, real Chromium storage transactions and production-app
 flows, including offline PDF export and safe updates. Builds and failure evidence

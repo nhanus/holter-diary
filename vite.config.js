@@ -7,7 +7,8 @@ const lock = JSON.parse(readFileSync(new URL('./package-lock.json', import.meta.
 const version = releaseVersion(pkg, lock);
 
 export default defineConfig({
-  base: '/holter-diary/',
+  base: '/holter-diary/app/',
+  build: { outDir: 'dist/app' },
   define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [{
     name: 'app-version',
