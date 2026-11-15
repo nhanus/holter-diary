@@ -719,3 +719,22 @@ Add focused WebKit checks for guide accessibility, storage/reopening, write fail
 recovery and actual PDF output while retaining Chromium-specific worker and CDP
 tests. Record confirmed iPhone installation/persistence separately from emulated
 tests. Publish the website with the same selected app release; no app-version bump.
+
+## 2026-11-15 — Automatic Pages publication after the main release pipeline
+
+Replace the separate manual Pages entry point with a deployment-only reusable
+workflow called after successful validation, immutable release publication and
+website assembly. Consume the same-run, commit-named hosting artifact without
+rebuilding or repeating CI. This supersedes the earlier manual publication rule
+for repositories where hosting has been explicitly enabled.
+
+Keep the full pipeline inside the existing main-release queue. Check the current
+main reference immediately before deployment so a delayed or repeated old run
+cannot overwrite newer hosting. Fail closed if GitHub cannot confirm that reference.
+Keep Pages enablement, main-only environment protection and deployment-specific
+write permissions. Avoid release-event triggers and additional tokens.
+
+Keep the reviewed website release pin: website-only edits reuse unchanged app bytes;
+an app release PR selects the version to serve. Recover failed deployments by
+rerunning current-main jobs, and make intentional app rollbacks through a new PR
+changing the pin. No app code, data schema or version changes are needed here.

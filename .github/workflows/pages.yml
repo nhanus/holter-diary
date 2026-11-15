@@ -1,31 +1,15 @@
-name: Publish to Pages (manual)
+name: Publish to Pages
 
 on:
-  workflow_dispatch:
-    inputs:
-      publish:
-        description: Publish the website after reviewing its visibility
-        type: boolean
-        required: true
-        default: false
+  workflow_call:
 
 permissions:
   contents: read
 
-concurrency:
-  group: pages-publication
-  cancel-in-progress: false
-
 jobs:
-  validate:
-    # Permission ceiling for reusable CI; its release job is skipped on dispatch.
-    permissions:
-      contents: write
-    if: github.ref == 'refs/heads/main' && inputs.publish && vars.PAGES_ENABLED == 'true'
-    uses: ./.github/workflows/ci.yml
-
   deploy:
-    needs: validate
+    # The caller owns the queue through validation, release and deployment.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -36,6 +20,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Check out the validated commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .node-version
       - name: Download the build validated in this run
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -44,8 +36,18 @@ jobs:
       - name: Package the website and selected app
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: dist
           include-hidden-files: true
+      - name: Check that this is still the current main commit
+        id: current
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAGES_ENABLED: ${{ vars.PAGES_ENABLED }}
+        run: node scripts/check-pages-deployment.mjs
       - name: Deploy the validated artifact
+        if: steps.current.outputs.eligible == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}

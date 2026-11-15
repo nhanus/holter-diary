@@ -102,8 +102,8 @@ in `website/app-release.json` without rebuilding it. See [hosting](docs/DEPLOYME
 CI checks types, unit tests, real Chromium storage transactions and production-app
 flows, including offline PDF export and safe updates. Builds and failure evidence
 are retained seven days. Main-branch automation publishes new app versions as GitHub Releases and
-assembles the website with the selected published app. Website deployment uses a
-separate, disabled-by-default manual workflow; see
+assembles the website with the selected published app. When Pages is explicitly
+enabled, the same main pipeline automatically deploys that tested website; see
 [deployment and Android acceptance](docs/DEPLOYMENT.md). Test fixtures are excluded from the
 production build. Browser tests cover Chromium and focused WebKit flows;
 they do not replace actual Android or iPhone acceptance. Printing is handled by the phone's PDF viewer, not by the app.
