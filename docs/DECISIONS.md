@@ -703,3 +703,19 @@ for this release-pipeline change; future new releases require the fourth asset.
 Describe the inventory as production dependencies rather than claiming a byte-level
 scan of tree-shaken output. It complements dependency audits, does not replace them,
 and stays outside the installed app's offline assets.
+
+
+## 2026-11-15 — Platform-specific installation help and focused WebKit checks
+
+Keep installation within step 1 of the guide, with always-visible Android and
+iPhone/Safari sections and stable anchors. FAQ links point directly to these
+sections in the selected language. Avoid platform detection or hidden tabs, so
+instructions remain available when helping someone on a different phone. Explain
+Safari's Share menu, optional Open as Web App control and missing-menu recovery.
+Installation precedes diary setup; do not promise data transfer between browser
+and installed-app contexts.
+
+Add focused WebKit checks for guide accessibility, storage/reopening, write failure
+recovery and actual PDF output while retaining Chromium-specific worker and CDP
+tests. Record confirmed iPhone installation/persistence separately from emulated
+tests. Publish the website with the same selected app release; no app-version bump.

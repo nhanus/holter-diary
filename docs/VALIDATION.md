@@ -7,7 +7,7 @@
 - `npm run check` type-checks the source.
 - `npm run test:unit` tests the time model and storage-permission outcomes.
 - `npm run build` produces app assets for `/holter-diary/app/` and root compatibility files.
-- `npm run test:site` validates the composed website, locale links and offline separation.
+- `npm run test:site` validates the composed website, locale links and offline separation in Chromium; focused installation and FAQ tests also run in WebKit.
 - `npm run test:browser` bundles a separate test fixture and runs actual Chromium
   IndexedDB checks: committed-data reload, aborted writes, immutable capture time,
   edit conflicts, schema refusal without deletion and durability fallback.
@@ -80,6 +80,26 @@ Chromium profile: DE/EN routes, language selection, installation manifest, beta.
 version, update check, retained synthetic entries after closing/reopening the browser
 offline, another offline save and PDF export. This does not simulate a phone reboot
 or prove a persistence grant; the uninstalled test profile reported no grant.
+
+### iPhone evidence and WebKit coverage
+
+On 2026-11-15, a user reported successful installation on an iPhone and a confirmed
+persistent-storage grant in the installed app. No further physical iOS tests were
+reported. This is evidence for that device, not a guarantee for all iOS versions.
+
+`npm run test:webkit` runs three focused production-app tests in desktop WebKit
+with iPhone viewport/touch emulation: DE/EN entry save, close/reopen retention and
+PDF downloads with extracted content, plus aborted-write draft retention and retry.
+Website tests run DE/EN platform instructions, FAQ links, language/anchor retention
+and enlarged-text reflow in both Chromium and WebKit. CI installs both browsers
+from the reviewed Playwright version. Local setup may also require the browser's
+OS dependencies (`playwright install --with-deps chromium webkit`).
+
+These tests do not automate Safari's Share menu, actual Home Screen installation,
+iOS persistence decisions, native keyboard behavior, phone restart or PDF-viewer
+integration. Offline/service-worker update scenarios remain covered by Chromium;
+physical iPhone offline/update acceptance is not inferred from desktop emulation.
+No printer test is part of this project.
 
 ### Checks owned by automation
 

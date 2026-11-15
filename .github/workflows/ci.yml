@@ -47,12 +47,14 @@ jobs:
         run: npm run test:unit
       - name: Build static app
         run: npm run build
-      - name: Install Chromium
-        run: ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Install Chromium and WebKit
+        run: ./node_modules/.bin/playwright install --with-deps chromium webkit
       - name: Test browser storage
         run: npm run test:browser
       - name: Test complete offline app
         run: npm run test:app
+      - name: Test core diary flows in WebKit
+        run: npm run test:webkit
       - name: Test website and app separation
         run: npm run test:site
       - name: Retain browser failure evidence

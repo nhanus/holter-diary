@@ -84,9 +84,11 @@ npm run test:policy
 npm run check
 npm run test:unit
 npm run build
-./node_modules/.bin/playwright install chromium
+./node_modules/.bin/playwright install chromium webkit
 npm run test:browser
 npm run test:app
+npm run test:webkit
+npm run test:site
 npm run dev
 ```
 
@@ -103,8 +105,8 @@ are retained seven days. Main-branch automation publishes new app versions as Gi
 assembles the website with the selected published app. Website deployment uses a
 separate, disabled-by-default manual workflow; see
 [deployment and Android acceptance](docs/DEPLOYMENT.md). Test fixtures are excluded from the
-production build. The browser tests are intentionally small and Chromium-focused;
-they do not replace actual Android acceptance. Printing is handled by the phone's PDF viewer, not by the app.
+production build. Browser tests cover Chromium and focused WebKit flows;
+they do not replace actual Android or iPhone acceptance. Printing is handled by the phone's PDF viewer, not by the app.
 
 ## Development transparency
 
