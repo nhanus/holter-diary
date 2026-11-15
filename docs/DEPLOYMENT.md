@@ -4,7 +4,7 @@ The app is a static build. No database server, application backend or runtime
 package installation is needed. Repository visibility and website visibility
 are separate decisions. Publishing is not enabled by merging this workflow.
 
-## GitHub Pages (prepared, not activated)
+## GitHub Pages
 
 1. Confirm hosting approval and Pages eligibility for the repository's current
    visibility and GitHub plan. Keep a private repository private if required.
@@ -26,7 +26,8 @@ The workflow requires Pages configuration to exist; it does not create a site or
 change repository visibility. An unset/false enablement variable, unchecked
 confirmation or non-main branch skips publication. Removing `PAGES_ENABLED`
 disables future workflow publications; it does not unpublish an existing site.
-Deployment itself remains untested until hosting is approved and activated.
+The first Pages deployment was validated on 2026-11-15. For another host or a
+material hosting change, verify the resulting HTTPS address after deployment.
 
 [GitHub Pages workflow requirements](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
 
@@ -49,6 +50,12 @@ substitute for a trusted HTTPS setup. Existing report footer links identify the
 canonical GitHub project, even when the test build is hosted elsewhere.
 
 ## Android test / Android-Test
+
+Use this checklist for a new device/hosting setup or a relevant behavior change.
+Do not repeat already confirmed results just to fill missing metadata. PDF contents,
+languages, clock conversion and optional identity fields are covered by automated
+regression tests; steps below involving these are useful only for a specific
+device integration problem. See [current evidence and retest scope](VALIDATION.md#device-evidence-and-proportionate-retesting).
 
 Use synthetic entries and record the tested commit, date, Android/browser versions
 and actual results in the [release-readiness issue](https://github.com/nhanus/holter-diary/issues/2).
