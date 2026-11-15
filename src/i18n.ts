@@ -17,6 +17,8 @@ export const en = {
   optionalSetup: 'You can start now and add these details later.', newDiaryTitle: 'Your Holter diary', diaryStarted: 'Diary started.',
   exportSummary: '{count} entries · started {date}',
   exportDraftWarning: 'You have an unsaved entry. Save it first to include it in the report.',
+  exportMarkerWarning: 'The report excludes the symptom time that could not be saved.',
+  returnMarker: 'Back to the symptom time',
   offlineDisconnected: 'No internet · ready to use offline', offlineAction: 'Open offline setup',
 
 
@@ -87,6 +89,8 @@ export const de: Record<TextKey, string> = {
   optionalSetup: 'Du kannst sofort beginnen und diese Angaben später ergänzen.', newDiaryTitle: 'Dein EKG-Tagebuch', diaryStarted: 'Tagebuch begonnen',
   exportSummary: '{count} Einträge · begonnen am {date}',
   exportDraftWarning: 'Du hast einen ungespeicherten Eintrag. Speichere ihn zuerst, damit er im Protokoll erscheint.',
+  exportMarkerWarning: 'Die ungespeicherte Beschwerdezeit fehlt im Protokoll.',
+  returnMarker: 'Zur Beschwerdezeit zurück',
   offlineDisconnected: 'Ohne Internet · Offline-Nutzung bereit', offlineAction: 'Offline-Einrichtung öffnen',
 
 

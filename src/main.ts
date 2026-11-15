@@ -314,11 +314,12 @@ function renderDialog(): string {
   if (!modal) return '';
   if (modal === 'edit') return `<dialog id="dialog" class="editor-dialog" aria-labelledby="dialog-title">${composer()}</dialog>`;
   const title: TextKey = modal === 'reset' ? 'resetTitle' : modal === 'settings' ? 'settings' : 'export';
-  const draftWarning = modal === 'export' && dirty;
-  return `<dialog id="dialog" class="${modal === 'reset' ? 'confirmation-dialog' : 'screen-dialog'}" aria-labelledby="dialog-title"${draftWarning ? ' aria-describedby="export-draft-warning"' : ''}><div class="dialog-head"><button type="button" class="back-button" id="close-dialog" aria-label="${text('close')}"><span aria-hidden="true">←</span> ${text(modal === 'reset' ? 'cancel' : 'back')}</button><span>${text(title)}</span></div><div class="dialog-body"><h1 id="dialog-title" tabindex="-1">${text(title)}</h1>
+  const exportDescription = modal === 'export' ? [dirty && 'export-draft-warning', pendingMarker && 'export-marker-warning'].filter(Boolean).join(' ') : '';
+  return `<dialog id="dialog" class="${modal === 'reset' ? 'confirmation-dialog' : 'screen-dialog'}" aria-labelledby="dialog-title"${exportDescription ? ` aria-describedby="${exportDescription}"` : ''}><div class="dialog-head"><button type="button" class="back-button" id="close-dialog" aria-label="${text('close')}"><span aria-hidden="true">←</span> ${text(modal === 'reset' ? 'cancel' : 'back')}</button><span>${text(title)}</span></div><div class="dialog-body"><h1 id="dialog-title" tabindex="-1">${text(title)}</h1>
     ${feedbackMarkup(true)}${modal === 'settings' ? settingsPanel() : modal === 'reset' ? `<p class="help">${text('resetCount', { count: resetSnapshot!.entries.length })}</p><button id="export-before-reset" class="secondary full" ${!resetSnapshot!.entries.length ? 'disabled' : ''}>${text('export')}</button><button id="confirm-reset" class="danger full">${text('resetAction')}</button>` :
       `<p class="help">${text('exportSummary', { count: reportEntryCount, date: displayDate(monitorTime(session!.startedAtMs, session!), lang) })}</p>
-      ${draftWarning ? `<div class="warning export-draft-warning"><p id="export-draft-warning">${text('exportDraftWarning')}</p><button type="button" class="text-button" id="return-export-note">${text('returnNote')}</button></div>` : ''}
+      ${dirty ? `<div class="warning export-warning"><p id="export-draft-warning">${text('exportDraftWarning')}</p><button type="button" class="text-button" id="return-export-note">${text('returnNote')}</button></div>` : ''}
+      ${pendingMarker ? `<div class="warning export-warning"><p id="export-marker-warning">${text('exportMarkerWarning')}</p><button type="button" class="text-button" id="return-export-marker">${text('returnMarker')}</button></div>` : ''}
       <div class="card"><p class="help">${text('exportHelp')}</p><label for="report-language">${text('reportLanguage')}</label>
       <select id="report-language"><option value="de" ${reportLanguage === 'de' ? 'selected' : ''}>Deutsch</option><option value="en" ${reportLanguage === 'en' ? 'selected' : ''}>English</option></select>
       <div class="export-actions"><button id="download-pdf" class="primary">${text('pdf')} ${arrow}</button>${reportFile && typeof navigator.share === 'function' && navigator.canShare?.({ files: [reportFile] }) ? `<button id="share-pdf" class="secondary">${text('share')}</button>` : ''}<button id="download-text" class="secondary">${text('text')}</button></div></div>`}</div></dialog>`;
@@ -333,7 +334,7 @@ function render(focusTarget?: string): void {
   quickObserver?.disconnect(); headerObserver?.disconnect(); actionObserver?.disconnect();
   updateDocumentLanguage(); document.title = 'Holter Diary';
   root.innerHTML = `<header class="topbar"><span class="brand">${pulse}<span>holter<span class="brand-light"> diary</span></span></span><button type="button" id="settings" class="settings-button" aria-label="${text('settings')}">${text('settings')}<span id="update-notice" aria-hidden="true" hidden>${updateIcon}</span></button></header>
-    ${pendingMarker ? `<div id="pending-marker" class="error"><p>${text('markerFailed')} <strong>${esc(pendingMarker.display)}</strong></p><button type="button" class="secondary" id="retry-marker" ${session?.id !== pendingMarker.entry.sessionId ? 'disabled' : ''}>${text('retryMarker')}</button><button type="button" class="text-button danger" id="discard-marker">${text('discardMarker')}</button></div>` : ''}
+    ${pendingMarker ? `<div id="pending-marker" class="error"><p id="pending-marker-message" tabindex="-1">${text('markerFailed')} <strong>${esc(pendingMarker.display)}</strong></p><button type="button" class="secondary" id="retry-marker" ${session?.id !== pendingMarker.entry.sessionId ? 'disabled' : ''}>${text('retryMarker')}</button><button type="button" class="text-button danger" id="discard-marker">${text('discardMarker')}</button></div>` : ''}
     ${loadError ? `<main class="card"><h1>${text('loadFailed')}</h1><button class="primary" id="retry-load">${text('reload')}</button></main>` :
     !session ? `<main class="welcome"><h1>${text('newDiaryTitle')}</h1><p class="intro">${text('welcomeText')}</p><form id="setup" class="card setup-card"><p class="help">${text('optionalSetup')}</p>
       <details id="setup-identity" data-disclosure ${openSections.has('setup-identity') ? 'open' : ''}><summary>${text('identitySection')}</summary><label for="setup-name">${text('name')}</label><input id="setup-name" autocomplete="name" maxlength="120" value="${esc(setupName)}">${birthDateField('setup-birth-date', setupDateOfBirth)}</details>
@@ -443,6 +444,10 @@ function bind(): void {
   on('export', openExport);
   on('close-dialog', () => closeDialog());
   on('return-export-note', () => closeDialog('note'));
+  on('return-export-marker', () => {
+    closeDialog('pending-marker-message');
+    if (!modal) document.getElementById('pending-marker')?.scrollIntoView({ block: 'nearest' });
+  });
   document.querySelector('#dialog')?.addEventListener('cancel', event => { event.preventDefault(); closeDialog(); });
   on('check-storage', () => void checkStorage());
   on('retry-offline', () => void offline.start());

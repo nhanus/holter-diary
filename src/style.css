@@ -123,7 +123,7 @@ dialog::backdrop { background: #18312977; }
 .feedback, .marker-receipt { background: #e8f2e6; color: #325738; border-left: 3px solid #45764d; }
 .error { background: #fae5df; color: #843e2a; }
 .warning { background: #fff0db; color: #704b22; border: 1px solid #dfc197; }
-.export-draft-warning p { margin-bottom: 0; }
+.export-warning p { margin-bottom: 0; }
 .marker-receipt p { margin-bottom: 0; }
 [data-storage-check]:empty { margin: 0; }
 #quick-actions { position: fixed; z-index: 3; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 540px); display: flex; justify-content: space-between; gap: 8px; padding: 8px 14px; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: #f7f7f2; border-top: 1px solid #b8c9bd; box-shadow: 0 -5px 20px #193a3410; }
