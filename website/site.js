@@ -40,12 +40,20 @@ const de = {
   guideSide: 'Auf dieser Seite',
   guideParts: ['Öffnen & installieren', 'Offline-Bereitschaft prüfen', 'Tagebuch beginnen', 'Notizen & Beschwerden', 'Export & Updates'],
   guideContent: [
-    ['Öffnen und installieren', 'Öffne die App im Browser auf deinem Android-Handy. Wähle im Browsermenü „App installieren“ oder „Zum Startbildschirm hinzufügen“. Die Bezeichnung hängt vom Browser ab. Starte die App danach über ihr Symbol.', 'Die installierte App öffnet direkt das Tagebuch. Projektseite, Anleitung und FAQ findest du hier auf der Website. Du kannst die App auch im Browser verwenden.'],
+    ['Öffnen und installieren', 'Wähle unten die Anleitung für dein Handy. Installiere zuerst die App und beginne danach dein Tagebuch.', 'Die installierte App öffnet direkt das Tagebuch. Projektseite, Anleitung und FAQ findest du hier auf der Website. Du kannst die App auch im Browser verwenden.'],
     ['Einmal online einrichten', 'Öffne die App zunächst mit Internet. Unter „Einstellungen → Offline & Speicherung“ muss „Für Offline-Nutzung bereit“ stehen, bevor du dich auf die Offline-Nutzung verlässt.', '„Dauerhaften Speicher prüfen“ ist eine eigene Prüfung. Der Browser entscheidet über die Freigabe. Installieren und erneutes Prüfen kann helfen, garantiert sie aber nicht.'],
     ['Tagebuch beginnen', 'Tippe auf „Tagebuch beginnen“. Name und Geburtsdatum sind optional und helfen bei der Zuordnung des Berichts. Du kannst sie später unter „Angaben fürs Protokoll“ ergänzen.', 'Nur wenn der EKG-Monitor eine andere Zeit zeigt, ist ein Zeitabgleich nötig. Eine Korrektur gilt für die dargestellten Zeiten aller Einträge. Ohne Abweichung reicht die Handyzeit.'],
     ['Notieren oder den Moment markieren', 'Schreibe kurz auf, was du gemacht hast, und tippe auf „Speichern“. Die Uhrzeit wird automatisch gesetzt und bleibt beim Schreiben fest. Über „Zeit ändern“ kannst du einen Zeitpunkt korrigieren.', '„Beschwerden jetzt“ speichert sofort eine Markierung mit Uhrzeit. Details kannst du danach ergänzen. Eine noch nicht gespeicherte Notiz ist kein dauerhaft gesicherter Eintrag.'],
     ['Exportieren und aktuell bleiben', 'Öffne „Protokoll“, wähle Deutsch oder Englisch und lade PDF oder Text herunter. Die Auswahl ändert die Beschriftungen im Bericht; deine Notizen werden nicht übersetzt. Das Drucken übernimmt der PDF-Betrachter deines Handys.', 'Ein Update erkennst du am Symbol bei „Einstellungen“. Unter „App-Updates“ findest du die installierte Version und „Jetzt aktualisieren“, sobald ein Update bereitsteht. Ungespeicherte Eingaben müssen vorher abgeschlossen werden.']
   ],
+  installTitle: 'Installation für dein Handy',
+  installLabels: ['Android', 'iPhone · Safari'],
+  installSteps: [
+    ['Öffne das Tagebuch über „App öffnen“ in einem Browser, zum Beispiel Chrome.', 'Öffne das Browsermenü (meist drei Punkte). Wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.', 'Bestätige die Installation. Die Bezeichnungen können je nach Browser abweichen.'],
+    ['Öffne das Tagebuch über „App öffnen“ in Safari.', 'Tippe auf „Teilen“: das Quadrat mit dem Pfeil nach oben. Je nach Safari-Ansicht findest du „Teilen“ im Seitenmenü.', 'Scrolle in der Liste nach unten und wähle „Zu Home-Bildschirm hinzufügen“.', 'Falls „Als Web-App öffnen“ angezeigt wird, aktiviere es. Tippe auf „Hinzufügen“.']
+  ],
+  iphoneInstallTip: 'Fehlt „Zu Home-Bildschirm hinzufügen“? Scrolle im Teilen-Menü ganz nach unten und schau unter „Aktionen bearbeiten“ nach.',
+  installAfter: 'Starte Holter Diary danach über das neue Symbol auf deinem Home- oder Startbildschirm – zunächst mit Internet. Prüfe anschließend die Offline-Bereitschaft wie in Schritt 2 beschrieben.',
   cautionTitle: 'Bevor du neu beginnst',
   caution: '„Neues Tagebuch beginnen“ löscht nach deiner Bestätigung das bisherige Tagebuch. Lade vorher ein Protokoll herunter, wenn du es behalten möchtest.',
   faqTitle: 'Gut zu wissen.',
@@ -133,12 +141,20 @@ const en = {
   guideSide: 'On this page',
   guideParts: ['Open & install', 'Check offline readiness', 'Start a diary', 'Notes & symptoms', 'Export & updates'],
   guideContent: [
-    ['Open and install', 'Open the app in a browser on your Android phone. In the browser menu, choose “Install app” or “Add to Home screen”. The wording depends on the browser. Then launch the app using its icon.', 'The installed app opens directly to the diary. You’ll find the project page, guide and FAQ here on the website. You can also use the app in your browser.'],
+    ['Open and install', 'Choose the instructions for your phone below. Install the app first, then start your diary.', 'The installed app opens directly to the diary. You’ll find the project page, guide and FAQ here on the website. You can also use the app in your browser.'],
     ['Set up once while online', 'First open the app with an internet connection. Under “Settings → Offline & storage”, wait for “Ready to use offline” before relying on offline use.', '“Check persistent storage” is a separate check. The browser decides whether to grant it. Installing the app and checking again may help, but is not a guarantee.'],
     ['Start a diary', 'Tap “Start my diary”. Your name and date of birth are optional and help identify your report. You can add them later under “Report details”.', 'Only compare clocks if the ECG recorder shows a different time. A correction applies to the displayed times of all entries. If the clocks agree, phone time is enough.'],
     ['Write a note or mark the moment', 'Briefly describe what you were doing, then tap “Save”. The time is set automatically and stays fixed while you type. Use “Change time” to correct an entry’s time.', '“Symptoms now” immediately saves a time marker. You can add details afterwards. An unsaved note is not a durably saved entry.'],
     ['Export and stay up to date', 'Open “Report”, choose German or English, and download a PDF or text file. This changes report labels; your notes are not translated. Your phone’s PDF viewer handles printing.', 'An icon beside “Settings” indicates an available update. “App updates” shows your installed version and “Update now” when an update is ready. Finish any unsaved input first.']
   ],
+  installTitle: 'Installation for your phone',
+  installLabels: ['Android', 'iPhone · Safari'],
+  installSteps: [
+    ['Use “Open app” to open the diary in a browser, such as Chrome.', 'Open the browser menu (usually three dots). Choose “Install app” or “Add to Home screen”.', 'Confirm installation. The wording may differ between browsers.'],
+    ['Use “Open app” to open the diary in Safari.', 'Tap “Share”: the square with an upward arrow. Depending on your Safari layout, “Share” is in the page menu.', 'Scroll down the list and choose “Add to Home Screen”.', 'If “Open as Web App” appears, turn it on. Tap “Add”.']
+  ],
+  iphoneInstallTip: 'Missing “Add to Home Screen”? Scroll to the bottom of the Share menu and look under “Edit Actions”.',
+  installAfter: 'Then launch Holter Diary using its new Home Screen icon while connected to the internet. Check offline readiness as described in step 2.',
   cautionTitle: 'Before starting again',
   caution: '“Start a new diary” deletes the previous diary after you confirm. Download a report first if you want to keep it.',
   faqTitle: 'Good to know.',
@@ -302,13 +318,16 @@ function home() {
 }
 
 function guide() {
-  const install = `<div class="install-path">
-    <span>${lang === 'de' ? 'Browser öffnen' : 'Open browser'}</span>
-    <span aria-hidden="true">→</span>
-    <span>${lang === 'de' ? 'App installieren' : 'Install app'}</span>
-    <span aria-hidden="true">→</span>
-    <span>${lang === 'de' ? 'Tagebuch starten' : 'Open diary'}</span>
-  </div>${openApp()}`;
+  const install = `${openApp()}
+    <nav class="install-links" aria-label="${t.installTitle}">
+      ${t.installLabels.map((label, index) => `<a class="text-link" href="#install-${index === 0 ? 'android' : 'iphone'}">${label}</a>`).join('')}
+    </nav>
+    ${t.installSteps.map((steps, index) => `<section class="install-platform" id="install-${index === 0 ? 'android' : 'iphone'}" aria-labelledby="install-heading-${index}">
+      <h3 id="install-heading-${index}">${t.installLabels[index]}</h3>
+      <ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>
+      ${index === 1 ? `<p>${t.iphoneInstallTip}</p>` : ''}
+    </section>`).join('')}
+    <p class="install-after">${t.installAfter}</p>`;
 
   return `<div class="wrap">
     <header class="content-heading">
@@ -331,8 +350,8 @@ function guide() {
             <span class="step-number">0${index + 1}</span>
             <h2>${title}</h2>
             <p>${text}</p>
-            <div class="guide-note">${note}</div>
             ${index === 0 ? install : ''}
+            <div class="guide-note">${note}</div>
             ${index === 4 ? `<a class="text-link" href="${url('faq/', '#question-10')}">${t.updateHelpLink} ${arrow}</a>` : ''}
           </section>
         `).join('')}
@@ -362,7 +381,7 @@ function faq() {
             ${questions.map(index => { const [question, answer, steps, note] = t.faqs[index]; return `
               <details id="question-${index + 1}">
                 <summary>${question}<span aria-hidden="true">+</span></summary>
-                <div class="faq-answer"><p>${answer}</p>${steps ? `<ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>` : ''}${note ? `<p>${note}</p>` : ''}</div>
+                <div class="faq-answer"><p>${answer}</p>${index === 2 ? `<nav class="install-links" aria-label="${t.installTitle}">${t.installLabels.map((label, i) => `<a class="text-link" href="${url('guide/', i === 0 ? '#install-android' : '#install-iphone')}">${label}</a>`).join('')}</nav>` : ''}${steps ? `<ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>` : ''}${note ? `<p>${note}</p>` : ''}</div>
               </details>
             `; }).join('')}
           </div>

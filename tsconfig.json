@@ -26,6 +26,7 @@
     "tests",
     "playwright.config.ts",
     "playwright.app.config.ts",
-    "playwright.site.config.ts"
+    "playwright.site.config.ts",
+    "playwright.webkit.config.ts"
   ]
 }

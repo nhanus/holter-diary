@@ -10,7 +10,11 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: 'list',
-  use: { ...devices['Pixel 7'], browserName: 'chromium', baseURL: url, locale: 'de-DE', trace: 'retain-on-failure' },
+  use: { baseURL: url, locale: 'de-DE', trace: 'retain-on-failure' },
+  projects: [
+    { name: 'chromium', use: { ...devices['Pixel 7'] } },
+    { name: 'webkit', testMatch: /(?:installation|faq-help)\.spec\.ts/, use: { ...devices['iPhone 13'], browserName: 'webkit' } },
+  ],
   webServer: {
     command: `npm run preview -- --dir site-dist --host ${host} --port ${port} --strictPort`,
     url,

@@ -646,20 +646,29 @@ footer {
   color: #4d6454;
 }
 
-.install-path {
+.install-links {
   display: flex;
-  gap: 10px;
-  align-items: center;
   flex-wrap: wrap;
-  margin-top: 22px;
-  font-size: 12px;
+  gap: 12px 24px;
+  margin-block: 24px;
 }
 
-.install-path > span:not([aria-hidden]) {
+.install-links a { padding-block: 8px; }
+
+.install-platform {
   border: 1px solid #bdcdbd;
-  border-radius: 6px;
-  padding: 8px 10px;
+  border-radius: 12px;
+  padding: 20px;
+  margin-block: 20px;
+  scroll-margin-top: 100px;
 }
+
+.install-platform h3 { margin: 0 0 16px; font-size: 1.25rem; }
+.install-platform ol { margin: 0; padding-inline-start: 1.4em; }
+.install-platform li { font-size: 1rem; line-height: 1.65; }
+.install-platform li + li { margin-top: 12px; }
+.guide-step .install-platform p, .guide-step .install-after { font-size: 1rem; }
+.install-platform p { margin-bottom: 0; }
 
 .caution {
   padding: 25px;
@@ -1015,10 +1024,6 @@ footer {
     padding: 13px 16px;
     font-size: 14px;
   }
-  .install-path {
-    gap: 8px;
-    font-size: 11px;
-  }
   .caution {
     padding: 20px;
   }
@@ -1074,9 +1079,6 @@ footer {
   }
   .paper {
     padding: 22px 16px;
-  }
-  .install-path > span:not([aria-hidden]) {
-    padding: 6px 7px;
   }
 }
 

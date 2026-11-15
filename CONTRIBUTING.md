@@ -30,7 +30,7 @@ Use the Node.js and npm versions specified in `package.json` and `.node-version`
 npm run deps:install
 npm run check
 npm run build
-./node_modules/.bin/playwright install chromium
+./node_modules/.bin/playwright install chromium webkit
 npm test
 ```
 
