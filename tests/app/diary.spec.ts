@@ -318,6 +318,7 @@ test('storage check reports repeated denial, API failure and actual grant separa
 
 test('failed marker retries its original time and can be discarded after a diary reset elsewhere', async ({ page, context }) => {
   await start(page);
+  await note(page, 'Gespeicherte Notiz');
   await page.evaluate(() => {
     const original = IDBObjectStore.prototype.add;
     IDBObjectStore.prototype.add = function (...args: Parameters<IDBObjectStore['add']>) {
@@ -329,9 +330,18 @@ test('failed marker retries its original time and can be discarded after a diary
   await page.getByRole('button', { name: 'Beschwerden jetzt', exact: true }).click();
   await expect(page.locator('#retry-marker')).toBeVisible();
   const originalTime = await page.locator('#pending-marker strong').textContent();
+  await page.locator('#export').click();
+  await expect(page.locator('#dialog')).toHaveAccessibleDescription('Die ungespeicherte Beschwerdezeit fehlt im Protokoll.');
+  await expect(page.locator('#download-pdf')).toBeEnabled();
+  await page.getByRole('button', { name: 'Zur Beschwerdezeit zurück' }).click();
+  await expect(page.locator('#pending-marker-message')).toBeFocused();
+  await expect(page.locator('#retry-marker')).toBeInViewport();
   await page.locator('#retry-marker').click();
-  await expect(page.locator('.entry')).toHaveCount(1);
-  await expect(page.locator('.entry-time strong')).toHaveText(originalTime!.slice(11));
+  await expect(page.locator('.entry')).toHaveCount(2);
+  await expect(page.locator('.entry.is-symptom .entry-time strong')).toHaveText(originalTime!.slice(11));
+  await page.locator('#export').click();
+  await expect(page.locator('#export-marker-warning')).toHaveCount(0);
+  await page.locator('#close-dialog').click();
   // Fail a second marker, then replace the diary in a separate tab.
   await page.evaluate(() => {
     const original = IDBObjectStore.prototype.add;

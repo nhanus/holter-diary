@@ -53,6 +53,39 @@ async function rawEntries(page: Page) {
   }));
 }
 
+test('export warns about an unsaved entry and returns to the intact draft', async ({ page }) => {
+  await page.goto('');
+  await page.locator('#start-diary').click();
+  await expect(page.locator('#feedback')).toHaveText('Tagebuch begonnen');
+
+  const note = page.locator('#note');
+  await note.fill('Spaziergang');
+  await page.locator('#save-entry').click();
+  await expect(page.locator('#feedback')).toHaveText('Eintrag auf diesem Gerät gespeichert.');
+  await note.fill('Letzte Notiz zur Messung');
+  const timestamp = await page.locator('.time-stamp').textContent();
+  const reportWithDraft = (await exportRows(page)).map(item => item.str);
+  expect(reportWithDraft).toContain('Spaziergang');
+  expect(reportWithDraft).not.toContain('Letzte Notiz zur Messung');
+
+  await page.locator('#export').click();
+  await expect(page.locator('#dialog')).toHaveAccessibleDescription(/ungespeicherten Eintrag/);
+  await expect(page.locator('#download-pdf')).toBeEnabled();
+  await page.getByRole('button', { name: 'Zur Notiz zurück' }).click();
+  await expect(note).toBeFocused();
+  await expect(note).toHaveValue('Letzte Notiz zur Messung');
+  await expect(page.locator('.time-stamp')).toHaveText(timestamp!);
+  await expect(page.locator('.entry')).toHaveCount(1);
+
+  await page.locator('#save-entry').click();
+  await expect(page.locator('.entry')).toHaveCount(2);
+  await page.locator('#export').click();
+  await expect(page.locator('#export-draft-warning')).toHaveCount(0);
+  await page.locator('#close-dialog').click();
+  const reportAfterSave = (await exportRows(page)).map(item => item.str);
+  expect(reportAfterSave).toContain('Letzte Notiz zur Messung');
+});
+
 test('later positive and negative calibration shifts actual PDF rows, including midnight, without rewriting entries', async ({ page }) => {
   await page.clock.install();
   await page.clock.setFixedTime(new Date('2030-12-31T22:58:00Z'));
