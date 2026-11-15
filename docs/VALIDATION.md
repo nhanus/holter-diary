@@ -18,13 +18,13 @@
   are recorded in the PR before merge.
 
 The complete app is implemented. Automated tests exercise the production build.
-Device observations have been reported, but the reproducible real-device
-acceptance record below is not complete.
+Core Android acceptance has been reported as successful; see the evidence and
+its limits below. Already confirmed device checks are not an outstanding retest list.
 
-- `npm run test:unit`: 23 tests covering fixed time, permission outcomes, actual
+- `npm run test:unit`: 27 tests covering fixed time, permission outcomes, actual
   PDF text extraction, A4 bounds, multipage continuation, Unicode fallback and update activation failures/timeouts.
 - `npm run test:browser`: 6 Chromium storage tests against a separate fixture.
-- `npm run test:app`: 32 production mobile-browser tests for notes, markers,
+- `npm run test:app`: 55 production mobile-browser tests for notes, markers,
   edits, failure recovery, conflicts, language, calibration, reset, offline reload
   and export, cache readiness/repair, explicit update adoption across tabs, export above a long history, timed confirmations and downloaded PDFs after setup, later clock corrections and resetting the correction.
 - Document language and localized description follow DE/EN selection and persisted preferences, including a delayed database open with a neutral loading shell. Repeated storage checks visibly report denial, API failure and grant without changing offline readiness or saved entries. Real persistence grants still require device checks. The translation prompt has stopped in reported device use; this is not an automated native-browser UI guarantee.
@@ -56,48 +56,76 @@ build. Use synthetic data only in tests, screenshots, logs and artifacts. Add
 failure traces/screenshots with short retention. Avoid a broad browser matrix or
 an arbitrary coverage percentage. Tests must exercise behavior, not mirror code.
 
-## Real-device acceptance (record incomplete)
+## Device evidence and proportionate retesting
 
-### Reported observations
+### Reported Android results
 
-Recorded on 2026-11-14: the maintainer reports installing and using the app on an
-Android phone, seeing persistent-storage approval after installation, and applying
-an app update with the installed version displayed. These observations support
-the README's description of hands-on testing; they are not a completed acceptance
-run. Android/browser versions and the exact build for each observation have not
-been recorded. They do not establish every checklist item, every browser, the
-latest release's full behavior, or WebAPK migration between launch paths.
+On 2026-11-14 the maintainer reported successful Android installation/use,
+persistent-storage approval after installation, and adoption of an app update
+with the installed version displayed. On 2026-11-15 the maintainer confirmed
+installation and use from the public Pages address, version/offline/storage status,
+and clarified that phone restart with retained entries and offline use had already
+been tested successfully. These are reported physical-device results, not results
+inferred from browser emulation. Do not request those same tests again merely to
+complete a checklist.
 
-### Outstanding acceptance record
+The current public app is beta.5. Exact Android/Chrome versions and the build/origin
+of each earlier observation were not recorded. That limits reproducibility; it does
+not turn a reported pass into an untested feature or require repeating an unchanged
+flow. Collect device/version details when investigating a specific failure or a
+material platform change, rather than making them an outstanding beta task.
 
-Record date, build SHA, Android version, browser version and observed results.
-Unchecked items below mean the reproducible acceptance record is outstanding,
-not that no informal testing has occurred. Desktop emulation cannot complete
-this checklist.
+The published Pages artifact was also checked independently in a fresh persistent
+Chromium profile: DE/EN routes, language selection, installation manifest, beta.5
+version, update check, retained synthetic entries after closing/reopening the browser
+offline, another offline save and PDF export. This does not simulate a phone reboot
+or prove a persistence grant; the uninstalled test profile reported no grant.
 
-- [ ] Install on the Android home screen over HTTPS.
-- [ ] Check the revised interface with the on-screen keyboard, large text and TalkBack.
-- [ ] Check platform Back behavior; use the explicit app back/cancel control for the supported return path.
-- [ ] Observe the actual persistent-storage permission result.
-- [ ] Save entries, close the app, restart the phone normally, reopen and compare.
-- [ ] Airplane mode: reopen, record an entry and generate a PDF.
-- [ ] Compare sample monitor and phone times, including an entry across midnight.
-- [ ] Read a long multi-page report in both languages; check umlauts and wrapping.
+### Checks owned by automation
 
-Printing is delegated to the phone's PDF viewer. A physical printer test is not a
-project acceptance requirement; PDF layout, pagination and monochrome readability
-remain covered by report validation.
+These are regression tests, not recurring manual phone assignments:
 
-If persistence is denied, keep that status visible, investigate on the actual
-browser and document the result; do not replace it with a fabricated green state.
+| Behavior | Existing automated evidence |
+| --- | --- |
+| Name and date of birth, individually present or absent, repeated on every page, DE/EN, no empty-field labels | `tests/unit/report.test.ts`, `tests/unit/patient.test.ts` |
+| Identity setup, reload, later edits, clearing and reset in downloaded reports | `tests/app/report-time.spec.ts` |
+| No correction / zero correction: one time column; positive/negative correction: both clocks, midnight and backdated entries | `tests/unit/report.test.ts`, `tests/unit/time.test.ts`, `tests/app/report-time.spec.ts` |
+| Multipage PDF contents, order, A4 bounds, long notes, umlauts and TXT fallback | `tests/unit/report.test.ts` |
+| Saving, reload/offline retention, another offline note and PDF export | `tests/browser/storage.spec.ts`, `tests/app/diary.spec.ts` |
+| Waiting/late/cross-tab updates, protected drafts, retained records and version display | `tests/app/diary.spec.ts`, `tests/app/update-recovery.spec.ts`, `tests/app/version.spec.ts` |
+
+PDF tests extract text and positions from generated PDF bytes; app tests inspect
+actual downloads after UI interactions. They do not merely check that an export
+button was clicked. Existing CI runs these tests on pull requests and before
+publication. No additional phone exercise with fictional identity fields is needed.
+
+### When another device check is useful
+
+No additional manual phone test is required to close this beta's core acceptance.
+Repeat only an affected native-browser flow after a relevant change or a reported
+failure: for example, install identity/scope changes, a storage regression, or a
+change to keyboard handling or update activation. A real version transition can
+be observed during the next normal app update when relevant; do not manufacture
+an update or hold current acceptance open waiting for a future release.
+
+TalkBack, other browser/device combinations and platform Back behavior are not
+claimed as physically validated. They are coverage limits, not new mandatory tasks
+for the current tester. Native keyboard feedback was exercised during UI development;
+automated layout tests cover the documented simulated conditions. Use the explicit
+app back/cancel controls for the supported return path.
+
+Printing is delegated to the phone's PDF viewer. No physical printer acceptance
+is required. If a device denies persistence, keep that observed status visible;
+never replace it with an assumed grant.
 
 ## Evidence and release
 
 Each feature PR records the relevant commands/results and independent review.
 The [release-readiness issue](https://github.com/nhanus/holter-diary/issues/2) collects
 real-device evidence and the final CI run/commit. Keep untested
-items marked pending and unresolved issues explicit. The manual Pages workflow is prepared but remains disabled until maintainer
-approval and hosting configuration. See [deployment](DEPLOYMENT.md).
+items marked pending and unresolved issues explicit. Public beta hosting was approved
+and deployed on 2026-11-15; subsequent Pages publications still require an explicit
+manual workflow run. See [deployment](DEPLOYMENT.md).
 
 Review repository files, examples, discussions, logs and artifacts for unintended
 personal information. Setup instructions must be portable and examples synthetic.
