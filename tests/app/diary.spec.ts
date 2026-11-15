@@ -488,6 +488,13 @@ test('one settings entry protects edits and remains usable on narrow screens', a
   await expect(page.locator('[data-offline-status]').first()).toHaveText('Für Offline-Nutzung bereit');
   await expect(page.locator('#retry-offline')).toBeHidden();
   await page.addStyleTag({ content: 'body { font-size: 24px } .help,button,summary,.status-line { font-size: 24px !important }' });
+  // Font changes resize the sticky header; wait for its ResizeObserver to update
+  // scroll padding before the one-shot scroll. Keep the actual overlap check below.
+  await page.waitForFunction(() => {
+    const dialog = document.querySelector<HTMLDialogElement>('#dialog')!;
+    const header = dialog.querySelector<HTMLElement>('.dialog-head')!;
+    return Number.parseFloat(getComputedStyle(dialog).scrollPaddingTop) === header.offsetHeight + 12;
+  }, undefined, { timeout: 5000 });
   await page.locator('#check-storage').focus(); await page.locator('#check-storage').evaluate(el => el.scrollIntoView({ block: 'start' }));
   const control = await page.locator('#check-storage').boundingBox(); const heading = await page.locator('.dialog-head').boundingBox();
   expect(control!.y).toBeGreaterThanOrEqual(heading!.y + heading!.height);
