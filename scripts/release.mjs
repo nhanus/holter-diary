@@ -3,6 +3,7 @@ import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { createSbom, validateSbom, sbomName, legacyRelease } from './sbom.mjs';
 
 const assert = (value, message) => { if (!value) throw new Error(message); };
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -42,18 +43,25 @@ export async function prepare(root, sourceSha) {
   const archive = `holter-diary-${version}.tar.gz`;
   execFileSync('tar', ['--sort=name', '--mtime=@0', '--owner=0', '--group=0', '--numeric-owner', '--mode=u=rwX,go=rX', '-czf', join(output, archive), '-C', dist, '.']);
   const digest = sha256(await readFile(join(output, archive)));
-  await writeFile(join(output, 'SHA256SUMS'), `${digest}  ${archive}\n`);
-  await writeFile(join(output, 'release.json'), JSON.stringify({ version, sourceSha, archive, sha256: digest }, null, 2) + '\n');
-  return { version, sourceSha, archive, sha256: digest };
+  const manifest = { version, sourceSha, archive, sha256: digest };
+  const sbom = await createSbom(root, manifest);
+  manifest.sbom = { file: sbomName(version), sha256: sha256(sbom) };
+  await writeFile(join(output, manifest.sbom.file), sbom);
+  await writeFile(join(output, 'SHA256SUMS'), `${digest}  ${archive}\n${manifest.sbom.sha256}  ${manifest.sbom.file}\n`);
+  await writeFile(join(output, 'release.json'), JSON.stringify(manifest, null, 2) + '\n');
+  return manifest;
 }
 export async function releaseFiles(root, sha) {
   const version = await packageVersion(root), output = join(root, 'release'), manifest = await json(join(output, 'release.json'));
   const archive = `holter-diary-${version}.tar.gz`;
   assert(manifest.version === version && manifest.sourceSha === sha && manifest.archive === archive, 'Release identity mismatch.');
-  const assets = await Promise.all([archive, 'SHA256SUMS', 'release.json'].map(async name => {
+  assert(manifest.sbom?.file === sbomName(version), 'Missing release SBOM.');
+  const assets = await Promise.all([archive, 'SHA256SUMS', 'release.json', manifest.sbom.file].map(async name => {
     const bytes = await readFile(join(output, name)); return { name, bytes, size: bytes.length, digest: `sha256:${sha256(bytes)}` };
   }));
-  assert(manifest.sha256 === assets[0].digest.slice(7) && assets[1].bytes.toString() === `${manifest.sha256}  ${archive}\n`, 'Release checksum mismatch.');
+  assert(manifest.sha256 === assets[0].digest.slice(7) && manifest.sbom.sha256 === assets[3].digest.slice(7) &&
+    assets[1].bytes.toString() === `${manifest.sha256}  ${archive}\n${manifest.sbom.sha256}  ${manifest.sbom.file}\n`, 'Release checksum mismatch.');
+  validateSbom(JSON.parse(assets[3].bytes), manifest);
   const notes = await readFile(join(root, 'releases', `${version}.md`), 'utf8');
   assert(notes.trim().length >= 20, 'Reviewed release notes are required.');
   return { version, assets, notes };
@@ -94,7 +102,8 @@ export async function publish(root, env, api = githubApi(env.GH_TOKEN)) {
   if (reference) assert(reference.object?.type === 'commit', 'Release tag must point directly to a commit.');
   if (release) assert(release.tag_name === tag && release.prerelease === prerelease, 'Existing release identity mismatch.');
   if (release && !release.draft) {
-    assert(reference && assets.every(asset => release.assets?.some(a => a.name === asset.name && a.state === 'uploaded')), 'Published release is incomplete.');
+    const required = legacyRelease(version) ? assets.slice(0, 3) : assets;
+    assert(reference && required.every(asset => release.assets?.some(a => a.name === asset.name && a.state === 'uploaded')), 'Published release is incomplete.');
     console.log(`${tag} is already published; left unchanged.`); return 'existing';
   }
   if (reference) assert(reference.object.sha === sha, 'Existing tag points to another commit.');
@@ -103,7 +112,7 @@ export async function publish(root, env, api = githubApi(env.GH_TOKEN)) {
   if (!release) {
     release = await api('POST', `${base}/releases`, {
       tag_name: tag, target_commitish: sha, name: `Holter Diary ${version}`, draft: true, prerelease,
-      body: `${prerelease ? 'Preview release. Android acceptance remains in progress.\n\n' : ''}${notes.trim()}\n\nThe app archive is the exact CI-tested static build. SHA256SUMS and release.json identify its bytes and source commit.`,
+      body: `${prerelease ? 'Preview release. Android acceptance remains in progress.\n\n' : ''}${notes.trim()}\n\nThe app archive is the exact CI-tested static build. The CycloneDX SBOM lists locked production dependencies. SHA256SUMS and release.json bind both files to the app version and source commit.`,
     });
   }
   assert(Number.isSafeInteger(release.id) && release.id > 0, 'Invalid release identifier.');

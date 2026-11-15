@@ -119,12 +119,13 @@ To release a change:
    public release and describe any pending device acceptance.
 3. Merge after review and CI. The successful **main push** CI packages its tested
    `dist/` once, then automatically creates tag `vVERSION` at that exact commit.
-   It uploads the app archive, `SHA256SUMS` and `release.json` to a draft, verifies
+   It uploads the app archive, a versioned CycloneDX SBOM, `SHA256SUMS` and
+   `release.json` to a draft, verifies
    upload digests, and publishes it. Prereleases are not marked as latest stable.
    PR, scheduled, manual and Pages workflow runs cannot publish releases.
 4. Deploy the attached `holter-diary-VERSION.tar.gz`, after checking its SHA-256
    against `SHA256SUMS`. `release.json` records the version, source commit and
-   archive checksum. Extract its contents into the existing app base path using
+   archive and SBOM checksums. Extract the app archive into the existing app base path using
    the hosting precautions above. GitHub's automatically added **source** archives
    are not the app build. GitHub release creation does not deploy the website.
 
@@ -139,6 +140,36 @@ The repository can remain private: release creation does not change visibility
 or enable Pages. The release job alone gets `contents: write`; tests and builds
 retain read-only permissions. Release packages are also retained as CI artifacts
 for seven days; the release assets provide the durable download.
+
+### Software bill of materials (SBOM)
+
+New releases include `holter-diary-VERSION.cdx.json` (CycloneDX 1.5 JSON). It records
+exact production npm dependencies, including transitive dependencies, package URLs,
+declared dependency relationships, licenses and npm tarball hashes where available.
+The app version, source commit, archive SHA-256 and lockfile SHA-256 identify the
+inventory's inputs. `SHA256SUMS` covers both archive and SBOM; `release.json` binds
+their filenames and hashes. Publication and website release selection reject a
+missing, modified or incorrectly bound SBOM. The SBOM is a release attachment,
+outside the app's offline cache.
+
+Generation uses the pinned npm toolchain's native `npm sbom` in offline,
+production-only, lockfile-only mode; no new generator dependency or registry
+download is needed. Optional random/time metadata is omitted so retries at the
+same inputs produce identical bytes. Generation failure stops packaging.
+
+This is a **locked production dependency inventory**, not a file-level scan of
+the minified archive. Packages may be partially included or tree-shaken; declared
+edges do not prove which functions execute. npm package hashes identify upstream
+tarballs, not transformed bundle files. Development tools, CI Actions and the test
+browser are excluded; their security checks remain separate. Keep runtime imports
+in production dependencies and review scope when adding copied third-party code,
+build-generated runtime helpers or other non-npm assets. An SBOM is an inventory,
+not a vulnerability report or safety guarantee.
+
+Historical releases `0.1.0-beta.1` through `0.1.0-beta.5` retain their original
+three assets without a retrospectively claimed SBOM. Only those exact versions
+are accepted without one. An unreleased CI build with the same version has its
+own source commit and SBOM; it does not describe or replace that historical release.
 
 ## Separate website and app
 

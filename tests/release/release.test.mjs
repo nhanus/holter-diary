@@ -5,13 +5,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { releaseVersion, releaseContext, prepare, releaseFiles, publish, githubApi } from '../../scripts/release.mjs';
-const sha = 'a'.repeat(40), version = '0.1.0-beta.1';
+const sha = 'a'.repeat(40), version = '0.1.0-beta.6';
 const env = { GITHUB_EVENT_NAME: 'push', GITHUB_REF: 'refs/heads/main', GITHUB_SHA: sha, GITHUB_REPOSITORY: 'example/diary' };
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'diary-release-')); t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(join(root, 'dist/app'), { recursive: true }); await mkdir(join(root, 'releases'));
-  await writeFile(join(root, 'package.json'), JSON.stringify({ version }));
-  await writeFile(join(root, 'package-lock.json'), JSON.stringify({ version, packages: { '': { version } } }));
+  await writeFile(join(root, 'package.json'), JSON.stringify({ name: 'holter-diary', version }));
+  await writeFile(join(root, 'package-lock.json'), JSON.stringify({ name: 'holter-diary', lockfileVersion: 3, version, packages: { '': { name: 'holter-diary', version } } }));
   await writeFile(join(root, 'releases', `${version}.md`), 'Synthetic reviewed release notes for the test app.');
   for (const name of ['app/index.html', 'sw.js', 'manifest.webmanifest', '.nojekyll']) await writeFile(join(root, 'dist', name), 'Synthetic build');
   await writeFile(join(root, 'dist/app/version.json'), JSON.stringify({ version }));
@@ -59,14 +59,14 @@ test('new prerelease publishes exact verified assets at the tested commit', asyn
   assert.equal(await publish(root, env, api), 'published');
   assert.equal(state.tag.object.sha, sha); assert.equal(state.release.target_commitish, sha);
   assert.equal(state.release.prerelease, true); assert.equal(state.release.draft, false); assert.equal(state.release.make_latest, 'false');
-  assert.equal(state.uploads, 3); assert.match(state.release.body, /Synthetic reviewed release notes/);
+  assert.equal(state.uploads, 4); assert.match(state.release.body, /Synthetic reviewed release notes/);
 });
 test('tag-only and partial draft retries resume without replacing assets', async t => {
   const root = await fixture(t), { state, api } = fakeApi({ tag: { object: { type: 'commit', sha } } });
   const interrupted = async (...args) => { if (state.uploads === 1 && args[3]) throw new Error('Synthetic interruption'); return api(...args); };
   await assert.rejects(() => publish(root, env, interrupted), /interruption/);
   assert.equal(state.release.draft, true);
-  await publish(root, env, api); assert.equal(state.uploads, 3); assert.equal(state.release.draft, false);
+  await publish(root, env, api); assert.equal(state.uploads, 4); assert.equal(state.release.draft, false);
   assert.equal(state.calls.filter(c => c.path.endsWith('/git/refs')).length, 0);
 });
 test('published versions stay unchanged on later commits and incomplete releases fail', async t => {
@@ -118,7 +118,7 @@ test('a matching draft recovers an incomplete starter asset without replacing co
     id: 123, tag_name: `v${version}`, target_commitish: sha, draft: true, prerelease: true, assets: [complete, starter],
   } });
   assert.equal(await publish(root, env, api), 'published');
-  assert.equal(state.uploads, 2);
+  assert.equal(state.uploads, 3);
   assert.deepEqual(state.calls.filter(c => c.method === 'DELETE').map(c => c.path), ['/repos/example/diary/releases/assets/11']);
   assert.equal(state.release.assets.find(a => a.id === 10), complete);
 });
@@ -135,4 +135,56 @@ test('incomplete-asset cleanup failures and invalid identifiers leave the draft 
   f.state.release.assets[0].id = -1;
   await assert.rejects(() => publish(root, env, f.api), /Invalid incomplete asset identifier/);
   assert.equal(f.state.uploads, 0); assert.equal(f.state.release.draft, true);
+});
+
+test('SBOM bytes are repeatable and missing, modified or misbound SBOMs cannot publish', async t => {
+  const root = await fixture(t), name = `holter-diary-${version}.cdx.json`;
+  const before = await readFile(join(root, 'release', name));
+  await prepare(root, sha);
+  assert.deepEqual(await readFile(join(root, 'release', name)), before);
+  const bom = JSON.parse(before);
+  assert.equal(bom.metadata.component.version, version);
+  assert.equal(bom.serialNumber, undefined);
+  assert.equal(bom.metadata.timestamp, undefined);
+  await rm(join(root, 'release', name));
+  const f = fakeApi();
+  await assert.rejects(publish(root, env, f.api), /ENOENT/);
+  assert.equal(f.state.calls.length, 0);
+  await writeFile(join(root, 'release', name), before.toString() + ' ');
+  await assert.rejects(publish(root, env, f.api), /checksum mismatch/);
+  assert.equal(f.state.calls.length, 0);
+  // Even internally consistent hashes cannot substitute another product/source/archive.
+  for (const field of ['version', 'source-commit', 'archive-sha256']) {
+    const changed = JSON.parse(before);
+    if (field === 'version') changed.metadata.component.version = '9.0.0';
+    else changed.metadata.properties.find(p => p.name === `holter-diary:${field}`).value = 'wrong';
+    const bytes = JSON.stringify(changed), digest = createHash('sha256').update(bytes).digest('hex');
+    const manifest = JSON.parse(await readFile(join(root, 'release/release.json')));
+    manifest.sbom.sha256 = digest;
+    await writeFile(join(root, 'release', name), bytes);
+    await writeFile(join(root, 'release/release.json'), JSON.stringify(manifest));
+    await writeFile(join(root, 'release/SHA256SUMS'), `${manifest.sha256}  ${manifest.archive}\n${digest}  ${name}\n`);
+    await assert.rejects(publish(root, env, f.api), /SBOM .* identity mismatch/);
+    assert.equal(f.state.calls.length, 0);
+  }
+});
+
+test('historical three-asset releases stay untouched without weakening new releases', async t => {
+  const root = await fixture(t), historical = '0.1.0-beta.5';
+  for (const file of ['package.json', 'package-lock.json', 'dist/app/version.json']) {
+    const path = join(root, file), value = JSON.parse(await readFile(path));
+    value.version = historical;
+    if (value.packages) value.packages[''].version = historical;
+    await writeFile(path, JSON.stringify(value));
+  }
+  await writeFile(join(root, 'releases', `${historical}.md`), 'Historical reviewed release notes.');
+  await prepare(root, sha);
+  const f = fakeApi({ tag: { object: { type: 'commit', sha: 'b'.repeat(40) } }, release: {
+    tag_name: `v${historical}`, prerelease: true, draft: false,
+    assets: [`holter-diary-${historical}.tar.gz`, 'SHA256SUMS', 'release.json'].map(name => ({name, state: 'uploaded'})),
+  }});
+  assert.equal(await publish(root, env, f.api), 'existing');
+  assert.equal(f.state.calls.filter(c => c.method !== 'GET').length, 0);
+  f.state.release.assets.pop();
+  await assert.rejects(publish(root, env, f.api), /incomplete/);
 });
