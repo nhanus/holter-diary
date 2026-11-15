@@ -119,8 +119,9 @@ through the installed, reviewed Playwright version rather than an `npx` fallback
   Check their upstream security advisories and release notes during the weekly
   review; version-update PRs alone do not close that monitoring gap.
 - A merge is not a deployed fix. For changes affecting the shipped app, publish a
-  new app version, select that release for the website and deploy through the
-  approved Pages workflow. Verify the published version and update path. Installed
+  new app version and select that release for the website in the reviewed PR.
+  The main pipeline deploys automatically when Pages is enabled. Verify the
+  successful deployment, published version and update path. Installed
   offline copies receive fixes only after reconnecting and applying the update.
   Tooling-only changes do not require a new app version unless they affect the
   shipped output. Record validation and publication in the associated PR or issue.

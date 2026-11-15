@@ -20,3 +20,13 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Publish website
+    needs: validate
+    if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml

@@ -2,7 +2,8 @@
 
 The app is a static build. No database server, application backend or runtime
 package installation is needed. Repository visibility and website visibility
-are separate decisions. Publishing is not enabled by merging this workflow.
+are separate decisions. Initial hosting requires explicit setup and enablement;
+once enabled, successful current-main release pipelines publish automatically.
 
 ## GitHub Pages
 
@@ -15,21 +16,40 @@ are separate decisions. Publishing is not enabled by merging this workflow.
 3. Configure the `github-pages` environment to allow deployments from `main`
    only; add a required reviewer where supported. Set the repository Actions
    variable `PAGES_ENABLED` to the literal value `true` only after approval.
-4. Run **Publish to Pages (manual)** on `main` and explicitly check `publish`.
-   It runs the existing full CI first, then downloads that run's exact commit
-   website artifact, packages `site-dist/` and deploys it. It never uploads repository
-   source or browser-test evidence as website content. A failed check prevents
-   deployment. Pushes, PRs and scheduled audits never trigger publication.
+4. Merge a reviewed PR into `main`. The **Release** pipeline validates once,
+   publishes any new app version, assembles the website with its selected published
+   app, then calls **Publish to Pages**. Deployment consumes that run's exact
+   `holter-website-COMMIT_SHA` artifact; it does not rebuild or repeat CI. Repository
+   source and browser-test evidence are excluded. A failed check, release or
+   assembly prevents deployment. PRs, scheduled audits and manual CI runs cannot deploy.
 5. Verify the workflow's HTTPS URL, then run the Android checklist below.
 
 The workflow requires Pages configuration to exist; it does not create a site or
-change repository visibility. An unset/false enablement variable, unchecked
-confirmation or non-main branch skips publication. Removing `PAGES_ENABLED`
+change repository visibility. An unset/false enablement variable or non-main
+branch skips publication. Removing `PAGES_ENABLED`
 disables future workflow publications; it does not unpublish an existing site.
 The first Pages deployment was validated on 2026-11-15. For another host or a
 material hosting change, verify the resulting HTTPS address after deployment.
 
 [GitHub Pages workflow requirements](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
+
+### Ordering and recovery
+
+The main pipeline's queue covers validation through deployment. Immediately before
+deployment, the workflow checks the current `main` commit through GitHub's API.
+A superseded run skips hosting; an unavailable or malformed response fails closed.
+This prevents an old rerun from replacing a newer deployment. The existing Pages
+environment still restricts deployment to `main`; only the deployment job receives
+Pages and identity-token write permissions.
+
+If publication fails, rerun the failed jobs of the **Release** run for the current
+`main` commit. This reuses its tested artifact while it is retained (seven days).
+Each attempt names its Pages upload separately, so retries cannot select an older
+attempt's package or collide with its artifact name.
+If the artifact expired, rerun all jobs for the current commit. There is no separate
+manual Pages entry point that can race the main pipeline. For an intentional app
+rollback, change `website/app-release.json` in a reviewed PR and merge it into
+`main`; do not rerun an older commit. Verify the final Pages version after recovery.
 
 ## Another HTTPS host
 
@@ -117,17 +137,22 @@ To release a change:
    prerelease. Build metadata and other suffix formats are intentionally unsupported.
 2. Add reviewed English notes in `releases/VERSION.md`. Keep them suitable for
    public release and describe any pending device acceptance.
+   To serve this version on the website, also update `website/app-release.json`
+   and its required versioned screenshots in that PR.
 3. Merge after review and CI. The successful **main push** CI packages its tested
    `dist/` once, then automatically creates tag `vVERSION` at that exact commit.
    It uploads the app archive, a versioned CycloneDX SBOM, `SHA256SUMS` and
    `release.json` to a draft, verifies
    upload digests, and publishes it. Prereleases are not marked as latest stable.
-   PR, scheduled, manual and Pages workflow runs cannot publish releases.
-4. Deploy the attached `holter-diary-VERSION.tar.gz`, after checking its SHA-256
-   against `SHA256SUMS`. `release.json` records the version, source commit and
-   archive and SBOM checksums. Extract the app archive into the existing app base path using
-   the hosting precautions above. GitHub's automatically added **source** archives
-   are not the app build. GitHub release creation does not deploy the website.
+   PR, scheduled and manual CI runs cannot publish releases. The Pages job only
+   deploys the website after the main pipeline has published the selected release.
+4. When Pages is enabled, the same pipeline verifies the selected release's
+   checksums and identity, assembles the website, and deploys it automatically.
+   Confirm the deployment succeeded and the live app has the selected version.
+   For a separate app-only host, verify the attached `holter-diary-VERSION.tar.gz`
+   against `SHA256SUMS` and follow the hosting precautions above. `release.json`
+   binds the version, source commit, archive and SBOM checksums. GitHub's
+   automatically added **source** archives are not the app build.
 
 An unchanged version does not create another release. Released tags/assets are
 never overwritten. Rerun a failed main CI at the **same commit** to recover a
@@ -198,5 +223,5 @@ The main run publishes the new app before assembling the website. An unavailable
 or mismatched selected release fails assembly; there is no development-build fallback.
 
 Deploy the complete combined artifact for a website plus app. The standalone app
-archive is not a complete website. Build/assembly and hosting remain separate;
-creating artifacts or releases does not activate GitHub Pages.
+archive is not a complete website. Build/assembly and hosting remain separate jobs;
+the main pipeline connects them automatically only when Pages is explicitly enabled.

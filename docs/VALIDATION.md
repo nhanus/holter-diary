@@ -12,8 +12,12 @@
   IndexedDB checks: committed-data reload, aborted writes, immutable capture time,
   edit conflicts, schema refusal without deletion and durability fallback.
 - GitHub Actions runs these checks on pushes, PRs and a weekly schedule, uploads `dist/` for seven
-  days, with read-only build permissions. A separate main-push release job can publish versioned app assets; a read-only website job composes the selected published app. It does not deploy on pushes, PRs or the schedule. The separate manual Pages
-  workflow reuses CI before deployment; it requires explicit enablement.
+  days, with read-only build permissions. A separate main-push release job can
+  publish versioned app assets; a read-only website job composes the selected
+  published app. When Pages is enabled, the same main pipeline deploys that exact
+  artifact without repeating CI. PRs, manual CI and scheduled checks cannot deploy.
+- `npm run test:release` also tests Pages eligibility: exact current-main identity,
+  superseded runs, explicit enablement, rejected event/branch contexts and API failures.
 - An independent reviewer checks the code, workflow and plan; findings and fixes
   are recorded in the PR before merge.
 
@@ -144,8 +148,8 @@ Each feature PR records the relevant commands/results and independent review.
 The [release-readiness issue](https://github.com/nhanus/holter-diary/issues/2) collects
 real-device evidence and the final CI run/commit. Keep untested
 items marked pending and unresolved issues explicit. Public beta hosting was approved
-and deployed on 2026-11-15; subsequent Pages publications still require an explicit
-manual workflow run. See [deployment](DEPLOYMENT.md).
+and deployed on 2026-11-15; subsequent successful current-main pipelines publish
+automatically while Pages remains enabled. See [deployment](DEPLOYMENT.md).
 
 Review repository files, examples, discussions, logs and artifacts for unintended
 personal information. Setup instructions must be portable and examples synthetic.
