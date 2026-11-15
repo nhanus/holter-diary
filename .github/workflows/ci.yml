@@ -57,7 +57,7 @@ jobs:
         run: npm run test:site
       - name: Retain browser failure evidence
         if: failure()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: browser-failures-${{ github.sha }}
           path: test-results/
@@ -66,14 +66,14 @@ jobs:
       - name: Package the tested app for release
         run: node scripts/release.mjs prepare
       - name: Retain release package
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: holter-release-${{ github.sha }}
           path: release/
           if-no-files-found: error
           retention-days: 7
       - name: Retain build for inspection
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: holter-diary-${{ github.sha }}
           path: dist/
@@ -134,7 +134,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/select-app-release.mjs
       - name: Retain complete hosting snapshot
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: holter-website-${{ github.sha }}
           path: site-dist/
