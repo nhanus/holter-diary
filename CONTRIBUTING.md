@@ -2,6 +2,8 @@
 
 Bug reports, small fixes, documentation improvements and translation corrections
 are welcome. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+For suspected vulnerabilities, use the private reporting route in our
+[security policy](SECURITY.md), rather than a public issue or pull request.
 
 ## Start with a small, clear change
 

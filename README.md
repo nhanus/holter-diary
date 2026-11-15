@@ -125,6 +125,7 @@ call an AI service or send diary entries to an AI provider.
 See [contributor guidance](CONTRIBUTING.md) for bug reports, development and pull
 requests, and our [Code of Conduct](CODE_OF_CONDUCT.md) for respectful participation.
 Use fictional examples; never post real diary data in public issues.
+Report suspected vulnerabilities privately using the [security policy](SECURITY.md).
 
 ## Project history and license
 
