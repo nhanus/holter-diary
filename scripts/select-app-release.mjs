@@ -5,6 +5,7 @@ import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { githubApi } from './release.mjs';
 import { assembleWebsite } from './build-website.mjs';
+import { sbomName, validateSbom, legacyRelease } from './sbom.mjs';
 
 // Website publication consumes an immutable published app; it never rebuilds it.
 export async function selectRelease(root, env, api = githubApi(env.GH_TOKEN), run = execFileSync) {
@@ -19,14 +20,25 @@ export async function selectRelease(root, env, api = githubApi(env.GH_TOKEN), ru
   const dir = resolve(root, '.website-release');
   await rm(dir, { recursive: true, force: true }); await mkdir(dir);
   const archive = `holter-diary-${version}.tar.gz`, names = [archive, 'SHA256SUMS', 'release.json'];
-  for (const name of names) {
+  const download = async name => {
     run('gh', ['release', 'download', tag, '--repo', repo, '--pattern', name, '--dir', dir], { stdio: 'inherit' });
     const digest = 'sha256:' + createHash('sha256').update(await readFile(join(dir, name))).digest('hex');
     if (!release.assets.some(asset => asset.name === name && asset.state === 'uploaded' && asset.digest === digest)) throw new Error('Published asset digest mismatch.');
-  }
+  };
+  for (const name of names) await download(name);
   const manifest = JSON.parse(await readFile(join(dir, 'release.json'), 'utf8'));
   const digest = createHash('sha256').update(await readFile(join(dir, archive))).digest('hex');
-  if (manifest.version !== version || manifest.sourceSha !== ref.object.sha || manifest.archive !== archive || manifest.sha256 !== digest || await readFile(join(dir, 'SHA256SUMS'), 'utf8') !== `${digest}  ${archive}\n`) throw new Error('Selected release identity mismatch.');
+  if (manifest.version !== version || manifest.sourceSha !== ref.object.sha || manifest.archive !== archive || manifest.sha256 !== digest) throw new Error('Selected release identity mismatch.');
+  let sums = `${digest}  ${archive}\n`;
+  if (manifest.sbom) {
+    if (manifest.sbom.file !== sbomName(version)) throw new Error('Unexpected SBOM filename.');
+    await download(manifest.sbom.file);
+    const bytes = await readFile(join(dir, manifest.sbom.file));
+    if (createHash('sha256').update(bytes).digest('hex') !== manifest.sbom.sha256) throw new Error('SBOM checksum mismatch.');
+    validateSbom(JSON.parse(bytes), manifest);
+    sums += `${manifest.sbom.sha256}  ${manifest.sbom.file}\n`;
+  } else if (!legacyRelease(version)) throw new Error('Selected release is missing its SBOM.');
+  if (await readFile(join(dir, 'SHA256SUMS'), 'utf8') !== sums) throw new Error('Selected release checksum mismatch.');
   const paths = execFileSync('tar', ['-tzf', join(dir, archive)], { encoding: 'utf8' }).trim().split('\n');
   if (paths.some(path => !/^\.\/(?:app(?:\/[^\n]*)?|sw\.js|manifest\.webmanifest|\.nojekyll)?$/.test(path) || path.split('/').some(part => part === '..'))) throw new Error('Unexpected archive path.');
   const types = execFileSync('tar', ['-tvzf', join(dir, archive)], { encoding: 'utf8' }).trim().split('\n');
