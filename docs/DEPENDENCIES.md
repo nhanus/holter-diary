@@ -34,11 +34,14 @@ Explicit project scripts and test tools still execute code when invoked.
 
 ## Updates and security fixes
 
-Dependabot proposes weekly npm version updates with a 14-day cooldown. Node type
+Dependabot proposes weekly npm and GitHub Actions version updates with a 14-day
+cooldown. Keep Actions pinned to full commit hashes when accepting updates. Node type
 definitions stay on the runtime major (24); major updates require a coordinated
 runtime review. No update
-is auto-merged. Security-update proposals are not delayed by Dependabot's cooldown
-when GitHub security updates are enabled; our CI still requires the age check or
+is auto-merged. Dependabot alerts and security updates are enabled separately in
+the repository settings; `dependabot.yml` alone does not enable them.
+Security-update proposals are not delayed by Dependabot's cooldown;
+our npm CI still requires the age check or
 an explicitly approved exception. The workflow also runs weekly so newly reported
 vulnerabilities in unchanged dependencies are checked. The audit covers all
 severities and includes development dependencies; a security exception does not
@@ -90,8 +93,45 @@ as a separately pinned toolchain component, before project dependency checks.
 Actions are pinned to commit hashes. The test browser is fetched
 through the installed, reviewed Playwright version rather than an `npx` fallback.
 
+## Maintaining the published app
+
+- Review outstanding alerts, update PRs and scheduled CI results weekly. Triage
+  high/critical or actively exploited vulnerabilities promptly rather than waiting
+  for that routine review. Check the affected version and whether the vulnerable
+  behavior is used in the app, build or tests; development-only does not mean safe.
+  Record evidence for fixes or dismissals, rather than dismissing by severity alone.
+- Maintainers should watch the repository with **Security alerts** included and
+  enable their preferred delivery method in
+  [GitHub notification settings](https://github.com/settings/notifications).
+  Repository settings do not prove that an email arrived. Check the repository's
+  Security tab as well, including alerts for which no automatic fix PR is available.
+- Review the complete dependency or Action diff, retain least-privilege workflow
+  permissions, run CI and obtain independent review. Wait for the completed
+  automated Codex review of the final changes and validate its findings before
+  manually merging. The npm age-exception process above remains mandatory for
+  urgent fixes younger than 14 days; enabling security updates grants no exception.
+- Include Node.js, the pinned npm executable, GitHub Actions and the Playwright
+  browser in maintenance. `.node-version` selects the maintained Node.js 24 line
+  in CI; update local installations too. Dependabot's npm configuration does not
+  update the separate npm executable pin. Action cooldowns do not provide the
+  lockfile's independent CI age validation; review release dates for those updates.
+  GitHub does not generate Dependabot vulnerability alerts for SHA-pinned Actions.
+  Check their upstream security advisories and release notes during the weekly
+  review; version-update PRs alone do not close that monitoring gap.
+- A merge is not a deployed fix. For changes affecting the shipped app, publish a
+  new app version, select that release for the website and deploy through the
+  approved Pages workflow. Verify the published version and update path. Installed
+  offline copies receive fixes only after reconnecting and applying the update.
+  Tooling-only changes do not require a new app version unless they affect the
+  shipped output. Record validation and publication in the associated PR or issue.
+
+The repository's private reporting route is documented in [SECURITY.md](../SECURITY.md).
+These checks detect known problems and reduce exposure; neither a clean audit nor
+the 14-day delay is a guarantee against unknown vulnerabilities or malicious code.
+
 ## References
 
 - [npm configuration](https://docs.npmjs.com/cli/v11/using-npm/config/#min-release-age)
 - [npm install-script controls](https://docs.npmjs.com/cli/v11/using-npm/config/#ignore-scripts)
 - [Dependabot cooldown](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#cooldown)
+- [Monitoring Actions and SHA-pinning limits](https://docs.github.com/en/actions/reference/security/secure-use#monitoring-the-actions-in-your-workflows)
