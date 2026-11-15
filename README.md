@@ -120,6 +120,12 @@ this disclosure is not a claim that the software is error-free.
 AI was used during development. The running diary does not use an AI model,
 call an AI service or send diary entries to an AI provider.
 
+## Contributing
+
+See [contributor guidance](CONTRIBUTING.md) for bug reports, development and pull
+requests, and our [Code of Conduct](CODE_OF_CONDUCT.md) for respectful participation.
+Use fictional examples; never post real diary data in public issues.
+
 ## Project history and license
 
 - [Plan](docs/PLAN.md), [decisions](docs/DECISIONS.md), [validation](docs/VALIDATION.md)
