@@ -314,9 +314,12 @@ function renderDialog(): string {
   if (!modal) return '';
   if (modal === 'edit') return `<dialog id="dialog" class="editor-dialog" aria-labelledby="dialog-title">${composer()}</dialog>`;
   const title: TextKey = modal === 'reset' ? 'resetTitle' : modal === 'settings' ? 'settings' : 'export';
-  return `<dialog id="dialog" class="${modal === 'reset' ? 'confirmation-dialog' : 'screen-dialog'}" aria-labelledby="dialog-title"><div class="dialog-head"><button type="button" class="back-button" id="close-dialog" aria-label="${text('close')}"><span aria-hidden="true">←</span> ${text(modal === 'reset' ? 'cancel' : 'back')}</button><span>${text(title)}</span></div><div class="dialog-body"><h1 id="dialog-title" tabindex="-1">${text(title)}</h1>
+  const draftWarning = modal === 'export' && dirty;
+  return `<dialog id="dialog" class="${modal === 'reset' ? 'confirmation-dialog' : 'screen-dialog'}" aria-labelledby="dialog-title"${draftWarning ? ' aria-describedby="export-draft-warning"' : ''}><div class="dialog-head"><button type="button" class="back-button" id="close-dialog" aria-label="${text('close')}"><span aria-hidden="true">←</span> ${text(modal === 'reset' ? 'cancel' : 'back')}</button><span>${text(title)}</span></div><div class="dialog-body"><h1 id="dialog-title" tabindex="-1">${text(title)}</h1>
     ${feedbackMarkup(true)}${modal === 'settings' ? settingsPanel() : modal === 'reset' ? `<p class="help">${text('resetCount', { count: resetSnapshot!.entries.length })}</p><button id="export-before-reset" class="secondary full" ${!resetSnapshot!.entries.length ? 'disabled' : ''}>${text('export')}</button><button id="confirm-reset" class="danger full">${text('resetAction')}</button>` :
-      `<p class="help">${text('exportSummary', { count: reportEntryCount, date: displayDate(monitorTime(session!.startedAtMs, session!), lang) })}</p><div class="card"><p class="help">${text('exportHelp')}</p><label for="report-language">${text('reportLanguage')}</label>
+      `<p class="help">${text('exportSummary', { count: reportEntryCount, date: displayDate(monitorTime(session!.startedAtMs, session!), lang) })}</p>
+      ${draftWarning ? `<div class="warning export-draft-warning"><p id="export-draft-warning">${text('exportDraftWarning')}</p><button type="button" class="text-button" id="return-export-note">${text('returnNote')}</button></div>` : ''}
+      <div class="card"><p class="help">${text('exportHelp')}</p><label for="report-language">${text('reportLanguage')}</label>
       <select id="report-language"><option value="de" ${reportLanguage === 'de' ? 'selected' : ''}>Deutsch</option><option value="en" ${reportLanguage === 'en' ? 'selected' : ''}>English</option></select>
       <div class="export-actions"><button id="download-pdf" class="primary">${text('pdf')} ${arrow}</button>${reportFile && typeof navigator.share === 'function' && navigator.canShare?.({ files: [reportFile] }) ? `<button id="share-pdf" class="secondary">${text('share')}</button>` : ''}<button id="download-text" class="secondary">${text('text')}</button></div></div>`}</div></dialog>`;
 }
@@ -395,7 +398,7 @@ function bind(): void {
       if (sampleAt !== null) value.calibration = calibrate(sampleAt, reading, value.clock);
       const permission = persistenceStatus(true);
       session = (await store.startSession(value)).value; entries = []; sampleAt = null; reading = ''; openSections.clear(); freshDraft();
-      persistence = await permission; notify('saved');
+      persistence = await permission; notify('diaryStarted');
     });
   });
   document.querySelector<HTMLTextAreaElement>('#note')?.addEventListener('input', event => { touchDraft(); draft!.note = (event.target as HTMLTextAreaElement).value; message = undefined; refreshFeedback(); });
@@ -438,11 +441,12 @@ function bind(): void {
   on('settings', () => openSettings());
   on('offline-action', () => { openSettings(); const details = document.querySelector<HTMLDetailsElement>('#storage-settings'); if (details) { details.open = true; details.scrollIntoView({ block: 'start' }); } });
   on('export', openExport);
-  on('close-dialog', closeDialog);
+  on('close-dialog', () => closeDialog());
+  on('return-export-note', () => closeDialog('note'));
   document.querySelector('#dialog')?.addEventListener('cancel', event => { event.preventDefault(); closeDialog(); });
   on('check-storage', () => void checkStorage());
   on('retry-offline', () => void offline.start());
-  on('return-note', closeDialog);
+  on('return-note', () => closeDialog());
   on('apply-update', () => { if (busy || hasUnsavedChanges()) { refreshStatus(); return; } offline.applyUpdate(); });
   on('reset-clock', () => { sampleAt = null; reading = 'reset'; render('reset-clock'); });
   document.querySelector('#settings-form')?.addEventListener('submit', event => {
@@ -523,13 +527,13 @@ async function updateSession(value: Session): Promise<void> {
   if (suspendedDraft) { suspendedDraft.revision = session.revision; if (!suspendedDraft.invalid) suspendedDraft.timeInput = undefined; }
   if (pendingMarker?.entry.sessionId === session.id) pendingMarker.revision = session.revision;
 }
-function closeDialog(): void {
+function closeDialog(focusTarget = dialogTrigger): void {
   if (busy || offline.updateStatus === 'applying') return;
   if (settingsDirty() && !confirm(t('discardSettings'))) return;
   if (modal === 'edit') { if (!discardAllowed()) return; finishEdit(); }
   else if (modal === 'reset') { openSettings(); return; }
   else { if (modal === 'settings' && session) { sampleAt = null; reading = ''; } modal = null; }
-  message = undefined; render(dialogTrigger);
+  message = undefined; render(focusTarget);
 }
 async function saveMarker(): Promise<void> {
   if (!pendingMarker) return;

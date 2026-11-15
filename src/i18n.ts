@@ -14,8 +14,9 @@ export const en = {
   markerDetails: 'Add details', markedAt: 'Symptom time {time} saved.',
   resetCount: 'This deletes the current diary and its {count} entries from this device. Download your report first.',
   resetAction: 'Delete diary and start again', resetTitle: 'Start a new diary?',
-  optionalSetup: 'You can start now and add these details later.', newDiaryTitle: 'Your Holter diary',
+  optionalSetup: 'You can start now and add these details later.', newDiaryTitle: 'Your Holter diary', diaryStarted: 'Diary started.',
   exportSummary: '{count} entries · started {date}',
+  exportDraftWarning: 'You have an unsaved entry. Save it first to include it in the report.',
   offlineDisconnected: 'No internet · ready to use offline', offlineAction: 'Open offline setup',
 
 
@@ -83,8 +84,9 @@ export const de: Record<TextKey, string> = {
   markerDetails: 'Details ergänzen', markedAt: 'Beschwerdezeit {time} gespeichert.',
   resetCount: 'Dabei werden das aktuelle Tagebuch und seine {count} Einträge von diesem Gerät gelöscht. Lade vorher dein Protokoll herunter.',
   resetAction: 'Tagebuch löschen und neu beginnen', resetTitle: 'Neues Tagebuch beginnen?',
-  optionalSetup: 'Du kannst sofort beginnen und diese Angaben später ergänzen.', newDiaryTitle: 'Dein EKG-Tagebuch',
+  optionalSetup: 'Du kannst sofort beginnen und diese Angaben später ergänzen.', newDiaryTitle: 'Dein EKG-Tagebuch', diaryStarted: 'Tagebuch begonnen',
   exportSummary: '{count} Einträge · begonnen am {date}',
+  exportDraftWarning: 'Du hast einen ungespeicherten Eintrag. Speichere ihn zuerst, damit er im Protokoll erscheint.',
   offlineDisconnected: 'Ohne Internet · Offline-Nutzung bereit', offlineAction: 'Offline-Einrichtung öffnen',
 
 
