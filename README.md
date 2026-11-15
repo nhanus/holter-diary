@@ -10,6 +10,8 @@ See [development transparency](#development-transparency).
 
 **Status: beta.** See [releases](https://github.com/nhanus/holter-diary/releases)
 for available versions and changes.
+Future releases include a versioned CycloneDX [software bill of materials](docs/DEPLOYMENT.md#software-bill-of-materials-sbom)
+for their locked production dependencies. Historical beta.1–beta.5 assets remain unchanged.
 
 ## Quick start
 

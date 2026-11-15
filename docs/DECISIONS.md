@@ -689,3 +689,17 @@ The script serves it temporarily on loopback port 4178, checks the selected vers
 creates two fictional entries through the UI and captures both languages.
 Versioned image names make missing captures visible in website tests when the
 selected release changes. Images belong only to the website, outside app caches.
+
+## 2026-11-15 — Release-bound production dependency inventory
+
+Use native npm CycloneDX generation from the reviewed lockfile, omitting development
+tools and volatile metadata. This avoids another generator dependency and keeps
+draft-upload retries deterministic. Bind the inventory to the app version, source
+commit, lockfile and exact tested archive; verify both asset hashes before publication
+and website selection. Keep the five historical beta releases immutable with an
+explicit compatibility list. No application version bump or deployment is needed
+for this release-pipeline change; future new releases require the fourth asset.
+
+Describe the inventory as production dependencies rather than claiming a byte-level
+scan of tree-shaken output. It complements dependency audits, does not replace them,
+and stays outside the installed app's offline assets.
