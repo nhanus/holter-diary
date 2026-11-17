@@ -19,6 +19,13 @@ for (const lang of ['de', 'en']) {
     await shortcut.focus(); await page.keyboard.press('Enter');
     await expect(update).toHaveJSProperty('open', true);
     await expect(page.locator('.faq-group details')).toHaveCount(16);
+    const topics = page.getByRole('navigation', { name: lang === 'de' ? 'Auf dieser Seite' : 'On this page' });
+    await expect(topics.getByRole('link')).toHaveCount(3);
+    await topics.getByRole('link', { name: lang === 'de' ? 'Daten & Protokoll' : 'Data & reports' }).click();
+    await expect(page).toHaveURL(/#faq-data$/);
+    await expect(page.locator('#faq-data #question-15')).toBeVisible();
+    await shortcut.click();
+    await expect(page).toHaveURL(/#question-10$/);
     for (let i = 1; i <= 16; i++) await expect(page.locator(`#question-${i}`)).toHaveCount(1);
     await page.evaluate(() => { document.querySelectorAll('details').forEach(el => { el.open = true; }); });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

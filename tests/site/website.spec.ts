@@ -7,24 +7,29 @@ test('the bilingual landing page, guide and FAQ link together on narrow phones',
   };
 
   await page.goto('./');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Dein Tag.\s*Gut festgehalten\./);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tagebuch fürs Langzeit-EKG');
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-  await expect(page.getByRole('link', { name: 'App öffnen' })).toHaveAttribute('href', './app/?lang=de');
+  const openApp = page.getByRole('link', { name: 'App öffnen' });
+  await expect(openApp).toHaveCount(2);
+  for (const link of await openApp.all()) await expect(link).toHaveAttribute('href', './app/?lang=de');
   await noOverflow();
 
   await page.getByRole('link', { name: 'EN', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Your day.\s*Clearly recorded\./);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('A diary for your Holter monitor');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await noOverflow();
-  // Both website languages must load the captured UI, including full-size access.
+  // Both website languages show the same fictional entry in linked full-size images.
   for (const lang of ['de', 'en']) {
     await page.goto(`./?lang=${lang}`);
-    const screenshot = page.locator('.phone img');
-    await expect(screenshot).toHaveAttribute('src', new RegExp(`/diary-${lang}-[0-9].*\\.png$`));
-    await expect(screenshot).toHaveAttribute('alt', /.+/);
-    await expect.poll(() => screenshot.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth === 786 && img.naturalHeight === 2000)).toBe(true);
-    const path = await screenshot.getAttribute('src');
-    await expect(page.locator('.app-stage figcaption a')).toHaveAttribute('href', path!);
+    await expect(page.locator('.example figcaption')).toContainText('10:24');
+    for (const [kind, width, height] of [['diary', 786, 2000], ['report', 1191, 1684]] as const) {
+      const screenshot = page.locator(`.${kind}-crop img`);
+      await expect(screenshot).toHaveAttribute('src', new RegExp(`/${kind}-${lang}-[0-9].*\\.png$`));
+      await expect(screenshot).toHaveAttribute('alt', /10:24/);
+      await expect.poll(() => screenshot.evaluate((img: HTMLImageElement) =>
+        img.complete ? [img.naturalWidth, img.naturalHeight] : [])).toEqual([width, height]);
+      await expect(screenshot.locator('xpath=ancestor::a')).toHaveAttribute('href', (await screenshot.getAttribute('src'))!);
+    }
     await noOverflow();
   }
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Guide' }).click();
@@ -59,7 +64,7 @@ test('only the diary exposes install metadata and it adopts and saves the websit
   await page.goto('./?lang=en');
   await expect(page.locator('link[rel="manifest"]')).toHaveCount(0);
   expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
-  await page.getByRole('link', { name: 'Open app' }).click();
+  await page.locator('.hero').getByRole('link', { name: 'Open app' }).click();
   await expect(page).toHaveURL(/\/app\/$/);
   await expect(page.getByRole('button', { name: 'Start my diary' })).toBeVisible();
   await page.goto('./app/');
@@ -127,7 +132,7 @@ test('an offline old root launch preserves diary records, and documentation alwa
   }
 
   for (const [path, title] of [
-    ['./', /Dein Tag./],
+    ['./', 'Tagebuch fürs Langzeit-EKG'],
     ['./guide/', 'In wenigen Schritten startklar.'],
     ['./faq/', 'Gut zu wissen.'],
   ] as const) {

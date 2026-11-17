@@ -138,7 +138,10 @@ To release a change:
 2. Add reviewed English notes in `releases/VERSION.md`. Keep them suitable for
    public release and describe any pending device acceptance.
    To serve this version on the website, also update `website/app-release.json`
-   and its required versioned screenshots in that PR.
+   and its versioned diary and sample-report images in that PR. After building
+   the selected app, run `node scripts/capture-website.mjs` and check both
+   languages on the landing page. The script exports reports from a temporary
+   diary with fictional entries and saves only the rendered images.
 3. Merge after review and CI. The successful **main push** CI packages its tested
    `dist/` once, then automatically creates tag `vVERSION` at that exact commit.
    It uploads the app archive, a versioned CycloneDX SBOM, `SHA256SUMS` and
