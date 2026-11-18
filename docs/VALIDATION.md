@@ -227,11 +227,10 @@ gestures are browser/device behavior and are not claimed as emulated validation.
 
 ## Website captures of the selected app
 
-The DE/EN landing-page images were captured from the unchanged published
-0.1.0-beta.5 app using a fresh Chromium profile and fictional entries. Visually
-check actual button order and labels against the captures. Website tests check
-both images load, full-size links, text alternatives and no horizontal overflow
-at 320px. The image itself has fixed text sizes; the full-size link provides a
-larger view. Release assembly tests verify website image copying
-and unchanged app bytes. Desktop captures do not establish physical-device
-keyboard or installation behavior.
+The DE/EN landing page shows the same fictional 10:24 entry in the selected app
+and in its PDF export. The capture script uses a fresh Chromium profile for each
+language. Visually verify that the crops show the entry and the highlighted
+report row when updating the captures. Website tests exercise image loading,
+full-size links, text alternatives and reflow at 320px in both languages. Release
+assembly tests verify website image copying and unchanged app bytes. Desktop
+captures do not establish physical-device keyboard or installation behavior.

@@ -3,57 +3,53 @@ const de = {
   skip: 'Zum Inhalt',
   language: 'Sprache',
   open: 'App öffnen',
-  guide: 'So funktioniert’s',
-  eyebrow: 'Für dein Langzeit-EKG',
-  hero: 'Dein Tag. <br>Gut festgehalten.',
-  intro: 'Was hast du gerade gemacht? Wann hast du etwas gespürt? Halte es kurz fest – und nimm ein übersichtliches Protokoll mit in die Praxis.',
-  scope: 'Ein Tagebuch für deine Beobachtungen. Die App zeichnet kein EKG auf und wertet keine EKG-Signale aus.',
+  guide: 'Zur Anleitung',
+  hero: 'Tagebuch fürs Langzeit-EKG',
+  intro: 'Halte Aktivitäten und Beschwerden mit Uhrzeit fest und nimm dein Protokoll als PDF oder Text mit in die Praxis.',
+  scope: 'Die App zeichnet kein EKG auf und wertet keine EKG-Signale aus.',
   beta: 'Vorabversion __APP_RELEASE_VERSION__',
-  benefits: ['Ohne Benutzerkonto', 'Offline nach Einrichtung', 'PDF & Text zum Mitnehmen'],
-  sample: 'Beispielansicht mit erfundenen Einträgen',
-  phoneSample: 'Aktuelle App · erfundene Einträge',
-  enlarge: 'Ansicht vergrößern',
-  screenDescription: 'Tagebuch: Protokoll rechts oben, Notizfeld mit Beschwerden-Häkchen und Speichern; darunter Beschwerden jetzt und die Einträge.',
-  sampleActivity: 'Spaziergang, etwa 20 Minuten',
-  sampleSymptom: 'Treppe gestiegen, kurz Herzstolpern',
-  time: 'Uhrzeit',
-  observation: 'Notiz / Beobachtung',
-  report: 'Protokoll zum Langzeit-EKG',
-  reportSub: 'Aktivitäten und Beschwerden · Beispiel',
-  flowEyebrow: 'Wenige Schritte. Mehr Überblick.',
-  flowTitle: 'Kurz notieren. <br>Später nachvollziehen.',
+  benefits: ['Einträge bleiben im Browser', 'Ohne Konto', 'Offline nach Einrichtung'],
+  exampleTitle: 'Vom Eintrag zum Protokoll',
+  sample: 'Fiktives Beispiel um 10:24 Uhr: Treppe gestiegen, kurz Herzstolpern.',
+  appSample: 'Im Tagebuch',
+  reportSample: 'Im PDF-Export',
+  enlargeApp: 'Ganze App-Ansicht',
+  enlargeReport: 'Ganzes Protokoll',
+  screenDescription: 'Die Tagebuchansicht zeigt eine Beschwerdemarkierung um 10:24 Uhr.',
+  reportDescription: 'Im exportierten Protokoll steht dieselbe Beschwerdemarkierung in einer hervorgehobenen Zeile um 10:24 Uhr.',
+  flowTitle: 'So funktioniert das Tagebuch',
   steps: [
     ['01', 'Den Moment festhalten', 'Eine Notiz eingeben und speichern. Oder mit „Beschwerden jetzt“ sofort die Uhrzeit markieren.'],
     ['02', 'Bei Bedarf ergänzen', 'Details später hinzufügen oder einen Eintrag korrigieren. Name, Geburtsdatum und ein EKG-Zeitabgleich sind freiwillig.'],
     ['03', 'Das Protokoll mitnehmen', 'PDF oder Text herunterladen. Das PDF öffnest und druckst du anschließend mit deinem Handy.'],
   ],
-  reportEyebrow: 'Für den Termin',
-  reportTitle: 'Dein Tag wird <br>ein klares Protokoll.',
+  reportTitle: 'Ein Protokoll für die Praxis',
   reportBody: 'Aktivitäten und markierte Beschwerden erscheinen mit Datum und Uhrzeit. Bei einer abweichenden EKG-Uhrzeit zeigt das Protokoll beide Zeiten nebeneinander.',
   reportExtra: 'Wenn angegeben, stehen Name und Geburtsdatum auf jeder PDF-Seite. Auch längere Protokolle werden auf mehrere Seiten verteilt.',
-  privacyEyebrow: 'Einfach gehalten',
+  exportHelp: 'So exportierst du dein Protokoll',
   privacyTitle: 'Deine Notizen bleiben bei dir.',
   privacyBody: 'Die App speichert das Tagebuch lokal im verwendeten Browser. Sie überträgt deine Einträge nicht an einen Server. Es gibt kein Benutzerkonto und keine automatische Synchronisierung.',
   privacyLink: 'Was bedeutet das für meine Daten?',
+  startTitle: 'Dein Tagebuch öffnen',
   guideTitle: 'In wenigen Schritten startklar.',
   guideIntro: 'Vom ersten Öffnen bis zum Protokoll für die Praxis.',
   guideSide: 'Auf dieser Seite',
-  guideParts: ['Öffnen & installieren', 'Offline-Bereitschaft prüfen', 'Tagebuch beginnen', 'Notizen & Beschwerden', 'Export & Updates'],
+  guideParts: ['Browser & Installation', 'Offline-Bereitschaft prüfen', 'Tagebuch beginnen', 'Notizen & Beschwerden', 'Export & Updates'],
   guideContent: [
-    ['Öffnen und installieren', 'Wähle unten die Anleitung für dein Handy. Installiere zuerst die App und beginne danach dein Tagebuch.', 'Die installierte App öffnet direkt das Tagebuch. Projektseite, Anleitung und FAQ findest du hier auf der Website. Du kannst die App auch im Browser verwenden.'],
+    ['Im Browser starten', 'Du kannst das Tagebuch direkt im Browser verwenden.'],
     ['Einmal online einrichten', 'Öffne die App zunächst mit Internet. Unter „Einstellungen → Offline & Speicherung“ muss „Für Offline-Nutzung bereit“ stehen, bevor du dich auf die Offline-Nutzung verlässt.', '„Dauerhaften Speicher prüfen“ ist eine eigene Prüfung. Der Browser entscheidet über die Freigabe. Installieren und erneutes Prüfen kann helfen, garantiert sie aber nicht.'],
     ['Tagebuch beginnen', 'Tippe auf „Tagebuch beginnen“. Name und Geburtsdatum sind optional und helfen bei der Zuordnung des Berichts. Du kannst sie später unter „Angaben fürs Protokoll“ ergänzen.', 'Nur wenn der EKG-Monitor eine andere Zeit zeigt, ist ein Zeitabgleich nötig. Eine Korrektur gilt für die dargestellten Zeiten aller Einträge. Ohne Abweichung reicht die Handyzeit.'],
     ['Notieren oder den Moment markieren', 'Schreibe kurz auf, was du gemacht hast, und tippe auf „Speichern“. Die Uhrzeit wird automatisch gesetzt und bleibt beim Schreiben fest. Über „Zeit ändern“ kannst du einen Zeitpunkt korrigieren.', '„Beschwerden jetzt“ speichert sofort eine Markierung mit Uhrzeit. Details kannst du danach ergänzen. Eine noch nicht gespeicherte Notiz ist kein dauerhaft gesicherter Eintrag.'],
     ['Exportieren und aktuell bleiben', 'Öffne „Protokoll“, wähle Deutsch oder Englisch und lade PDF oder Text herunter. Die Auswahl ändert die Beschriftungen im Bericht; deine Notizen werden nicht übersetzt. Das Drucken übernimmt der PDF-Betrachter deines Handys.', 'Ein Update erkennst du am Symbol bei „Einstellungen“. Unter „App-Updates“ findest du die installierte Version und „Jetzt aktualisieren“, sobald ein Update bereitsteht. Ungespeicherte Eingaben müssen vorher abgeschlossen werden.']
   ],
-  installTitle: 'Installation für dein Handy',
+  installTitle: 'Optional auf dem Handy installieren',
   installLabels: ['Android', 'iPhone · Safari'],
   installSteps: [
     ['Öffne das Tagebuch über „App öffnen“ in einem Browser, zum Beispiel Chrome.', 'Öffne das Browsermenü (meist drei Punkte). Wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.', 'Bestätige die Installation. Die Bezeichnungen können je nach Browser abweichen.'],
     ['Öffne das Tagebuch über „App öffnen“ in Safari.', 'Tippe auf „Teilen“: das Quadrat mit dem Pfeil nach oben. Je nach Safari-Ansicht findest du „Teilen“ im Seitenmenü.', 'Scrolle in der Liste nach unten und wähle „Zu Home-Bildschirm hinzufügen“.', 'Falls „Als Web-App öffnen“ angezeigt wird, aktiviere es. Tippe auf „Hinzufügen“.']
   ],
   iphoneInstallTip: 'Fehlt „Zu Home-Bildschirm hinzufügen“? Scrolle im Teilen-Menü ganz nach unten und schau unter „Aktionen bearbeiten“ nach.',
-  installAfter: 'Starte Holter Diary danach über das neue Symbol auf deinem Home- oder Startbildschirm – zunächst mit Internet. Prüfe anschließend die Offline-Bereitschaft wie in Schritt 2 beschrieben.',
+  installAfter: 'Öffne Holter Diary danach über das neue Symbol auf deinem Startbildschirm. Bleib dabei online und prüfe die Offline-Bereitschaft in Schritt 2.',
   cautionTitle: 'Bevor du neu beginnst',
   caution: '„Neues Tagebuch beginnen“ löscht nach deiner Bestätigung das bisherige Tagebuch. Lade vorher ein Protokoll herunter, wenn du es behalten möchtest.',
   faqTitle: 'Gut zu wissen.',
@@ -104,57 +100,53 @@ const en = {
   skip: 'Skip to content',
   language: 'Language',
   open: 'Open app',
-  guide: 'How it works',
-  eyebrow: 'For your Holter recording',
-  hero: 'Your day. <br>Clearly recorded.',
-  intro: 'What were you doing? When did you notice something? Make a quick note and bring a clear diary report to your appointment.',
-  scope: 'A diary for your observations. The app does not record an ECG or interpret ECG signals.',
+  guide: 'Read the guide',
+  hero: 'A diary for your Holter monitor',
+  intro: 'Record when activities and symptoms happened and take a PDF or text report to your appointment.',
+  scope: 'The app does not record an ECG or interpret ECG signals.',
   beta: 'Pre-release version __APP_RELEASE_VERSION__',
-  benefits: ['No account needed', 'Offline after setup', 'PDF & text to take with you'],
-  sample: 'Example view with fictional entries',
-  phoneSample: 'Current app · fictional entries',
-  enlarge: 'Enlarge view',
-  screenDescription: 'Diary: Report at the top right, note field with Symptoms checkbox and Save; Symptoms now and entries below.',
-  sampleActivity: 'A walk, about 20 minutes',
-  sampleSymptom: 'Climbed stairs, briefly noticed palpitations',
-  time: 'Time',
-  observation: 'Note / observation',
-  report: 'Holter diary report',
-  reportSub: 'Activities and symptoms · Example',
-  flowEyebrow: 'A few steps. A clearer picture.',
-  flowTitle: 'A quick note. <br>A useful record.',
+  benefits: ['Entries stay in your browser', 'No account needed', 'Offline after setup'],
+  exampleTitle: 'From diary entry to report',
+  sample: 'Fictional example at 10:24: climbed stairs, briefly noticed palpitations.',
+  appSample: 'In the diary',
+  reportSample: 'In the PDF export',
+  enlargeApp: 'Full app view',
+  enlargeReport: 'Full report',
+  screenDescription: 'The diary shows a symptom marker at 10:24.',
+  reportDescription: 'The exported report shows the same symptom marker in a highlighted row at 10:24.',
+  flowTitle: 'How the diary works',
   steps: [
     ['01', 'Capture the moment', 'Write a note and save it. Or tap “Symptoms now” to mark the time immediately.'],
     ['02', 'Add details when needed', 'Add details later or correct an entry. Your name, date of birth and a recorder-clock comparison are optional.'],
     ['03', 'Take your report with you', 'Download a PDF or text file. Open and print the PDF using your phone’s viewer.'],
   ],
-  reportEyebrow: 'For your appointment',
-  reportTitle: 'Turn your day <br>into a clear report.',
+  reportTitle: 'A report for your appointment',
   reportBody: 'Activities and marked symptoms appear with their date and time. If the ECG recorder’s clock differs, the report shows both times side by side.',
   reportExtra: 'If provided, your name and date of birth appear on every PDF page. Longer diaries are spread across multiple pages.',
-  privacyEyebrow: 'Kept simple',
+  exportHelp: 'How to export your report',
   privacyTitle: 'Your notes stay with you.',
   privacyBody: 'The app stores your diary locally in the browser you use. It does not send diary entries to a server. There is no account and no automatic sync.',
   privacyLink: 'What does this mean for my data?',
+  startTitle: 'Open your diary',
   guideTitle: 'Ready in a few steps.',
   guideIntro: 'From opening the app to taking a report to your appointment.',
   guideSide: 'On this page',
-  guideParts: ['Open & install', 'Check offline readiness', 'Start a diary', 'Notes & symptoms', 'Export & updates'],
+  guideParts: ['Browser & installation', 'Check offline readiness', 'Start a diary', 'Notes & symptoms', 'Export & updates'],
   guideContent: [
-    ['Open and install', 'Choose the instructions for your phone below. Install the app first, then start your diary.', 'The installed app opens directly to the diary. You’ll find the project page, guide and FAQ here on the website. You can also use the app in your browser.'],
+    ['Start in your browser', 'You can use the diary directly in your browser.'],
     ['Set up once while online', 'First open the app with an internet connection. Under “Settings → Offline & storage”, wait for “Ready to use offline” before relying on offline use.', '“Check persistent storage” is a separate check. The browser decides whether to grant it. Installing the app and checking again may help, but is not a guarantee.'],
     ['Start a diary', 'Tap “Start my diary”. Your name and date of birth are optional and help identify your report. You can add them later under “Report details”.', 'Only compare clocks if the ECG recorder shows a different time. A correction applies to the displayed times of all entries. If the clocks agree, phone time is enough.'],
     ['Write a note or mark the moment', 'Briefly describe what you were doing, then tap “Save”. The time is set automatically and stays fixed while you type. Use “Change time” to correct an entry’s time.', '“Symptoms now” immediately saves a time marker. You can add details afterwards. An unsaved note is not a durably saved entry.'],
     ['Export and stay up to date', 'Open “Report”, choose German or English, and download a PDF or text file. This changes report labels; your notes are not translated. Your phone’s PDF viewer handles printing.', 'An icon beside “Settings” indicates an available update. “App updates” shows your installed version and “Update now” when an update is ready. Finish any unsaved input first.']
   ],
-  installTitle: 'Installation for your phone',
+  installTitle: 'Optional phone installation',
   installLabels: ['Android', 'iPhone · Safari'],
   installSteps: [
     ['Use “Open app” to open the diary in a browser, such as Chrome.', 'Open the browser menu (usually three dots). Choose “Install app” or “Add to Home screen”.', 'Confirm installation. The wording may differ between browsers.'],
     ['Use “Open app” to open the diary in Safari.', 'Tap “Share”: the square with an upward arrow. Depending on your Safari layout, “Share” is in the page menu.', 'Scroll down the list and choose “Add to Home Screen”.', 'If “Open as Web App” appears, turn it on. Tap “Add”.']
   ],
   iphoneInstallTip: 'Missing “Add to Home Screen”? Scroll to the bottom of the Share menu and look under “Edit Actions”.',
-  installAfter: 'Then launch Holter Diary using its new Home Screen icon while connected to the internet. Check offline readiness as described in step 2.',
+  installAfter: 'Then open Holter Diary using its new home screen icon. Stay online and check offline readiness in step 2.',
   cautionTitle: 'Before starting again',
   caution: '“Start a new diary” deletes the previous diary after you confirm. Download a report first if you want to keep it.',
   faqTitle: 'Good to know.',
@@ -227,32 +219,26 @@ const logo = `<svg viewBox="0 0 40 32" fill="none" aria-hidden="true">
 </svg><span>holter<span class="light"> diary</span></span>`;
 const arrow = '<span aria-hidden="true">↗</span>';
 
-function examplePhone() {
-  const image = `${root}screenshots/diary-${lang}-__APP_RELEASE_VERSION__.png`;
-  return `<div class="phone">
-    <img src="${image}" width="393" height="1000" alt="${t.screenDescription}" fetchpriority="high">
-  </div>`;
-}
-
-function exampleReport() {
-  return `<div class="paper">
-    <div class="paper-top"><span>HOLTER DIARY</span><span>01 / 01</span></div>
-    <h3>${t.report}</h3>
-    <p>${t.reportSub}</p>
-    <div class="report-date">14.11.2026</div>
-    <table>
-      <thead><tr><th>${t.time}</th><th>${t.observation}</th></tr></thead>
-      <tbody>
-        <tr><td>09:10</td><td>${t.sampleActivity}</td></tr>
-        <tr class="report-mark">
-          <td>10:24</td>
-          <td><b>${lang === 'de' ? 'Beschwerden' : 'Symptoms'}</b><br>${t.sampleSymptom}</td>
-        </tr>
-        <tr><td>12:30</td><td>${lang === 'de' ? 'Mittagessen, danach ausgeruht' : 'Lunch, followed by a rest'}</td></tr>
-      </tbody>
-    </table>
-    <div class="paper-foot">Holter Diary · ${lang === 'de' ? 'Beispielprotokoll' : 'Example report'}</div>
-  </div>`;
+function example() {
+  const images = [
+    { type: 'diary', label: t.appSample, link: t.enlargeApp, alt: t.screenDescription, width: 786, height: 2000 },
+    { type: 'report', label: t.reportSample, link: t.enlargeReport, alt: t.reportDescription, width: 1191, height: 1684 },
+  ];
+  return `<figure class="example">
+    <figcaption>
+      <strong>${t.exampleTitle}</strong>
+      <p>${t.sample}</p>
+    </figcaption>
+    ${images.map(({type, label, link, alt, width, height}) => {
+      const image = `${root}screenshots/${type}-${lang}-__APP_RELEASE_VERSION__.png`;
+      return `<a class="example-link" href="${image}" aria-label="${link}">
+        <span class="example-label"><strong>${label}</strong><span>${link} ${arrow}</span></span>
+        <span class="example-crop ${type}-crop">
+          <img src="${image}" alt="${alt}" width="${width}" height="${height}">
+        </span>
+      </a>`;
+    }).join('')}
+  </figure>`;
 }
 
 function openApp() {
@@ -262,27 +248,24 @@ function openApp() {
 function home() {
   return `<section class="hero wrap">
     <div class="hero-copy">
-      <p class="eyebrow">${t.eyebrow}</p>
       <h1>${t.hero}</h1>
       <p class="intro">${t.intro}</p>
       <div class="hero-actions">
         ${openApp()}
         <a class="text-link" href="${url('guide/')}">${t.guide} <span aria-hidden="true">→</span></a>
       </div>
+      <ul class="benefits" role="list">
+        ${t.benefits.map(benefit => `<li><span class="check" aria-hidden="true">✓</span>${benefit}</li>`).join('')}
+      </ul>
+    </div>
+    ${example()}
+    <div class="hero-meta">
       <p class="scope">${t.scope}</p>
       <span class="version">${t.beta}</span>
     </div>
-    <figure class="app-stage">
-      <div class="stage-orbit" aria-hidden="true"></div>
-      ${examplePhone()}
-      <figcaption>${t.phoneSample}<br><a href="${root}screenshots/diary-${lang}-__APP_RELEASE_VERSION__.png">${t.enlarge}</a></figcaption>
-    </figure>
   </section>
-  <div class="benefit-bar wrap">
-    ${t.benefits.map(benefit => `<span><span class="check" aria-hidden="true">✓</span>${benefit}</span>`).join('')}
-  </div>
   <section class="flow wrap">
-    <div><p class="eyebrow">${t.flowEyebrow}</p><h2>${t.flowTitle}</h2></div>
+    <h2>${t.flowTitle}</h2>
     <ol class="flow-list">
       ${t.steps.map(([number, title, text]) => `
         <li><span class="step-number">${number}</span><div><h3>${title}</h3><p>${text}</p></div></li>
@@ -291,13 +274,11 @@ function home() {
   </section>
   <section class="report-section">
     <div class="wrap report-layout">
-      <figure>${exampleReport()}<figcaption>${t.sample}</figcaption></figure>
+      <h2>${t.reportTitle}</h2>
       <div>
-        <p class="eyebrow">${t.reportEyebrow}</p>
-        <h2>${t.reportTitle}</h2>
         <p>${t.reportBody}</p>
         <p>${t.reportExtra}</p>
-        <a class="text-link" href="${url('guide/', '#step-5')}">${t.guide} <span aria-hidden="true">→</span></a>
+        <a class="text-link" href="${url('guide/', '#step-5')}">${t.exportHelp} <span aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
@@ -309,25 +290,41 @@ function home() {
       </svg>
     </div>
     <div>
-      <p class="eyebrow">${t.privacyEyebrow}</p>
       <h2>${t.privacyTitle}</h2>
       <p>${t.privacyBody}</p>
       <a class="text-link" href="${url('faq/', '#question-5')}">${t.privacyLink} <span aria-hidden="true">→</span></a>
     </div>
+  </section>
+  <section class="bottom-cta wrap">
+    <h2>${t.startTitle}</h2>
+    ${openApp()}
   </section>`;
+}
+
+const platforms = ['android', 'iphone'];
+const disclosureIcon = '<span class="disclosure-icon" aria-hidden="true"></span>';
+
+function installLinks() {
+  return `<nav class="install-links" aria-label="${t.installTitle}">
+    ${platforms.map((platform, index) => {
+      const hash = '#install-' + platform;
+      return `<a class="text-link" href="${page === 'guide' ? hash : url('guide/', hash)}">${t.installLabels[index]}</a>`;
+    }).join('')}
+  </nav>`;
 }
 
 function guide() {
   const install = `${openApp()}
-    <nav class="install-links" aria-label="${t.installTitle}">
-      ${t.installLabels.map((label, index) => `<a class="text-link" href="#install-${index === 0 ? 'android' : 'iphone'}">${label}</a>`).join('')}
-    </nav>
-    ${t.installSteps.map((steps, index) => `<section class="install-platform" id="install-${index === 0 ? 'android' : 'iphone'}" aria-labelledby="install-heading-${index}">
-      <h3 id="install-heading-${index}">${t.installLabels[index]}</h3>
-      <ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>
-      ${index === 1 ? `<p>${t.iphoneInstallTip}</p>` : ''}
-    </section>`).join('')}
-    <p class="install-after">${t.installAfter}</p>`;
+    <div class="install-options">
+      <h3>${t.installTitle}</h3>
+      ${installLinks()}
+      ${t.installSteps.map((steps, index) => `<section class="install-platform" id="install-${platforms[index]}" aria-labelledby="install-title-${platforms[index]}">
+        <h4 id="install-title-${platforms[index]}">${t.installLabels[index]}</h4>
+        <ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>
+        ${platforms[index] === 'iphone' ? `<p>${t.iphoneInstallTip}</p>` : ''}
+      </section>`).join('')}
+      <p class="install-after">${t.installAfter}</p>
+    </div>`;
 
   return `<div class="wrap">
     <header class="content-heading">
@@ -351,7 +348,7 @@ function guide() {
             <h2>${title}</h2>
             <p>${text}</p>
             ${index === 0 ? install : ''}
-            <div class="guide-note">${note}</div>
+            ${note ? `<div class="guide-note">${note}</div>` : ''}
             ${index === 4 ? `<a class="text-link" href="${url('faq/', '#question-10')}">${t.updateHelpLink} ${arrow}</a>` : ''}
           </section>
         `).join('')}
@@ -366,22 +363,27 @@ function guide() {
 }
 
 function faq() {
+  const topics = ['start', 'notes', 'data'];
+  const questionsByTopic = [[0, 2, 1, 9, 10, 3], [11, 12, 13], [4, 5, 6, 14, 7, 15, 8]];
   return `<div class="wrap">
     <header class="content-heading">
       <p class="eyebrow">${t.nav[2]}</p>
       <h1>${t.faqTitle}</h1>
       <p class="intro">${t.faqIntro}</p>
       <a class="text-link" href="#question-10">${t.updateHelpLink} ${arrow}</a>
+      <nav class="faq-topics" aria-label="${t.guideSide}">
+        ${topics.map((topic, index) => `<a href="#faq-${topic}">${t.faqGroups[index]}</a>`).join('')}
+      </nav>
     </header>
     <div class="faq-layout">
-      ${[[0, 2, 1, 9, 10, 3], [11, 12, 13], [4, 5, 6, 14, 7, 15, 8]].map((questions, group) => `
-        <section class="faq-group">
+      ${questionsByTopic.map((questions, group) => `
+        <section class="faq-group" id="faq-${topics[group]}">
           <h2>${t.faqGroups[group]}</h2>
           <div>
             ${questions.map(index => { const [question, answer, steps, note] = t.faqs[index]; return `
               <details id="question-${index + 1}">
-                <summary>${question}<span aria-hidden="true">+</span></summary>
-                <div class="faq-answer"><p>${answer}</p>${index === 2 ? `<nav class="install-links" aria-label="${t.installTitle}">${t.installLabels.map((label, i) => `<a class="text-link" href="${url('guide/', i === 0 ? '#install-android' : '#install-iphone')}">${label}</a>`).join('')}</nav>` : ''}${steps ? `<ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>` : ''}${note ? `<p>${note}</p>` : ''}</div>
+                <summary>${question}${disclosureIcon}</summary>
+                <div class="faq-answer"><p>${answer}</p>${index === 2 ? installLinks() : ''}${steps ? `<ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>` : ''}${note ? `<p>${note}</p>` : ''}</div>
               </details>
             `; }).join('')}
           </div>
