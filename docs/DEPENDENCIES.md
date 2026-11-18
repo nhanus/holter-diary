@@ -44,8 +44,8 @@ Security-update proposals are not delayed by Dependabot's cooldown;
 our npm CI still requires the age check or
 an explicitly approved exception. The workflow also runs weekly so newly reported
 vulnerabilities in unchanged dependencies are checked. The audit covers all
-severities and includes development dependencies; a security exception does not
-suppress the audit.
+severities and includes development dependencies. An age exception does not
+change the audit result.
 
 For an ordinary update, prepare the lockfile without executing install scripts:
 
@@ -81,7 +81,7 @@ The JSON file records the exception; the checker cannot authenticate human
 approval. Approval is a maintainer-review requirement, not a self-declared boolean
 or permission for an agent to approve its own exception. An exception applies to
 no other version and becomes unnecessary once that release reaches 14 days.
-Remove it during subsequent maintenance. Currently no exceptions are granted.
+Remove it during subsequent maintenance. Currently no age exceptions are granted.
 
 Node.js, the npm executable, GitHub Actions and the explicitly downloaded test
 browser are separate toolchain components. This npm lockfile policy does not
@@ -92,6 +92,24 @@ release-age checks and disabled install scripts. The npm executable is installed
 as a separately pinned toolchain component, before project dependency checks.
 Actions are pinned to commit hashes. The test browser is fetched
 through the installed, reviewed Playwright version rather than an `npx` fallback.
+
+## Temporary picomatch audit exception
+
+The maintainer approved a temporary exception on 2026-11-17 for
+[GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) in
+`picomatch@4.0.7`. This version is confined to Vite and its build dependencies
+in the reviewed lockfile. The advisory concerns denial of service in the Node.js
+toolchain. The production lockfile inventory excludes these packages, and a
+production-only audit found no vulnerabilities at the time of review. CI still
+executes build tooling, so the exception accepts a limited build-time risk
+while the upstream fix is pending.
+
+`npm run audit:dependencies` is the shared gate for CI and `npm run deps:install`.
+It prints the full npm audit report and accepts only this advisory and its
+three inherited findings on the reviewed development dependency versions and
+paths. Other findings, incomplete reports, registry errors and scope changes
+remain blocking. The exception expires at 00:00 UTC on 2026-12-01. Remove it
+when a fixed version passes the audit. The package age policy still applies.
 
 ## Maintaining the published app
 

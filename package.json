@@ -23,8 +23,8 @@
     "test:app": "npm run build && playwright test --config playwright.app.config.ts",
     "check:dependencies": "node scripts/check-dependency-policy.mjs",
     "test:policy": "node --test tests/policy/*.test.mjs",
-    "deps:install": "node scripts/check-dependency-policy.mjs && npm audit --package-lock-only --audit-level=low && npm ci --ignore-scripts",
-    "audit:dependencies": "npm audit --package-lock-only --audit-level=low",
+    "deps:install": "node scripts/check-dependency-policy.mjs && npm run audit:dependencies && npm ci --ignore-scripts",
+    "audit:dependencies": "node scripts/audit-dependencies.mjs",
     "test:release": "node --test tests/release/*.test.mjs",
     "build:site": "node scripts/build-website.mjs",
     "test:site": "npm run build:site && playwright test --config playwright.site.config.ts"

@@ -3,7 +3,7 @@
 ## Current automated checks
 
 - `npm run deps:install` verifies the publication age and identity of every locked package, audits known vulnerabilities, and installs without lifecycle scripts.
-- `npm run test:policy`: 11 dependency-free tests of the 14-day boundary, exact exceptions, registry/identity failures, optional dependencies and alternate lockfile rejection. CI runs these and the policy/audit checks before installing.
+- `npm run test:policy` checks the 14-day boundary, exact exceptions, registry and identity failures, optional dependencies and alternate lockfile rejection. It also checks the audit exception scope, expiry and rejection of incomplete reports. CI runs these tests and both dependency checks before installing.
 - `npm run check` type-checks the source.
 - `npm run test:unit` tests the time model and storage-permission outcomes.
 - `npm run build` produces app assets for `/holter-diary/app/` and root compatibility files.
