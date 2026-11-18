@@ -304,18 +304,26 @@ function home() {
 const platforms = ['android', 'iphone'];
 const disclosureIcon = '<span class="disclosure-icon" aria-hidden="true"></span>';
 
+function installLinks() {
+  return `<nav class="install-links" aria-label="${t.installTitle}">
+    ${platforms.map((platform, index) => {
+      const hash = '#install-' + platform;
+      return `<a class="text-link" href="${page === 'guide' ? hash : url('guide/', hash)}">${t.installLabels[index]}</a>`;
+    }).join('')}
+  </nav>`;
+}
+
 function guide() {
   const install = `${openApp()}
     <div class="install-options">
       <h3>${t.installTitle}</h3>
-      ${t.installSteps.map((steps, index) => `<details class="install-platform" id="install-${platforms[index]}">
-        <summary>${t.installLabels[index]}${disclosureIcon}</summary>
-        <div class="install-steps">
-          <ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>
-          ${platforms[index] === 'iphone' ? `<p>${t.iphoneInstallTip}</p>` : ''}
-          <p>${t.installAfter}</p>
-        </div>
-      </details>`).join('')}
+      ${installLinks()}
+      ${t.installSteps.map((steps, index) => `<section class="install-platform" id="install-${platforms[index]}" aria-labelledby="install-title-${platforms[index]}">
+        <h4 id="install-title-${platforms[index]}">${t.installLabels[index]}</h4>
+        <ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>
+        ${platforms[index] === 'iphone' ? `<p>${t.iphoneInstallTip}</p>` : ''}
+      </section>`).join('')}
+      <p class="install-after">${t.installAfter}</p>
     </div>`;
 
   return `<div class="wrap">
@@ -375,7 +383,7 @@ function faq() {
             ${questions.map(index => { const [question, answer, steps, note] = t.faqs[index]; return `
               <details id="question-${index + 1}">
                 <summary>${question}${disclosureIcon}</summary>
-                <div class="faq-answer"><p>${answer}</p>${index === 2 ? `<nav class="install-links" aria-label="${t.installTitle}">${t.installLabels.map((label, i) => `<a class="text-link" href="${url('guide/', '#install-' + platforms[i])}">${label}</a>`).join('')}</nav>` : ''}${steps ? `<ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>` : ''}${note ? `<p>${note}</p>` : ''}</div>
+                <div class="faq-answer"><p>${answer}</p>${index === 2 ? installLinks() : ''}${steps ? `<ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>` : ''}${note ? `<p>${note}</p>` : ''}</div>
               </details>
             `; }).join('')}
           </div>

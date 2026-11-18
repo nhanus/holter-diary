@@ -652,38 +652,39 @@ footer {
 }
 
 .install-options h3 {
-  margin-bottom: 10px;
   font-size: 1rem;
   letter-spacing: 0;
+}
+
+.install-options .install-links {
+  margin-block: 4px 8px;
 }
 
 .install-platform {
   border: 1px solid #bdcdbd;
   border-radius: 8px;
-  margin-top: 8px;
+  margin-top: 12px;
+  padding: 16px;
   scroll-margin-top: 20px;
 }
 
-.install-platform summary {
-  border-radius: 8px;
-  padding: 11px 16px;
+.install-platform h4 {
+  margin: 0 0 10px;
+  font-size: 1.0625rem;
 }
 
-.install-steps {
-  padding: 0 16px 16px;
-}
-
-.install-steps ol {
+.install-platform ol {
   margin: 0;
   padding-inline-start: 1.4em;
 }
 
-.install-steps li + li,
-.guide-step .install-steps p {
-  margin-top: 12px;
+.install-platform li + li {
+  margin-top: 8px;
 }
 
-.guide-step .install-steps p {
+.guide-step .install-platform p,
+.guide-step .install-after {
+  margin-top: 12px;
   font-size: 1rem;
 }
 
@@ -770,26 +771,21 @@ footer {
   scroll-margin-top: 20px;
 }
 
-.faq-group summary, .install-platform summary {
+.faq-group summary {
   list-style: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 14px;
   cursor: pointer;
-  min-height: 44px;
+  min-height: 64px;
   line-height: 1.45;
   font-weight: 600;
-}
-
-.faq-group summary {
   padding: 20px 0;
   font-size: 1.0625rem;
-  min-height: 64px;
 }
 
-.faq-group summary::-webkit-details-marker,
-.install-platform summary::-webkit-details-marker {
+.faq-group summary::-webkit-details-marker {
   display: none;
 }
 
