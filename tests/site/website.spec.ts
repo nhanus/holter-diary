@@ -169,6 +169,8 @@ test('first visits follow the browser while only explicit language choices persi
       await page.goto(baseURL! + '?lang=invalid');
       await expect(page.locator('html')).toHaveAttribute('lang', expected);
       await page.getByRole('link', { name: 'DE', exact: true }).click();
+      await expect(page).toHaveURL(baseURL! + '?lang=de');
+      await expect.poll(() => page.evaluate(() => localStorage.getItem('holter-diary:website-language'))).toBe('de');
       await page.goto(baseURL!);
       await expect(page.locator('html')).toHaveAttribute('lang', 'de');
       const returning = await context.newPage(); await returning.goto(baseURL! + 'faq/');
